@@ -26,7 +26,7 @@
             const next=await updateQueue(owner,q.key,{status:'confirmed',receipt:response},false);clearLegacy(q);if(current(owner,epoch))S.data.queue=next.queue;
           }catch(e){if(!current(owner,epoch))return;const next=await updateQueue(owner,q.key,{status:ambiguous(e)?'uncertain':'blocked',message:e.message});if(current(owner,epoch))S.data.queue=next.queue;throw e;}
         }
-        if(current(owner,epoch)){S.online=true;if(!queue().some(q=>q.status!=='confirmed'))notice('All device entries were confirmed.');await refresh();}
+        if(current(owner,epoch)){S.online=true;if(!queue().some(q=>q.status!=='confirmed'))notice('All device entries were confirmed.');await Promise.all([refresh(),window.WorkingStanding379?.refresh()]);}
       }catch(e){if(!current(owner,epoch))return;if(denied(e))await revoke(e);else{S.online=false;notice('Pending entries are kept with their original save references. '+e.message,true);}}
     };
     try{if(navigator.locks)await navigator.locks.request('ojm-phone-sync:'+key(owner),{},run);else await run();}

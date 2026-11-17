@@ -1785,6 +1785,10 @@
     ],
     "scripts/staff-entry14225.js": [
       {
+        "source": "src/subusers/accounts/staff-journal-view.js",
+        "suffix": "\n"
+      },
+      {
         "source": "src/subusers/accounts/working-standing379.js",
         "suffix": "\n"
       },
@@ -2065,6 +2069,10 @@
         "source": "src/shared/presentation/focused-v1422.js",
         "prefix": "/* scripts/focused-v1422.js */\n",
         "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/subusers/accounts/staff-journal-view.js",
+        "suffix": "\n"
       },
       {
         "source": "src/subusers/accounts/working-standing379.js",

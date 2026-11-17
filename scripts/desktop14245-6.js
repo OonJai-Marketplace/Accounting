@@ -143,6 +143,34 @@ window.loadTransactionAudit=async function(...args){await cleanResetCache();retu
 })();
 
 ;
+/* The assigned ledger RPC calculates balances in posting order. Reverse only the finished rows. */
+window.StaffJournalView=(()=>{
+  const descending=(a,b)=>String(b||'').localeCompare(String(a||''));
+  function newestLine(a,b){
+    return descending(a.transaction_date,b.transaction_date)||descending(a.created_at,b.created_at)||
+      Number(b.line_no||0)-Number(a.line_no||0)||descending(a.id,b.id);
+  }
+  function newestReport(a,b){
+    const date=r=>r.approved_at||r.reviewed_at||r.submitted_at||r.updated_at||r.created_at||r.period_start;
+    return descending(date(a),date(b))||descending(a.id||a.journal_id,b.id||b.journal_id);
+  }
+  function balance(value,format){
+    return Number(value)<0?'('+format(Math.abs(value))+')':format(Number(value)||0);
+  }
+  async function ledgerPeriod(read,owner,account,period){
+    let rows=[],data;
+    do{
+      data=await read({p_owner:owner,p_account:account,p_from:period.from,p_to:period.to,p_offset:rows.length});
+      if(!data?.accounts?.some(a=>a.id===account))throw Error('This ledger account is no longer assigned.');
+      if(!Array.isArray(data.rows))throw Error('The ledger rows were incomplete.');
+      rows.push(...data.rows);
+    }while(data.rows.length===500);
+    if(new Set(rows.map(r=>r.id)).size!==rows.length)throw Error('The ledger changed while loading. Refresh the ledger.');
+    return {...period,rows:rows.reverse(),opening:data.opening,closing:data.closing};
+  }
+  return {newestLine,newestReport,balance,ledgerPeriod};
+})();
+
 /* Only the visible workspace listens for changes. The revision contains no amounts. */
 window.WorkingStanding379=(()=>{
  'use strict';
@@ -150,26 +178,59 @@ window.WorkingStanding379=(()=>{
  const cents=n=>Math.round(Number(n||0)*100);
  let active=null;
  function projected(data,requests){
-  const rows=new Map(data.accounts.map(a=>[a.id,{...a,available:cents(a.opening)+cents(a.received),out:cents(a.used)}]));
-  const seen=new Set(),replaced=new Set();
-  function apply(id,change){const a=rows.get(id);if(a){a.available+=Math.max(change,0);a.out+=Math.max(-change,0)}}
+  const rows=new Map(data.accounts.map(a=>[a.id,{...a,available:cents(a.opening)+cents(a.received),out:cents(a.used),pending:[]}]));
+  const seen=new Set(),replaced=new Set(),stages={draft:'Unsubmitted',returned:'Returned',submitted:'Submitted',approved:'Approved'};
+  for(const line of data.lines){
+   const row=rows.get(line.account);
+   if(row&&stages[line.status]&&line.counted!==false&&cents(line.amount)){
+    row.pending.push({...line,transaction_date:line.date,delta:cents(line.amount),label:stages[line.status]});
+   }
+  }
   for(const p of requests){
    if(!p?.p_key||seen.has(p.p_key))continue;
    seen.add(p.p_key);
    if(data.lines.some(l=>l.group?.startsWith(p.p_key+':')))continue;
    for(const l of data.lines){
-    if(!p.p_edit_ids?.includes(l.id)||replaced.has(l.id+'/'+l.account))continue;
+    if(!p.p_edit_ids?.includes(l.id)||replaced.has(l.id+'/'+l.account)||l.counted===false)continue;
     replaced.add(l.id+'/'+l.account);
-    const a=rows.get(l.account);if(a){a.available-=Math.max(cents(l.amount),0);a.out-=Math.max(-cents(l.amount),0)}
+    const a=rows.get(l.account);
+    if(a){
+     a.available-=Math.max(cents(l.amount),0);a.out-=Math.max(-cents(l.amount),0);
+     a.pending=a.pending.filter(item=>item.id!==l.id);
+    }
    }
-   for(const l of p.p_items||[]){
+   for(const [index,l] of (p.p_items||[]).entries()){
+    if(l.fund===l.account)continue;
     const n=cents(l.amount)*(l.direction==='in'?1:-1);
     for(const [id,delta] of [[l.fund,n],[l.account,-n]]){
-     const a=rows.get(id);if(a&&l.date<=data.asOf&&(!a.start||l.date>a.start))apply(id,delta);
+     const a=rows.get(id);
+     if(!a||!delta||l.date>data.asOf||(a.start?l.date<=a.start:l.date<data.asOf.slice(0,4)+'-01-01'))continue;
+     a.available+=Math.max(delta,0);a.out+=Math.max(-delta,0);
+     a.pending.push({id:p.p_key+':'+index,transaction_date:l.date,line_no:index+1,created_at:p.savedAt||'',
+      memo:l.memo,delta,label:['attention','blocked'].includes(p.deviceStatus)?'Device save · Needs attention':'Saved on device'});
     }
    }
   }
   return [...rows.values()];
+ }
+ function breakdown(a,amount,date){
+  const net=a.available-a.out;
+  let unsubmitted=0,submitted=0;
+  for(const item of a.pending){
+   if(item.label==='Submitted'||item.label==='Approved')submitted+=item.delta;
+   else unsubmitted+=item.delta;
+  }
+  const base=net-unsubmitted-submitted;
+  let html='<dl class="fund-breakdown"><dt>Before pending entries</dt><dd>'+amount(base)+'</dd>'+
+   '<dt>Submitted, awaiting posting</dt><dd>'+amount(submitted)+'</dd><dt>Unsubmitted, including device saves</dt><dd>'+amount(unsubmitted)+'</dd></dl>';
+  if(!a.pending.length)return html;
+  let running=net;
+  const details=a.pending.sort(StaffJournalView.newestLine).map(item=>{
+   const after=running;running-=item.delta;
+   return '<li><div><b>'+escape(item.memo||item.label)+'</b><small>'+escape(date(item.transaction_date))+' · '+escape(item.label)+'</small></div>'+
+    '<div><b>'+amount(item.delta)+'</b><small>Remaining '+amount(after)+'</small></div></li>';
+  }).join('');
+  return html+'<details data-fund-detail="'+escape(a.id)+'"><summary>Pending journal lines ('+a.pending.length+')</summary><ul class="fund-pending">'+details+'</ul></details>';
  }
  function panel(s){
   const host=s.host();if(!host||!s.current())return;
@@ -178,15 +239,16 @@ window.WorkingStanding379=(()=>{
   if(s.data){
    const rows=projected(s.data,s.queue());
    html+='<div class="personal-metrics1437">'+rows.map(a=>{
-    const amount=n=>escape(s.money(n/100,a.currency));
-    return '<article class="card currency-coded14231" data-currency-code="'+escape(a.currency)+'"><small>'+escape(a.name)+'</small><strong>'+amount(a.available-a.out)+'</strong><p>Available '+amount(a.available)+' · Paid or handed over '+amount(a.out)+'</p>'+
+    const amount=n=>escape(StaffJournalView.balance(n,x=>s.money(x/100,a.currency)));
+    return '<article class="card currency-coded14231" data-currency-code="'+escape(a.currency)+'"><small>'+escape(a.name)+'</small><strong>'+amount(a.available-a.out)+'</strong><p>Opening and receipts '+amount(a.available)+' · Paid or handed over '+amount(a.out)+'</p>'+
+      (s.data.detailVersion?breakdown(a,amount,s.date):'')+
       (a.settledThrough&&a.settled?'<p>Carried forward '+amount(cents(a.opening))+' · Handed over by '+escape(s.date(a.settledThrough))+' '+amount(cents(a.settled))+'</p>':'')+'</article>';
    }).join('')+'</div>';
    if(!rows.length)html+='<p>No tracked accounts are assigned.</p>';
   }else html+='<p role="status">'+(s.failed?'Balance unavailable.':'Loading balances…')+'</p>';
   if(s.failed&&s.data)html+='<small>Showing the last downloaded balance.</small>';
   if(s.failed)html+='<button type="button" class="je-btn je-btn-secondary" data-standing-retry>Refresh balance</button>';
-  if(host._standingHtml!==html){host.innerHTML=html;host._standingHtml=html;const retry=host.querySelector('[data-standing-retry]');if(retry)retry.onclick=()=>refresh(s)}
+  if(host._standingHtml!==html){const open=new Set([...(s.lastHost||host).querySelectorAll('[data-fund-detail][open]')].map(el=>el.dataset.fundDetail));host.innerHTML=html;host._standingHtml=html;s.lastHost=host;for(const el of host.querySelectorAll('[data-fund-detail]'))el.open=open.has(el.dataset.fundDetail);const retry=host.querySelector('[data-standing-retry]');if(retry)retry.onclick=()=>refresh(s)}
  }
  async function refresh(s){
   if(active!==s)return;
@@ -1784,7 +1846,7 @@ function label(){if(!card)return;const button=$('btnPostJournal'),sub=card.query
  else{sub.textContent='Currency follows the selected account.';button.textContent=JournalModule.editingEntryId?'Update Entry':'Post Entry';updateNextEntryIdDisplay()}
 }
 function rowsFor(id){const s=state(id);return journals(id).filter(j=>(j.status==='draft'||j.status==='returned'&&j.id===s.correction)).flatMap(j=>(j.lines||[]).filter(l=>!l.voided_at&&l.status!=='voided').map(l=>({...l,batch_status:j.status})));}
-function groupsFor(id){if(cashbook(id))return rowsFor(id).sort((a,b)=>String(a.transaction_date).slice(0,7).localeCompare(String(b.transaction_date).slice(0,7))||Number(a.line_no)-Number(b.line_no)||String(a.id).localeCompare(String(b.id))).map(l=>[l]);const groups=new Map();for(const l of rowsFor(id)){const k=JSON.stringify([l.editor_group1437||l.id,l.transaction_date]);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(l)}return [...groups.values()].sort((a,b)=>Number(b[0].batch_status==='returned')-Number(a[0].batch_status==='returned')||String(b[0].transaction_date).localeCompare(String(a[0].transaction_date))||String(b[0].created_at||'').localeCompare(String(a[0].created_at||'')));}
+function groupsFor(id){if(cashbook(id))return rowsFor(id).sort(StaffJournalView.newestLine).map(l=>[l]);const groups=new Map();for(const l of rowsFor(id)){const k=JSON.stringify([l.editor_group1437||l.id,l.transaction_date]);if(!groups.has(k))groups.set(k,[]);groups.get(k).push(l)}return [...groups.values()].sort((a,b)=>StaffJournalView.newestLine(a[0],b[0]));}
 function amount(v){return formatAppNumber(Number(v)||0)}
 function validSnapshot(group){
  const d=group[0]?.editor_snapshot1437;if(!Array.isArray(d?.components1437))return null;
@@ -1828,23 +1890,23 @@ function startStanding(id){
  if(!current()||document.hidden)return;
  WorkingStanding379.open({actor,owner:id,client,current,cashier:String(subUserPermission(user(id))?.job_title||'').trim().toLowerCase()==='cashier',
   host:()=>root.querySelector('[data-standing379]'),date:formatAppDate,money:(n,c)=>amount(n)+' '+c,
-  queue:()=>[...(window.offline14239?.queue()||[]).filter(j=>j.status!=='synced'),...(window.saveNotices14234?.staffPending(id)||[])].map(j=>j.payload).filter(p=>p?.p_owner===id),
+  queue:()=>[...(window.offline14239?.queue()||[]).filter(j=>j.status!=='synced'),...(window.saveNotices14234?.staffPending(id)||[])].filter(j=>j.payload?.p_owner===id).map(j=>({...j.payload,savedAt:j.created||'',deviceStatus:j.status})),
   read:async()=>{const read=async()=>{const r=await client.rpc('workspace_standing379',{p_owner:id});if(r.error)throw r.error;return r.data};return window.offline14239?.freshReads?offline14239.freshReads(read):read()}
  });
 }
 window.addEventListener('standing-visible379',()=>{const root=$('personalWorkspace1437');if(root)startStanding(root.dataset.owner)});
 window.addEventListener('save-state14234',()=>window.WorkingStanding379?.paint());
 function homeHtml(id){
- return `<section class="personal-home1437"><div data-standing379></div><div class="personal-shortcuts1437">${[['journal','Post Entry','Record a transaction'],['summary','Summary','Funds and account totals'],['history','History','Completed reports']].map(([t,n,d])=>`<button data-personal-tab="${t}"><b>${n}</b><span>${d}</span></button>`).join('')}</div><h3>Recent entries</h3>${journals(id).flatMap(j=>(j.lines||[]).map(l=>({...l,status:j.status}))).sort((a,b)=>String(b.transaction_date).localeCompare(String(a.transaction_date))).slice(0,5).map(l=>`<div class="personal-recent1437"><span>${esc(formatAppDate(l.transaction_date))} · ${esc(l.memo)}<small>${esc(l.status)}</small></span><b>${esc(amount(l.amount))} ${esc(l.currency_code)}</b></div>`).join('')||'<p>No saved entries yet.</p>'}</section>`;
+ return `<section class="personal-home1437"><div data-standing379></div><div class="personal-shortcuts1437">${[['journal','Post Entry','Record a transaction'],['summary','Summary','Funds and account totals'],['history','History','Completed reports']].map(([t,n,d])=>`<button data-personal-tab="${t}"><b>${n}</b><span>${d}</span></button>`).join('')}</div><h3>Recent entries</h3>${journals(id).flatMap(j=>(j.lines||[]).map(l=>({...l,status:j.status}))).sort(StaffJournalView.newestLine).slice(0,5).map(l=>`<div class="personal-recent1437"><span>${esc(formatAppDate(l.transaction_date))} · ${esc(l.memo)}<small>${esc(l.status)}</small></span><b>${esc(amount(l.amount))} ${esc(l.currency_code)}</b></div>`).join('')||'<p>No saved entries yet.</p>'}</section>`;
 }
 function historyCard(j){
  if(Object.hasOwn(j,'request_no'))return window.workspaceRecords1437.card(j);
- const rows=j.lines||[];
+ const rows=[...(j.lines||[])].sort(StaffJournalView.newestLine);
  return `<details class="final-record-card" data-record-key="journal:${esc(j.id)}" name="personal-history1437"><summary><span><strong>${esc(window.submissionHistoryIds.report(j)||'REPORT-'+String(j.id).slice(-8))}</strong><small>${esc(String(j.period_start).slice(0,7))} · ${esc(j.status)}</small></span><span class="personal-record-count143105">${rows.length} entries</span><button class="je-btn je-btn-secondary" onclick="v56ToggleRecord(event)">View Book</button></summary><div class="final-record-content"><div class="table-container"><table class="je-table"><thead><tr><th>Entry ID</th><th>Date</th><th>Account</th><th>Description</th><th>Currency</th><th>Amount</th></tr></thead><tbody>${rows.map(l=>`<tr><td>${esc(window.submissionHistoryIds.entry(l)||'—')}</td><td>${esc(formatAppDate(l.transaction_date))}</td><td>${esc(lineAccountName(l))}</td><td>${esc(l.memo)}</td><td>${esc(l.currency_code)}</td><td class="num">${esc(amount(l.amount))}</td></tr>`).join('')}</tbody></table></div>${workspaceAccountSummary(rows)}${editable(j)?'':window.submissionReconciliation14345?.summary(j)||''}${window.v66ReviewMetadata?window.v66ReviewMetadata(j):''}</div></details>`;
 }
 function historyHtml(id){const s=state(id),all=[...journals(id).filter(j=>completed(j)),...(historyExtra.get(key(id))?.client===ojmDb?historyExtra.get(key(id)).rows:[]).filter(j=>!['submitted','returned','draft'].includes(j.status))];
  const date=j=>String(j.period_start||j.submitted_at||j.created_at||'');const years=[...new Set([String(new Date().getFullYear()),...all.map(j=>date(j).slice(0,4))])].filter(Boolean).sort().reverse();
- if(!s.historyPeriodPicked14341)s.historyPeriod14341=historyMonth14341.choose('personal:'+id,all.map(j=>date(j).slice(0,7)));const filtered=all.filter(j=>date(j).startsWith(s.historyPeriod14341)&&(!s.search||JSON.stringify(j).toLowerCase().includes(s.search.toLowerCase())||window.submissionHistoryIds.report(j).toLowerCase().includes(s.search.toLowerCase())||j.lines?.some(line=>window.submissionHistoryIds.entry(line).toLowerCase().includes(s.search.toLowerCase())))).sort((a,b)=>date(b).localeCompare(date(a)));
+ if(!s.historyPeriodPicked14341)s.historyPeriod14341=historyMonth14341.choose('personal:'+id,all.map(j=>date(j).slice(0,7)));const filtered=all.filter(j=>date(j).startsWith(s.historyPeriod14341)&&(!s.search||JSON.stringify(j).toLowerCase().includes(s.search.toLowerCase())||window.submissionHistoryIds.report(j).toLowerCase().includes(s.search.toLowerCase())||j.lines?.some(line=>window.submissionHistoryIds.entry(line).toLowerCase().includes(s.search.toLowerCase())))).sort(StaffJournalView.newestReport);
  const visible=filtered;
  return `<section class="personal-history1437"><header class="history-header14342"><h3>Submission History</h3><div class="archive-month-actions"><input type="search" class="je-input history-search14359" data-history-search aria-label="Search selected month" placeholder="Search this month" value="${esc(s.search)}"><label class="history-month14341"><input type="month" aria-label="History month" data-history-period14341 value="${esc(s.historyPeriod14341)}"></label></div></header><div class="period-summary-grid history-summary14360"><div class="period-summary-card"><span>Completed Reports</span><strong>${filtered.filter(j=>!editable(j)).length}</strong></div></div><div class="personal-history-list1437">${visible.map(j=>`<div data-history-record="${esc(j.id)}">${historyCard(j)}</div>`).join('')||'<p class="period-empty">No completed records match these filters.</p>'}</div></section>`;
 }
@@ -1852,7 +1914,7 @@ function historyHtml(id){const s=state(id),all=[...journals(id).filter(j=>comple
 function paintPanel1437(panel,markup){if(!panel||panel._personalMarkup1437===markup)return;panel._personalMarkup1437=markup;panel.innerHTML=markup;panel.querySelectorAll('.personal-active1437 tbody').forEach(body=>window.JournalEntryMenu14387?.decorate(body,[],true));if(panel.matches('[data-personal-panel=history]'))historyMonth14341.expand(panel);window.savedReports1434?.decorate();window.headerIcons112?.decorate();}
 function summaryRows14331(id){const selected=window.funds113?.selectedMonths(id)||[];return journals(id).filter(editable).flatMap(j=>(j.lines||[]).filter(l=>!l.voided_at&&l.status!=='voided'&&(!selected.length||selected.includes(String(l.transaction_date).slice(0,7)))))}
 function reviewHtml(id){
- const s=state(id),items=[...(s.reviewJournals||journals(id)),...(s.reviewAdjustments||[])].filter(j=>['submitted','returned'].includes(j.status));
+ const s=state(id),items=[...(s.reviewJournals||journals(id)),...(s.reviewAdjustments||[])].filter(j=>['submitted','returned'].includes(j.status)).sort(StaffJournalView.newestReport);
  return '<h3>Review</h3>'+items.map(j=>workspaceRecords1437.card(j)).join('')+
   (s.reviewMessage?'<p role="status">'+esc(s.reviewMessage)+'</p>':items.length?'':'<p class="period-empty">No submissions are awaiting review or returned for correction. Drafts are in Journal. Completed submissions are in History.</p>');
 }
@@ -2889,7 +2951,7 @@ async function load(){const id=liveProfile?.id,db=ojmDb;if(!id)return [];if(load
 const has=id=>owner===liveProfile?.id&&cache.some(r=>r.journal_id===id);
 async function openReport(id){if(!savedReports1434.canPrint())return showCenterStatus('Enable Documents → View and Export / Print in Module Access.',true);const actor=liveProfile?.id,db=ojmDb;try{const r=await db.rpc('approved_report1443',{p_journal:id});if(r.error)throw r.error;if(liveProfile?.id!==actor||ojmDb!==db||!savedReports1434.canPrint())return;return openDocumentEditor105(savedReports1434.model(r.data))}catch(e){if(liveProfile?.id!==actor)return;showCenterStatus('Approved report could not load: '+e.message,true)}}
 async function openFromHistory1443(host,open){await open();if(document.getElementById('document-editor105')?.classList.contains('active'))host.closest('.ui-overlay108')?.resolve108(false)}
-async function history(userId,host,reuse=false){if(!liveProfile)return;const actor=liveProfile.id;if(!host){await ui108.modal('Report History','<div id="reportHistory1443"></div>',undefined,true);return;}host.innerHTML='<p role="status">Loading report history…</p>';try{if(!reuse)await load();if(liveProfile?.id!==actor)return;let rows=cache.filter(r=>!userId||r.owner_id===userId);const frozen=new Set(rows.map(r=>r.journal_id));let legacy=(reviewStaffJournals||[]).filter(j=>(!userId||j.owner_id===userId)&&savedReports1434.approved(j)&&!frozen.has(j.id));const monthOf=r=>String(r.period_start||r.snapshot?.period_start||r.approved_at||'').slice(0,7),key='approved:'+String(userId||'all'),month=historyMonth14341.choose(key,[...rows,...legacy].map(monthOf));rows=rows.filter(r=>monthOf(r)===month);legacy=legacy.filter(r=>monthOf(r)===month);host.innerHTML='<h3>Report History</h3>'+historyMonth14341.control(key,month)+historyMonth14341.summary([['Reviewed Reports',rows.length+legacy.length]])+'<p>Reviewed reports keep their approval and forwarding history. Journal posting is tracked separately.</p>'+rows.map(r=>`<div class="report-history-row1443"><span><strong>${esc(getLiveUserName(r.owner_id))}</strong><small>${r.review_route14229&&!r.review_route14229.final_approved?'Reviewed & forwarded':'Final approved'} ${esc(formatAppDate(r.review_route14229?.steps?.findLast(x=>x.action==='final_approval')?.at||r.approved_at,true))}</small></span><button type="button" class="je-btn je-btn-secondary" data-open-report1443="${esc(r.journal_id)}">Open / Print Report</button></div>`).join('')+legacy.map(j=>`<div class="report-history-row1443"><span>${esc(getLiveUserName(j.owner_id))} · ${esc(String(j.period_start).slice(0,7))}<small>Earlier approved report · saved before snapshot history</small></span><button type="button" class="je-btn je-btn-secondary" data-legacy-report1443="${esc(j.id)}">Open / Print</button></div>`).join('')+(!rows.length&&!legacy.length?'<p>No reviewed reports yet.</p>':'');historyMonth14341.bind(host,key,()=>history(userId,host,true),'local');host.querySelectorAll('[data-open-report1443]').forEach(b=>b.onclick=()=>openFromHistory1443(host,()=>openReport(b.dataset.openReport1443)));host.querySelectorAll('[data-legacy-report1443]').forEach(b=>b.onclick=()=>openFromHistory1443(host,()=>savedReports1434.print(b.dataset.legacyReport1443)))}catch(e){if(liveProfile?.id!==actor)return;host.innerHTML='<p role="alert">Report history could not load. '+esc(e.message)+'. Run setup/INSTALL-FINALIZATION-v142.23.sql if this feature is not installed.</p><button type="button" class="je-btn je-btn-secondary">Retry</button>';host.querySelector('button').onclick=()=>history(userId,host)}}
+async function history(userId,host,reuse=false){if(!liveProfile)return;const actor=liveProfile.id;if(!host){await ui108.modal('Report History','<div id="reportHistory1443"></div>',undefined,true);return;}host.innerHTML='<p role="status">Loading report history…</p>';try{if(!reuse)await load();if(liveProfile?.id!==actor)return;let rows=cache.filter(r=>!userId||r.owner_id===userId);const frozen=new Set(rows.map(r=>r.journal_id));let legacy=(reviewStaffJournals||[]).filter(j=>(!userId||j.owner_id===userId)&&savedReports1434.approved(j)&&!frozen.has(j.id));const monthOf=r=>String(r.period_start||r.snapshot?.period_start||r.approved_at||'').slice(0,7),key='approved:'+String(userId||'all'),month=historyMonth14341.choose(key,[...rows,...legacy].map(monthOf));rows=rows.filter(r=>monthOf(r)===month);legacy=legacy.filter(r=>monthOf(r)===month);host.innerHTML='<h3>Report History</h3>'+historyMonth14341.control(key,month)+historyMonth14341.summary([['Reviewed Reports',rows.length+legacy.length]])+'<p>Reviewed reports keep their approval and forwarding history. Journal posting is tracked separately.</p>'+[...rows.map(r=>({record:r,html:`<div class="report-history-row1443"><span><strong>${esc(getLiveUserName(r.owner_id))}</strong><small>${r.review_route14229&&!r.review_route14229.final_approved?'Reviewed & forwarded':'Final approved'} ${esc(formatAppDate(r.review_route14229?.steps?.findLast(x=>x.action==='final_approval')?.at||r.approved_at,true))}</small></span><button type="button" class="je-btn je-btn-secondary" data-open-report1443="${esc(r.journal_id)}">Open / Print Report</button></div>`})),...legacy.map(j=>({record:j,html:`<div class="report-history-row1443"><span>${esc(getLiveUserName(j.owner_id))} · ${esc(String(j.period_start).slice(0,7))}<small>Earlier approved report · saved before snapshot history</small></span><button type="button" class="je-btn je-btn-secondary" data-legacy-report1443="${esc(j.id)}">Open / Print</button></div>`}))].sort((a,b)=>StaffJournalView.newestReport(a.record,b.record)).map(item=>item.html).join('')+(!rows.length&&!legacy.length?'<p>No reviewed reports yet.</p>':'');historyMonth14341.bind(host,key,()=>history(userId,host,true),'local');host.querySelectorAll('[data-open-report1443]').forEach(b=>b.onclick=()=>openFromHistory1443(host,()=>openReport(b.dataset.openReport1443)));host.querySelectorAll('[data-legacy-report1443]').forEach(b=>b.onclick=()=>openFromHistory1443(host,()=>savedReports1434.print(b.dataset.legacyReport1443)))}catch(e){if(liveProfile?.id!==actor)return;host.innerHTML='<p role="alert">Report history could not load. '+esc(e.message)+'. Run setup/INSTALL-FINALIZATION-v142.23.sql if this feature is not installed.</p><button type="button" class="je-btn je-btn-secondary">Retry</button>';host.querySelector('button').onclick=()=>history(userId,host)}}
 function openHistory(userId){ui108.modal('Report History','<div id="reportHistory1443"></div>',undefined,true);return history(userId,document.getElementById('reportHistory1443'))}
 let approvalBusy=false;
 async function approve(id){

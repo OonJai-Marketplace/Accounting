@@ -1,5 +1,5 @@
 {
-  "version": "143.436",
+  "version": "143.437",
   "changes": [
     "Fund utilization shows dollar and kip amounts in the same cell, with dollars first. Kip payments can be edited directly in Actual spending. The budget comparison and its printout use the same layout."
   ]

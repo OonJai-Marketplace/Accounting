@@ -362,3 +362,12 @@ label.no-print{font-size:11px;color:#627880;font-weight:400;margin:8px 0}#month{
 #postForm.receipt-editor .receipt-card { padding: 6px 8px; }
 
 #postForm .fund-date button { display:flex; align-items:center; gap:5px; width:100%; border:0; background:transparent; color:#174c3b; }
+
+[data-standing379] .fund-breakdown{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;font-size:.85em;margin:9px 0}
+[data-standing379] .fund-breakdown dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
+[data-fund-detail] summary{cursor:pointer;font-weight:600}
+[data-standing379] .fund-pending{list-style:none;padding:0;margin:6px 0}
+[data-standing379] .fund-pending li{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid #dce5df}
+[data-standing379] .fund-pending li>div{min-width:0;overflow-wrap:anywhere}
+[data-standing379] .fund-pending li>div:last-child{text-align:right}
+[data-standing379] .fund-pending small{display:block}
