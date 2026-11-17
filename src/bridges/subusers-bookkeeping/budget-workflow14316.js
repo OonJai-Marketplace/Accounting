@@ -242,7 +242,7 @@ function renderAllocation(){
  toolbar.querySelector('[onclick*="saveAllocation(true)"]').title='Save as read-only in History';
  const save=toolbar.querySelector('[onclick*="saveAllocation(false)"]');
  save.title='Save an editable draft';save.classList.add('fund-save-draft');
- const table='<div class="data-table82"><table class="spending-worksheet"><thead><tr><th>Item / category</th><th>Requested</th><th data-fx>Request equiv.</th><th>Status</th><th>Funded</th><th data-fx>Funded equiv.</th><th>Actual spending</th><th data-fx>Spend equiv.</th><th aria-label="Actions"></th></tr></thead><tbody data-spending-rows></tbody></table></div>';
+ const table='<div class="data-table82"><table class="spending-worksheet"><thead><tr><th>Item / category</th><th>Requested</th><th>Status</th><th>Funded</th><th>Actual spending</th><th aria-label="Actions"></th></tr></thead><tbody data-spending-rows></tbody></table></div>';
  const rowHeader=d.requestId14316?[report.period(d),d.recipient].filter(Boolean).map(esc).join(' · '):'';
  const header='<form id="fundHeader290" data-parent="'+esc(d.requestId14316||'')+'" data-record="'+esc(allocationRecord?.id||'')+'"><div class="fund-report-fields">'+
   field82('Report date','date',d.date,'date','required')+field82('Reference','receiptReference290',d.receiptReference290||'')+
@@ -265,7 +265,7 @@ function renderAllocation(){
  const summary=host.querySelector('[data-summary]'),balance=summary.querySelector('[data-budget-balance]');
  function showBalance(){
   const {currencies,totals}=report.compare(d);
-  balance.textContent=currencies.length?' · Remaining '+currencies.map(c=>c+' '+report.amountText(totals[c].remaining)).join(' / '):'';
+  balance.textContent=currencies.length?' · Remaining '+currencies.map(c=>currencySymbolV6(c)+' '+report.amountText(totals[c].remaining)).join(' / '):'';
  }
  showBalance();
  host.oninput=()=>{summary.open=false;balance.textContent='';};

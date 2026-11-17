@@ -94,21 +94,19 @@ body #budgetFunds290 .spending-worksheet :is(th,td){padding:5px 6px!important;ve
 body #budgetFunds290 .spending-worksheet th{font-size:12px!important;line-height:1.25;text-transform:none!important;letter-spacing:0!important}
 #budgetFunds290 .spending-worksheet :is(th,td):not(:first-child){width:1%}
 body #budgetFunds290 .spending-worksheet td:first-child{overflow-wrap:anywhere}
-body #budgetFunds290 .spending-worksheet :is(th,td):is(:nth-child(2),:nth-child(3),:nth-child(5),:nth-child(6),:nth-child(7),:nth-child(8)){text-align:right!important;font-variant-numeric:tabular-nums}
+body #budgetFunds290 .spending-worksheet :is(th,td):is(:nth-child(2),:nth-child(4),:nth-child(5)){text-align:right!important;font-variant-numeric:tabular-nums}
 body #budgetFunds290 .spending-worksheet td:not(:first-child){white-space:nowrap!important}
-#budgetFunds290 .spending-worksheet td:is([data-request-equiv],[data-funded-equiv],[data-spend-equiv]){color:#35584a;background:#f4f8f5}
-#budgetFunds290 .spending-worksheet:not([data-show-fx]) :is([data-fx],[data-request-equiv],[data-funded-equiv],[data-spend-equiv]),
-#budgetFunds290 .spending-worksheet:not([data-request-fx]) :is(th:nth-child(3),[data-request-equiv]),
-#budgetFunds290 .spending-worksheet:not([data-funded-fx]) :is(th:nth-child(6),[data-funded-equiv]){display:none}
 #budgetFunds290 .spending-worksheet :is(input,select){width:100%;min-width:0;box-sizing:border-box}
-body #budgetFunds290 .spending-worksheet td:nth-child(4) select{width:7.5em!important;padding:3px 4px!important}
+body #budgetFunds290 .spending-worksheet td:nth-child(3) select{width:7.5em!important;padding:3px 4px!important}
 body #budgetFunds290 .spending-worksheet td:last-child button{min-width:0!important;padding:4px 7px!important}
-#budgetFunds290 .spending-worksheet .worksheet-amount{display:flex;gap:4px;align-items:center;min-width:7.2em}
-#budgetFunds290 .worksheet-amount:has([data-spending-currency]){min-width:9.5em}
-#budgetFunds290 .worksheet-amount [data-spending-currency]{flex:0 0 4em}
-#budgetFunds290 .worksheet-amount:has(.money-symbol14231) .worksheet-unit{display:none}
-#budgetFunds290 .worksheet-amount .worksheet-unit{font-size:11px;color:#50655c}
-#budgetFunds290 .worksheet-amount [name=actualAmount]{text-align:right;min-width:0}
+#budgetFunds290 .worksheet-stack{display:grid;gap:4px;min-width:9.5em}
+#budgetFunds290 .worksheet-amount{display:flex;align-items:center;justify-content:flex-end;gap:3px}
+#budgetFunds290 .worksheet-amount .money-field14231{flex:1;min-width:0}
+#budgetFunds290 .worksheet-amount [data-spending-currency]{flex:0 0 3em;padding-inline:2px!important}
+#budgetFunds290 .worksheet-amount:has(.money-symbol14231) .worksheet-unit,
+#budgetFunds290 .worksheet-amount:has([data-spending-currency]) .money-symbol14231{display:none}
+#budgetFunds290 .worksheet-amount input{text-align:right;min-width:0}
+#budgetFunds290 .worksheet-amount[data-equivalent] input::placeholder{color:#486154;opacity:1}
 .spending-worksheet [hidden]{display:none!important}
 @media(max-width:640px){
  #budgetFunds290 .spending-worksheet,#budgetFunds290 .spending-worksheet tbody{display:block}

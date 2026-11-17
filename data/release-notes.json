@@ -1,6 +1,6 @@
 {
-  "version": "143.436",
+  "version": "143.437",
   "changes": [
-    "Sub-user Home shows the remaining fund including saved receipts, with submitted and unsubmitted amounts and each pending line. Journal entries, history and assigned ledgers show the newest activity first. Phone Accounts includes the posted ledger. Negative running balances use parentheses."
+    "Fund utilization shows dollar and kip amounts in the same cell, with dollars first. Kip payments can be edited directly in Actual spending. The budget comparison and its printout use the same layout."
   ]
 }

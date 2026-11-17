@@ -147,6 +147,13 @@ window.BudgetReport290 = (() => {
  function amountText(value){
   return value==null?'Rate needed':money(round(value));
  }
+ function orderedUnits(codes){
+  const native=new Set(codes);
+  return [...new Set(['USD','LAK',...native])].filter(c=>native.has(c));
+ }
+ function amountLines(codes,value){
+  return orderedUnits(codes).map(c=>esc(currencySymbolV6(c))+' '+esc(amountText(value(c)))).join('<br>');
+ }
  function compare(d){
   const spent=(d.movements||[]).filter(m=>kind(m)==='spend');
   const rows=d.lines.map((line,index)=>({line,index,movements:spent.filter(m=>forLine(m,line,index))}));
@@ -154,8 +161,7 @@ window.BudgetReport290 = (() => {
   for(const movement of spent)if(!linked.has(movement))rows.push({movements:[movement]});
   const base=requestCurrency(d);
   for(const row of rows)row.currencies=rowCurrencies(row.line,row.movements,base);
-  const native=new Set(rows.flatMap(row=>row.currencies));
-  const currencies=[...new Set(['USD','LAK',...native])].filter(c=>native.has(c));
+  const currencies=orderedUnits(rows.flatMap(row=>row.currencies));
   function values(row,c){
    const {line,movements}=row;
    const requested=line?valueIn(d,line.amount,line.currency,c):0;
@@ -172,39 +178,30 @@ window.BudgetReport290 = (() => {
   const {rows,currencies,totals}=compare(d);
   const adjusted=rows.some(r=>r.line&&lineFunding(d,r.line,r.index).status!=='approved');
   const measures=[['requested','Requested'],...(adjusted?[['funded','Funded']]:[]),['used','Actual spending'],['remaining',d.fundingByItem?'Funding remaining':'Budget remaining']];
-  function table(codes){
-   const single=codes.length===1;
-   const itemWidth=single?44:adjusted?26:34;
-   const available=(100-itemWidth)/measures.length;
-   const weights=codes.map(code=>code==='LAK'?1.5:1);
-   const weightTotal=weights.reduce((sum,weight)=>sum+weight,0);
-   const widths=weights.map(weight=>available*weight/weightTotal);
-   const col=w=>'<col style="width:'+w+'%">';
-   const cols=col(itemWidth)+measures.map(()=>widths.map(col).join('')).join('');
-   const heading='background-color:#e4eee8;color:#193d30;padding:4px;text-align:right';
-   const head='<tr><th rowspan="2" style="'+heading+';text-align:left">Item / category</th>'+
-    measures.map(([,label])=>'<th colspan="'+codes.length+'" style="'+heading+'">'+label+'</th>').join('')+'</tr><tr>'+
-    measures.map(()=>codes.map(c=>'<th style="'+heading+'">'+esc(c)+'</th>').join('')).join('')+'</tr>';
-   function cells(values,visible,hasRequest,isTotal){
-    return measures.map(([key])=>codes.map(c=>{
-     const value=!visible.includes(c)?'':!hasRequest&&(key==='requested'||key==='funded')?'—':esc(amountText(values[c][key]));
-     return '<td style="text-align:right;vertical-align:top;padding:4px 3px;'+(isTotal?fill:'')+'">'+value+'</td>';
-    }).join('')).join('');
-   }
-   const body=rows.filter(row=>row.currencies.some(c=>codes.includes(c))).map(row=>{
-    const {line,movements}=row,extra=movements[0];
-    const item=line?.description||extra?.destination290||extra?.description290||'Additional spending';
-    const detail=[line?.category||'Additional spending'];
-    if(line&&d.fundingByItem)detail.push(fundingLabels[lineFunding(d,line,row.index).status]);
-    return '<tr><td style="padding:4px 5px;vertical-align:top"><strong>'+esc(item)+'</strong><br><span style="color:#52665b">'+detail.map(esc).join(' · ')+'</span></td>'+
-     cells(row.values,row.currencies,!!line,false)+'</tr>';
+  const itemWidth=adjusted?32:40;
+  const col=w=>'<col style="width:'+w+'%">';
+  const cols=col(itemWidth)+measures.map(()=>col((100-itemWidth)/measures.length)).join('');
+  const heading='background-color:#e4eee8;color:#193d30;padding:4px;text-align:right';
+  const head='<tr><th style="'+heading+';text-align:left">Item / category</th>'+
+   measures.map(([,label])=>'<th style="'+heading+'">'+label+'</th>').join('')+'</tr>';
+  function cells(values,visible,hasRequest,isTotal){
+   return measures.map(([key])=>{
+    const value=!hasRequest&&(key==='requested'||key==='funded')?'—':amountLines(visible,c=>values[c][key]);
+    return '<td style="text-align:right;vertical-align:top;padding:4px 3px;'+(isTotal?fill:'')+'">'+value+'</td>';
    }).join('');
-   return '<div class="data-table82"><table style="width:100%;table-layout:fixed;border-collapse:collapse"><colgroup>'+cols+'</colgroup><thead>'+head+'</thead><tbody>'+body+
-    '<tr><th style="text-align:left;'+fill+'">Report total</th>'+cells(totals,codes,true,true)+'</tr></tbody></table></div>';
   }
-  const tables=currencies.length>2?currencies.map(c=>table([c])).join(''):currencies.length?table(currencies):'<p>No budget items or spending recorded.</p>';
+  const body=rows.map(row=>{
+   const {line,movements}=row,extra=movements[0];
+   const item=line?.description||extra?.destination290||extra?.description290||'Additional spending';
+   const detail=[line?.category||'Additional spending'];
+   if(line&&d.fundingByItem)detail.push(fundingLabels[lineFunding(d,line,row.index).status]);
+   return '<tr><td style="padding:4px 5px;vertical-align:top"><strong>'+esc(item)+'</strong><br><span style="color:#52665b">'+detail.map(esc).join(' · ')+'</span></td>'+
+    cells(row.values,row.currencies,!!line,false)+'</tr>';
+  }).join('');
+  const tables=currencies.length?'<div class="data-table82"><table style="width:100%;table-layout:fixed;border-collapse:collapse"><colgroup>'+cols+'</colgroup><thead>'+head+'</thead><tbody>'+body+
+   '<tr><th style="text-align:left;'+fill+'">Report total</th>'+cells(totals,currencies,true,true)+'</tr></tbody></table></div>':'<p>No budget items or spending recorded.</p>';
   const rate=currencies.includes('USD')&&currencies.includes('LAK')&&reportRate(d,'USD','LAK');
-  const note=currencies.length>1?'<p>Report totals include all items in each currency.'+(rate?' Report exchange rate · LAK '+esc(formatAppRate(rate))+' per USD. Recorded item equivalents take priority.':'')+'</p>':'';
+  const note=currencies.length>1?'<p>Report totals include all items in each currency.'+(rate?' Report exchange rate · ₭ '+esc(formatAppRate(rate))+' for $1. Recorded item equivalents take priority.':'')+'</p>':'';
   return section82('Budget compared with actual spending',tables+note);
  }
  function sizedTable(headers,rows,widths){
@@ -236,5 +233,5 @@ window.BudgetReport290 = (() => {
   const refs=[d.requestDate290?'Request date: '+esc(formatAppDate(d.requestDate290)):'',d.receiptReference290?'Reference: '+esc(d.receiptReference290):'',journalReference?'Utilization journal: '+esc(journalReference):''].filter(Boolean).join(' · ');
   return '<h1 style="text-align:center">'+title+'</h1><p><strong>'+esc(d.purpose)+'</strong></p><p>Budget month: '+esc(period(d))+' · Report date: '+esc(formatAppDate(d.date))+(refs?'<br>'+refs:'')+'</p>'+summary(d)+section82('Receipts, spending and repayments',sizedTable(['Date / activity','Source and destination','Budget item','Amount','Reference'],movements,[15,18,36,16,15]))+section82('Currency conversions',table82(['Date / reference','Source and destination','Exchanged','Received','Rate'],exchanges))+(d.notes?'<p>'+esc(d.notes)+'</p>':'')+signature(d);
  }
- return {title,compare,reportRate,requestCurrency,valueIn,amountText,items,period,layout,recalculate,signature,report,kind,labels,summary,balances,conversionAmount,outstanding,movementRows,movementHeaders,forLine,fundingLabels,fundingKey,lineFunding};
+ return {title,compare,reportRate,requestCurrency,valueIn,amountText,amountLines,orderedUnits,items,period,layout,recalculate,signature,report,kind,labels,summary,balances,conversionAmount,outstanding,movementRows,movementHeaders,forLine,fundingLabels,fundingKey,lineFunding};
 })();
