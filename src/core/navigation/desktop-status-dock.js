@@ -68,6 +68,19 @@
     .watch-scroll{overflow:auto}.watch-body table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
     .watch-body :is(th,td){padding:8px 6px;border-bottom:1px solid #d6dfd8;text-align:right}.watch-body th:first-child{text-align:left;width:35%}.watch-body thead{background:#edf5ee}.watch-body small{display:block;font-weight:normal;color:#53685a}
     .watch-options{max-height:47vh;overflow:auto;margin:8px 0}.watch-options label{display:flex;gap:8px;align-items:center;padding:6px;border-bottom:1px solid #dde5de}.watch-dialog input[type=search]{width:100%;margin-top:8px}.watch-dialog footer{justify-content:flex-end}
+    .fx-dialog.bank-open .account-tools{display:none}
+    .fx-tabs{display:flex;gap:4px;border-bottom:1px solid #ccdace}
+    .fx-tabs button{min-height:34px;padding:4px 12px;background:none;border:0;border-bottom:2px solid transparent;color:#52665b;font-weight:600}
+    .fx-tabs [aria-selected=true]{color:#194c38;border-bottom-color:#20704c;background:#edf5ee;border-radius:5px 5px 0 0}
+    .fx-filters,.fx-source{display:flex;flex-wrap:wrap;align-items:flex-end;gap:8px 12px}
+    .fx-dialog .fx-filters label,.fx-dialog .fx-source label{display:grid;gap:3px;font-size:12px;font-weight:bold}
+    .fx-dialog .fx-filters :is(input,select),.fx-dialog .fx-source input{font:inherit;font-weight:normal;min-height:32px;padding:4px 8px;color:var(--ink);border:1px solid #aec1b3;border-radius:5px;background:white}
+    .fx-source{margin:0 0 12px;padding:12px;border:1px solid #cbdacf;border-radius:7px;background:#f1f6f1}
+    .fx-source label{flex:1 1 220px;min-width:0}.fx-source input{width:100%}.fx-source small:not(:empty){flex-basis:100%;color:#903823}
+    .fx-source [type=submit]{color:white;background:var(--pine);border-color:var(--pine)}
+    .fx-filters a{margin-left:auto;align-self:center;color:#176449;text-underline-offset:3px}
+    .fx-dialog [data-quotes] :is(th,td):nth-child(4){background-color:#edf5ef;font-weight:600}
+    .fx-dialog [data-quotes] td{white-space:nowrap}.fx-dialog [data-quotes] thead th{white-space:nowrap}
     .ledger-stats379{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:8px}.ledger-stats379>div{padding:8px;background:#edf5ee;border-radius:5px}.ledger-stats379 strong{font-variant-numeric:tabular-nums}
     .ledger-matches379{display:grid;max-height:24vh;overflow:auto}.ledger-matches379 button{background:white;border:0;border-bottom:1px solid #d6dfd8;text-align:left;padding:7px}.ledger-detail379 .watch-toolbar h3{margin-right:auto}
     .watch-body .ledger-lines379 :is(th,td):nth-child(-n+3){text-align:left;width:auto}.ledger-lines379 td:nth-child(3){width:40%}.ledger-lines379 td:nth-child(n+4){white-space:nowrap}
