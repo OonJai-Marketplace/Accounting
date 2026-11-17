@@ -33,7 +33,8 @@ const create=require('./phase0-browser-fixture.cjs');
     const box=control.getBoundingClientRect();
     return [input.name,{left:box.left,right:box.right,top:box.top,width:box.width}];
    })));
-   const primary=['date','receiptReference290','purpose','recipient'].map(k=>fields[k]);
+   const primary=['date','receiptReference290','recipient','purpose'].map(k=>fields[k]);
+   assert.deepEqual(await header.locator('label').evaluateAll(labels=>labels.slice(0,4).map(l=>l.firstChild.textContent.trim())),['Report date','Reference','Recipient','Purpose']);
    assert(primary.every(f=>Math.abs(f.top-primary[0].top)<=1),JSON.stringify(fields));
    assert(primary.every((f,i)=>!i||f.left>=primary[i-1].right),JSON.stringify(fields));
    assert(fields.notes.top>primary[0].top);
@@ -45,6 +46,22 @@ const create=require('./phase0-browser-fixture.cjs');
   assert.match(await popup.locator('[data-budget-balance]').innerText(),/74.65.*1,493,000/);
   const comparison=popup.locator('table').filter({hasText:/Funding remaining|Budget remaining/i});
   assert.match(await comparison.innerText(),/Transfer fees/);
+  for(const width of [1280,1024,768]){
+   await page.setViewportSize({width,height:672});
+   const pinned=await popup.evaluate(dialog=>{
+    const body=dialog.querySelector('.ui-body108');
+    const buttons=[...dialog.querySelectorAll('.fund-report-toolbar button:not([hidden])')];
+    body.scrollTop=0;
+    const before=buttons.map(b=>b.getBoundingClientRect().top);
+    body.scrollTop=body.scrollHeight;
+    return {scrolled:body.scrollTop,positions:buttons.map((b,i)=>{
+     const r=b.getBoundingClientRect();
+     return Math.abs(r.top-before[i])<1 && document.elementFromPoint(r.x+r.width/2,r.y+r.height/2)===b;
+    })};
+   });
+   assert(pinned.scrolled>100 && pinned.positions.length===10 && pinned.positions.every(Boolean),JSON.stringify(pinned));
+  }
+  await page.setViewportSize({width:1280,height:900});
   await popup.getByRole('button',{name:'Print / PDF'}).click();
   const signers=page.getByRole('dialog',{name:'Report signatories'});
   await signers.getByRole('button',{name:'Cancel'}).click();

@@ -75,7 +75,7 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),create=require(
  assert.match(await page.locator('#budgetFunds290').innerText(),/Fuel for food delivery/);
  assert.match(await page.locator('#budgetFunds290').innerText(),/USD 75/);
  await page.screenshot({path:'/tmp/workspace312/fund-utilization.png',fullPage:true});
- await popup.getByRole('button',{name:'Save report',exact:true}).click();
+ await popup.getByRole('button',{name:'Save draft',exact:true}).click();
  await page.waitForFunction(()=>Work82.reports.some(r=>r.data.mode==='utilization'));
  assert.equal([...db.values()].filter(r=>r.data.mode==='request').length,1);
  assert(!f.requests.some(r=>/POST .*post_payroll|POST .*post_journal/.test(r)));

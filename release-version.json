@@ -1,1 +1,1 @@
-{"version": "143.429", "changes": ["Budget utilization fits the report date, reference, purpose and recipient on one row where space allows.", "Post Transaction prepares funding received and fund used as balanced summary pairs in one journal entry."]}
+{"version": "143.430", "changes": ["Budget utilization now keeps report actions at the top right while scrolling. Open reports opens the list, Save draft keeps the report editable, and Finalize saves a read-only report.", "Report date, Reference, Recipient and Purpose share a single row in Report details."]}

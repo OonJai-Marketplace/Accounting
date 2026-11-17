@@ -69,13 +69,26 @@ body .budget-request327 [data-pane=details]{grid-template-columns:minmax(0,.8fr)
 
 body .budget-request327 .budget-dialog14313{height:min(660px,calc(100vh - 36px));height:min(660px,calc(100dvh - 36px));box-sizing:border-box}
 .budget-request327 .ui-body108{flex:1}
-.worksheet-header,.worksheet-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.worksheet-header{justify-content:space-between;margin-bottom:14px}
+body .fund-report-layout .ui-dialog108{overflow:hidden!important}
+body .fund-report-layout .ui-dialog108>header{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:start;gap:6px 12px;flex:none}
+.fund-report-layout .ui-dialog108>header>h3{align-self:center}
+.fund-report-layout .ui-dialog108>header>[data-dismiss]{grid-column:3;grid-row:1}
+.fund-report-layout .ui-body108{min-height:0;overflow:auto;overscroll-behavior:contain}
+.fund-report-layout .ui-dialog108>footer:empty{display:none}
+.fund-report-toolbar{display:grid;gap:5px;justify-items:end;min-width:0}
+.fund-report-toolbar>[role=group]{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:5px}
+body.shell113 .fund-report-layout .ui-dialog108>header .fund-report-toolbar button{height:32px;box-sizing:border-box;padding:4px 9px;font-size:12px;line-height:1.2;color:#174c38!important;background:#fffdf7!important;border:1px solid #b6ccbc}
+body.shell113 .fund-report-layout .ui-dialog108>header .fund-save-draft{font-weight:700;background:#e1f5e9!important}
+.fund-report-toolbar [hidden]{display:none!important}
+@media(max-width:850px){
+ body .fund-report-layout .ui-dialog108>header{grid-template-columns:minmax(0,1fr) auto}
+ .fund-report-layout .ui-dialog108>header>[data-dismiss]{grid-column:2}
+ .fund-report-toolbar{grid-row:2;grid-column:1/-1}
+}
+.worksheet-header{margin-bottom:14px}
 .worksheet-header span,.spending-worksheet small{display:block;color:#50655c}
-.worksheet-actions{margin:10px 0}
-footer.worksheet-actions{justify-content:flex-end}
-.worksheet-actions button,.worksheet-header button,.spending-worksheet button,.fund-activity button{min-height:32px}
-footer.worksheet-actions button:last-child,.fund-activity button[type=submit]{background:#145c4a;color:white}
+.spending-worksheet button,.fund-activity button{min-height:32px}
+.fund-activity button[type=submit]{background:#145c4a;color:white}
 #budgetFunds290 .spending-worksheet{width:100%;min-width:0;table-layout:fixed;border-collapse:collapse}
 #budgetFunds290 .spending-worksheet :is(th,td){padding:6px;vertical-align:middle;white-space:normal;overflow-wrap:anywhere}
 .spending-worksheet th{background:#e7efe9}
@@ -108,15 +121,18 @@ footer.worksheet-actions button:last-child,.fund-activity button[type=submit]{ba
  width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box;
 }
 @container (min-width:600px){
- #fundHeader290 .fund-report-fields{grid-template-columns:9rem minmax(10rem,1fr) minmax(9rem,1.6fr) minmax(8rem,.95fr)}
- #fundHeader290 .fund-report-fields:has([name=budgetMonth290]) label:has([name=budgetMonth290]){grid-column:1/-1;width:10rem}
+ #fundHeader290 .fund-report-fields{grid-template-columns:9rem minmax(10rem,1fr) minmax(8rem,.95fr) minmax(9rem,1.6fr)}
+ #fundHeader290 .fund-report-fields:has([name=budgetMonth290]) label:has([name=budgetMonth290]){width:9rem}
+}
+@container (min-width:600px) and (max-width:779.99px){
+ #fundHeader290 .fund-report-fields:has([name=budgetMonth290]) label:has([name=notes]){grid-column:2/-1}
 }
 @container (min-width:780px){
- #fundHeader290 .fund-report-fields:has([name=budgetMonth290]){grid-template-columns:9rem 9rem minmax(10rem,1fr) minmax(9rem,1.6fr) minmax(8rem,.95fr)}
+ #fundHeader290 .fund-report-fields:has([name=budgetMonth290]){grid-template-columns:9rem minmax(10rem,1fr) minmax(8rem,.95fr) minmax(9rem,1.6fr) 9rem}
  #fundHeader290 .fund-report-fields:has([name=budgetMonth290]) label:has([name=budgetMonth290]){grid-column:auto;width:auto}
 }
-@container (max-width:360px){
- #fundHeader290 .fund-report-fields{grid-template-columns:1fr}
+@container (max-width:599.99px){
+ #fundHeader290 .fund-report-fields{grid-template-columns:8rem 9rem 9rem minmax(10rem,1fr);overflow-x:auto}
 }
 .worksheet-details{border-top:1px solid #cad8d2;padding:8px 0}
 .worksheet-details summary{cursor:pointer;font-weight:600}
