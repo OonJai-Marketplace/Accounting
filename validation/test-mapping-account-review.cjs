@@ -23,6 +23,24 @@ const setup=require('./phase0-browser-fixture.cjs');
   assert.equal(calls,0);
   await open.click();
   await dialog.locator('tbody tr').nth(2).waitFor();
+  const originalSize=page.viewportSize();
+  for(const width of [1366,1024,820]){
+   await page.setViewportSize({width,height:900});
+   const bounds=await dialog.evaluate(node=>{
+    const rect=element=>element.getBoundingClientRect();
+    const buttons=[...node.querySelectorAll('header button,header select')].filter(el=>el.offsetWidth);
+    const boxes=buttons.map(rect);
+    const last=boxes[boxes.length-1],filter=boxes[0],panel=rect(node);
+    return {rightGap:innerWidth-panel.right,top:panel.top,
+     toolbarGap:panel.right-last.right,level:Math.abs(last.bottom-filter.bottom),
+     heights:boxes.map(box=>box.height),fits:panel.left>=0&&panel.bottom<=innerHeight};
+   });
+   assert.equal(bounds.rightGap,58,'align the review with the right-hand tools');
+   assert.equal(bounds.top,12);
+   assert.ok(bounds.fits&&bounds.toolbarGap<24&&bounds.level<1,JSON.stringify(bounds));
+   assert.ok(bounds.heights.every(h=>h===32),JSON.stringify(bounds));
+  }
+  await page.setViewportSize(originalSize);
   assert.match(await dialog.innerText(),/1,234.56 LAK CR/);
   assert.match(await dialog.innerText(),/TEST001/);
   await dialog.locator('select').selectOption('Retirement candidate');

@@ -1,6 +1,6 @@
 {
-  "version": "143.426",
+  "version": "143.427",
   "changes": [
-    "Vouchers and receipts use shared print templates. Printing and downloading generate the document from its saved details."
+    "Mapping account review opens on the right. The chart and review actions align in compact toolbars."
   ]
 }

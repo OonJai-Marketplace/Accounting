@@ -143,16 +143,28 @@
 }
 
 #mappingReviewOpen[hidden]{display:none!important}
-#mappingReview{box-sizing:border-box;width:min(1060px,94vw);max-height:86vh;padding:20px;border:1px solid #a6b9ab;border-radius:8px;color:#233d30;background:#fffdf8}
+#sec-chart-accounts .coa-actions,.mapping-review-controls{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px;margin-inline-start:auto}
+#sec-chart-accounts .coa-actions>button,#mappingReview .mapping-review-controls>:is(button,select){box-sizing:border-box;width:auto;max-width:100%;height:32px;min-height:32px;margin:0;white-space:nowrap}
+#mappingReview{position:fixed;inset:12px 58px auto auto;margin:0;box-sizing:border-box;width:min(1060px,calc(100vw - 82px));max-height:calc(100dvh - 24px);padding:16px;border:1px solid #a6b9ab;border-radius:8px;color:#233d30;background:#fffdf8}
 #mappingReview[open]{display:flex;flex-direction:column;gap:12px}
 #mappingReview::backdrop{background:rgb(21 36 28 / 50%)}
-#mappingReview header,.mapping-review-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-#mappingReview header{justify-content:space-between}
+#mappingReview header{display:flex;align-items:center;justify-content:space-between;gap:8px 16px;flex-wrap:wrap}
+#mappingReview .mapping-review-controls{min-width:0;max-width:100%}
+#mappingReview .mapping-review-controls select{border:1px solid #aec1b3;border-radius:5px;padding:4px 8px;background:white}
+#mappingReview [hidden]{display:none!important}
 #mappingReview h3,#mappingReview p{margin:0}
-.mapping-review-controls label{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .mapping-review-table{overflow:auto;min-height:0;border:1px solid #d6dfd7}
-#mappingReview table{width:100%;border-collapse:collapse;min-width:680px;font-size:.9rem}
+#mappingReview table{width:100%;border-collapse:collapse;table-layout:fixed;min-width:760px;font-size:.9rem}
+#mappingReview th:nth-child(1){width:24%}
+#mappingReview th:nth-child(2){width:32%}
+#mappingReview th:nth-child(3){width:11%}
+#mappingReview th:nth-child(4){width:18%}
+#mappingReview th:nth-child(5){width:15%}
 #mappingReview th,#mappingReview td{padding:8px 10px;text-align:left;vertical-align:top;border-bottom:1px solid #d6dfd7}
+#mappingReview :is(th,td):is(:first-child,:nth-child(2),:last-child){white-space:normal!important;overflow-wrap:anywhere;text-overflow:clip}
 #mappingReview th{position:sticky;top:0;background:#eef4ed}
-#mappingReview td:nth-child(4){white-space:nowrap;font-variant-numeric:tabular-nums}
+#mappingReview :is(th,td):is(:nth-child(3),:nth-child(4)){white-space:nowrap;overflow-wrap:normal;font-variant-numeric:tabular-nums}
 #mappingReview td small{display:block;margin-top:3px;color:#506156;line-height:1.4}
+@media(max-width:640px){
+ #mappingReview{inset:8px 8px auto auto;width:calc(100vw - 16px);max-height:calc(100dvh - 16px);padding:12px}
+}
