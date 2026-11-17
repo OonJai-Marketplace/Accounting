@@ -38,6 +38,22 @@ const fixture=require('./phase0-browser-fixture.cjs');
   const fund=page.getByRole('dialog',{name:'Budget Request Utilization Report',exact:true}), grid=fund.locator('[data-spending-rows]');
   await grid.waitFor();assert.equal(await grid.locator('tr').count(),2);
   assert.equal(await fund.getByRole('button',{name:/template/i}).count(),0);
+  const rentField=grid.getByRole('row').filter({hasText:'House rent'}).locator('[data-native]');
+  async function checkAmountField(field,symbol){
+   const input=field.locator('input'),prefix=field.locator('.money-symbol14231');
+   const [bounds,mark]=await Promise.all([input.boundingBox(),prefix.boundingBox()]);
+   assert.equal(await prefix.innerText(),symbol);
+   assert(mark&&bounds&&mark.x>=bounds.x&&mark.x+mark.width<=bounds.x+bounds.width&&mark.y>=bounds.y&&mark.y+mark.height<=bounds.y+bounds.height);
+   const choice=field.locator('[data-spending-currency]');
+   if(await choice.count()){
+    const pick=await choice.boundingBox();
+    assert(pick.x<=mark.x+2&&pick.x+pick.width>=mark.x+mark.width&&pick.x+pick.width<bounds.x+bounds.width);
+   }
+  }
+  for(const value of ['', '0', '125.75', '']){
+   await rentField.locator('input').fill(value);
+   await checkAmountField(rentField,'$');
+  }
   const riceStatus=grid.getByLabel('Funding status for Rice'),rentStatus=grid.getByLabel('Funding status for House rent');
   const received=grid.getByLabel('Amount received for House rent');
   assert.equal(await riceStatus.inputValue(),'approved');
@@ -51,12 +67,14 @@ const fixture=require('./phase0-browser-fixture.cjs');
   await received.fill('125.75');
   for(const width of [1280,820,768,390]){
    await page.setViewportSize({width,height:900});
-   const sizes=await grid.evaluate(body=>{
+   const sizes=await page.waitForFunction(()=>{
+    const body=document.querySelector('[role=dialog] [data-spending-rows]');
+    if(!body)return false;
     const table=body.closest('table'),wrap=table.parentElement,dialog=table.closest('[role=dialog]');
     const bounds=dialog.getBoundingClientRect();
     return {width:innerWidth,client:wrap.clientWidth,scroll:wrap.scrollWidth,left:bounds.left,right:bounds.right,
      overflow:[...body.querySelectorAll('input,select')].filter(e=>e.offsetWidth&&e.getBoundingClientRect().right>wrap.getBoundingClientRect().right+1).length};
-   });
+   }).then(handle=>handle.jsonValue());
    assert(sizes.scroll<=sizes.client+1 && sizes.left>=0 && sizes.right<=sizes.width+1 && !sizes.overflow,JSON.stringify(sizes));
   }
   await page.setViewportSize({width:1280,height:900});
@@ -123,6 +141,9 @@ const fixture=require('./phase0-browser-fixture.cjs');
   await fund.getByRole('button',{name:'Close',exact:true}).click();
   await budget.getByRole('button',{name:'Continue',exact:true}).click();
   assert.equal(Number(await equivalent.inputValue()),21.5);
+  await checkAmountField(rent.locator('[data-native]'),'₭');
+  await fund.getByLabel('Show item equivalents').check();
+  await checkAmountField(rent.locator('[data-equivalent]'),'$');
   await paid.fill('441000');await fund.getByRole('button',{name:'Save draft'}).click();
   await page.waitForFunction(()=>Work82.reports.some(r=>r.data.mode==='utilization'&&r.version===6));
   const revised=records.get(saved.id).data.movements.at(-1);
@@ -134,6 +155,45 @@ const fixture=require('./phase0-browser-fixture.cjs');
   await fund.getByLabel('Show item equivalents').check();
   assert.equal(await equivalent.getAttribute('placeholder'),'21.00');
   assert.deepEqual(records.get(saved.id).data.lines,request.data.lines);
+  await fund.getByRole('button',{name:'Close',exact:true}).click();
+  await fund.waitFor({state:'detached'});
+  const payroll=structuredClone(records.get(saved.id));
+  payroll.id='00000000-0000-4000-a000-000000000407';
+  payroll.data.requestId14316='00000000-0000-4000-a000-000000000406';
+  payroll.data.lines=[
+   {key117:'salary',category:'Personnel',description:'Salary',currency:'USD',amount:320},
+   {key117:'pit',category:'Payroll',description:'Employer tax',currency:'USD',amount:10}
+  ];
+  payroll.data.fundingByItem={};
+  payroll.data.movements=[
+   {id290:'salary',type290:'spend',budgetKey117:'salary',account:'Cash',reference:'PAY',currency:'LAK',outflow:6400000,cashDistributed:6224400,budgetAmount290:320,cashBudgetAmount:311.22},
+   {id290:'tax',type290:'spend',budgetKey117:'pit',account:'Bank',reference:'PIT',currency:'USD',outflow:10,cashDistributed:18.78}
+  ];
+  records.set(payroll.data.requestId14316,{...request,id:payroll.data.requestId14316,data:{...request.data,lines:payroll.data.lines}});
+  records.set(payroll.id,payroll);
+  await page.evaluate(id=>budgetWorkflow14316.openAllocation(id),payroll.id);
+  await fund.getByLabel('Show item equivalents').check();
+  const salary=grid.getByLabel('Actual spending for Salary'),grossEquivalent=grid.getByLabel('Spending equivalent in USD for Salary');
+  assert.equal(await salary.evaluate(n=>n.valueAsNumber),6400000);
+  assert.equal(await grossEquivalent.evaluate(n=>n.valueAsNumber),320);
+  assert.equal(Number(await grid.getByLabel('Actual spending for Employer tax').inputValue()),10);
+  await salary.fill('6500000');await grossEquivalent.fill('325');
+  await fund.getByRole('button',{name:'Save draft'}).click();
+  await page.waitForFunction(()=>Work82.reports.some(r=>r.data.movements?.some(m=>m.id290==='salary'&&m.outflow===6500000)));
+  const payrollSaved=records.get(payroll.id).data;
+  assert.deepEqual(payrollSaved.movements[0],{...payroll.data.movements[0],outflow:6500000,budgetAmount290:325});
+  assert.deepEqual(await page.evaluate(d=>[
+   BudgetReport290.compare(d).totals.USD.used,BudgetReport290.balances(d).get('LAK').cashSpent,BudgetReport290.balances(d).get('USD').cashSpent
+  ],payrollSaved),[335,6224400,18.78]);
+  const spendingCells=await page.evaluate(data=>{
+   const report=document.createElement('div');report.innerHTML=BudgetReport290.report(data);
+   const table=report.querySelector('[data-budget-summary290="total"]').closest('table');
+   return [...table.tBodies[0].rows].map(row=>row.cells[3].textContent.trim());
+  },payrollSaved);
+  assert.equal(spendingCells[0],'₭ 6,500,000.00');
+  assert.equal(spendingCells[1],'$ 10.00');
+  assert.match(spendingCells.at(-1),/₭ 6,500,000.00/);
+  assert.match(spendingCells.at(-1),/\$ 10.00/);
   assert.deepEqual(errors,[]);
   console.log('PASS History returns, stable request window, linked worksheet, extra spending, receipts, conversions and save/reopen.');
  }finally{await f.close();}

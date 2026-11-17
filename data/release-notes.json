@@ -1,7 +1,8 @@
 {
-  "version": "143.444",
+  "version": "143.445",
   "changes": [
-    "Fund utilization totals show requested funds, available funds after actual exchanges, cash distributed and cash remaining in each original currency.",
-    "Saved supplemental requests can be combined with an open utilization draft and linked to existing spending."
+    "Actual spending uses gross salary and only the company share of PIT and social security. Cash distributed remains separate.",
+    "The spending currency and amount share one field on every fund utilization row.",
+    "Fund utilization warns before leaving a report with unsaved changes."
   ]
 }

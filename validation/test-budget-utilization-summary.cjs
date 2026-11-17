@@ -84,13 +84,13 @@ const create=require('./phase0-browser-fixture.cjs');
    paid.cashDistributed=400000;paid.budgetAmount290=27;
    d.movements.push({type290:'refund',currency:'USD',outflow:4});
    const cash=BudgetReport290.balances(d).get('USD');
-   const amount=()=>BudgetReport290.compare(d).rows[0].values.USD.used;
+   const amount=()=>BudgetReport290.compare(d,'cash').rows[0].values.USD.used;
    const calculated=amount();paid.cashBudgetAmount=22;
    const box=document.createElement('div');box.innerHTML=BudgetReport290.summary(d);
    const rows=[...box.querySelector('tbody').rows].map(r=>[...r.cells].map(c=>c.textContent));
    if(!rows.some(r=>r[0]==='Cash distributed')||!rows.some(r=>r[0]==='Cash remaining'&&r[1]==='25.00')||
     rows.some(r=>/returned|after returns|before returns/i.test(r[0])))throw Error('Unexpected cash summary '+JSON.stringify(rows));
-   return [cash.beforeReturn,cash.remaining,calculated,amount(),BudgetReport290.compare(d,'cost').rows[0].values.USD.used];
+   return [cash.beforeReturn,cash.remaining,calculated,amount(),BudgetReport290.compare(d).rows[0].values.USD.used];
   },report.data);
   assert.deepEqual(cashCheck,[25,21,20,22,27]);
   await kip.fill('510000');assert.equal(await usd.getAttribute('placeholder'),'25.50');

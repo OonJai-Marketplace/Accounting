@@ -73,11 +73,11 @@ window.BudgetSpendingWorksheet = (() => {
    const requestCell=row.insertCell();
    if (linked && first) fundingCells(row,line,index,requestCell);
    else { row.insertCell(); row.insertCell(); }
-   const currencyChoice = !movement && currencies.length>1 ? '<select data-plain14285 data-spending-currency aria-label="Spending currency">'+currencies.map(([c]) =>
+   const currencyChoice = !movement && currencies.length>1 ? '<select data-plain14285 data-spending-currency aria-label="Spending currency" title="Spending currency">'+currencies.map(([c]) =>
     '<option value="'+esc(c)+'"'+(c===currency?' selected':'')+'>'+esc(currencySymbolV6(c))+'</option>').join('')+'</select>' : '';
-   const unit=currencyChoice||'<span class="worksheet-unit">'+esc(currencySymbolV6(currency))+'</span>';
-   const native='<div class="worksheet-amount" data-native>'+unit+'<input type="number" step="0.01" min="0" name="actualAmount" data-currency="'+esc(currency)+'" aria-label="Actual spending'+(item?' for '+esc(item):'')+'" value="'+esc(movement?report.cashPaid(movement):'')+'" placeholder="0.00"></div>';
-   const equivalent=linked?'<span class="worksheet-unit">'+esc(currencySymbolV6(line.currency))+'</span><input type="number" step="0.01" min="0.01" name="equivalentAmount" data-currency="'+esc(line.currency)+'" aria-label="Spending equivalent in '+esc(line.currency)+' for '+esc(item)+'" title="Enter the recorded equivalent, or leave blank to use the report exchange rate." value="'+esc(movement?.[report.equivalentField(movement)]??'')+'">':'';
+   const moneyField=(code,input,picker='')=>'<span class="money-field14231"><span class="money-symbol14231" title="'+esc(code)+'">'+esc(currencySymbolV6(code))+'</span>'+picker+input+'</span>';
+   const native='<div class="worksheet-amount" data-native>'+moneyField(currency,'<input type="number" step="0.01" min="0" name="actualAmount" data-currency="'+esc(currency)+'" aria-label="Actual spending'+(item?' for '+esc(item):'')+'" value="'+esc(movement?.outflow??'')+'" placeholder="0.00">',currencyChoice)+'</div>';
+   const equivalent=linked?moneyField(line.currency,'<input type="number" step="0.01" min="0.01" name="equivalentAmount" data-currency="'+esc(line.currency)+'" aria-label="Spending equivalent in '+esc(line.currency)+' for '+esc(item)+'" title="Enter the recorded equivalent, or leave blank to use the report exchange rate." value="'+esc(movement?.budgetAmount290??'')+'">'):'';
    cell('<div class="worksheet-stack">'+native+'<div class="worksheet-amount" data-equivalent hidden>'+equivalent+'</div></div>');
    const action = row.insertCell();
    if (movement) {
@@ -141,9 +141,9 @@ window.BudgetSpendingWorksheet = (() => {
     if (movement && !state.amountEdited && !state.equivalentEdited && !state.detailEdited) continue;
     const description = row.querySelector('[name=description]');
     const detail = description?.value.trim() || '';
-    const raw = amount.value, value = movement && !state.amountEdited ? report.cashPaid(movement) : amount.valueAsNumber;
+    const raw = amount.value, value = movement && !state.amountEdited ? Number(movement.outflow) : amount.valueAsNumber;
     if (!movement && !detail && !state.equivalent?.value && !amount.validity.badInput && (!raw || value === 0)) continue;
-    if (!Number.isFinite(value) || value < 0 || (value===0 && (!raw || movement?.cashDistributed==null)) || !Number.isSafeInteger(Math.round(value*100)) || (state.amountEdited && Math.abs(value*100-Math.round(value*100))>0.00001)) {
+    if (!Number.isFinite(value) || value <= 0 || !Number.isSafeInteger(Math.round(value*100)) || (state.amountEdited && Math.abs(value*100-Math.round(value*100))>0.00001)) {
      invalid(amount, movement ? 'Enter a positive spending amount. Use Details to remove the expense.' : 'Enter a positive spending amount with up to two decimal places.');
     }
     if (!line && !detail && (!movement || movement.worksheetSpend)) invalid(description,'Enter a description for the additional spending.');
@@ -151,17 +151,15 @@ window.BudgetSpendingWorksheet = (() => {
     const equivalent=explicit && state.equivalent.value!==''?state.equivalent.valueAsNumber:null;
     if(explicit && equivalent!==null && (!Number.isFinite(equivalent)||equivalent<=0||!Number.isSafeInteger(Math.round(equivalent*100))||Math.abs(equivalent*100-Math.round(equivalent*100))>0.00001))
      invalid(state.equivalent,'Enter a positive spending equivalent with up to two decimal places, or leave it blank to use the report exchange rate.');
-    if (!explicit && movement && report.cashPaid(movement) === value && (!description || detail === (movement.description290 || ''))) continue;
+    if (!explicit && movement && Number(movement.outflow) === value && (!description || detail === (movement.description290 || ''))) continue;
     const next = movement ? {...movement} : {id290:crypto.randomUUID(),type290:'spend',worksheetSpend:true,date290:draft.date,
      account:'',reference:'',currency:choice?.value || currency,budgetKey117:line?.key117 || '',inflow:0};
     if (!movement && line && !line.key117) next.worksheetLine = draft.lines.indexOf(line);
     if(explicit){
-     const field=report.equivalentField(movement);
-     if(equivalent===null)delete next[field];
-     else next[field]=equivalent;
+     if(equivalent===null)delete next.budgetAmount290;
+     else next.budgetAmount290=equivalent;
     }
-    if(movement?.cashDistributed!=null)next.cashDistributed=value;
-    else next.outflow=value;
+    next.outflow=value;
     if (description) next.description290 = detail;
     changes.push({state,next});
    }

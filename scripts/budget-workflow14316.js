@@ -73,11 +73,11 @@ window.BudgetSpendingWorksheet = (() => {
    const requestCell=row.insertCell();
    if (linked && first) fundingCells(row,line,index,requestCell);
    else { row.insertCell(); row.insertCell(); }
-   const currencyChoice = !movement && currencies.length>1 ? '<select data-plain14285 data-spending-currency aria-label="Spending currency">'+currencies.map(([c]) =>
+   const currencyChoice = !movement && currencies.length>1 ? '<select data-plain14285 data-spending-currency aria-label="Spending currency" title="Spending currency">'+currencies.map(([c]) =>
     '<option value="'+esc(c)+'"'+(c===currency?' selected':'')+'>'+esc(currencySymbolV6(c))+'</option>').join('')+'</select>' : '';
-   const unit=currencyChoice||'<span class="worksheet-unit">'+esc(currencySymbolV6(currency))+'</span>';
-   const native='<div class="worksheet-amount" data-native>'+unit+'<input type="number" step="0.01" min="0" name="actualAmount" data-currency="'+esc(currency)+'" aria-label="Actual spending'+(item?' for '+esc(item):'')+'" value="'+esc(movement?report.cashPaid(movement):'')+'" placeholder="0.00"></div>';
-   const equivalent=linked?'<span class="worksheet-unit">'+esc(currencySymbolV6(line.currency))+'</span><input type="number" step="0.01" min="0.01" name="equivalentAmount" data-currency="'+esc(line.currency)+'" aria-label="Spending equivalent in '+esc(line.currency)+' for '+esc(item)+'" title="Enter the recorded equivalent, or leave blank to use the report exchange rate." value="'+esc(movement?.[report.equivalentField(movement)]??'')+'">':'';
+   const moneyField=(code,input,picker='')=>'<span class="money-field14231"><span class="money-symbol14231" title="'+esc(code)+'">'+esc(currencySymbolV6(code))+'</span>'+picker+input+'</span>';
+   const native='<div class="worksheet-amount" data-native>'+moneyField(currency,'<input type="number" step="0.01" min="0" name="actualAmount" data-currency="'+esc(currency)+'" aria-label="Actual spending'+(item?' for '+esc(item):'')+'" value="'+esc(movement?.outflow??'')+'" placeholder="0.00">',currencyChoice)+'</div>';
+   const equivalent=linked?moneyField(line.currency,'<input type="number" step="0.01" min="0.01" name="equivalentAmount" data-currency="'+esc(line.currency)+'" aria-label="Spending equivalent in '+esc(line.currency)+' for '+esc(item)+'" title="Enter the recorded equivalent, or leave blank to use the report exchange rate." value="'+esc(movement?.budgetAmount290??'')+'">'):'';
    cell('<div class="worksheet-stack">'+native+'<div class="worksheet-amount" data-equivalent hidden>'+equivalent+'</div></div>');
    const action = row.insertCell();
    if (movement) {
@@ -141,9 +141,9 @@ window.BudgetSpendingWorksheet = (() => {
     if (movement && !state.amountEdited && !state.equivalentEdited && !state.detailEdited) continue;
     const description = row.querySelector('[name=description]');
     const detail = description?.value.trim() || '';
-    const raw = amount.value, value = movement && !state.amountEdited ? report.cashPaid(movement) : amount.valueAsNumber;
+    const raw = amount.value, value = movement && !state.amountEdited ? Number(movement.outflow) : amount.valueAsNumber;
     if (!movement && !detail && !state.equivalent?.value && !amount.validity.badInput && (!raw || value === 0)) continue;
-    if (!Number.isFinite(value) || value < 0 || (value===0 && (!raw || movement?.cashDistributed==null)) || !Number.isSafeInteger(Math.round(value*100)) || (state.amountEdited && Math.abs(value*100-Math.round(value*100))>0.00001)) {
+    if (!Number.isFinite(value) || value <= 0 || !Number.isSafeInteger(Math.round(value*100)) || (state.amountEdited && Math.abs(value*100-Math.round(value*100))>0.00001)) {
      invalid(amount, movement ? 'Enter a positive spending amount. Use Details to remove the expense.' : 'Enter a positive spending amount with up to two decimal places.');
     }
     if (!line && !detail && (!movement || movement.worksheetSpend)) invalid(description,'Enter a description for the additional spending.');
@@ -151,17 +151,15 @@ window.BudgetSpendingWorksheet = (() => {
     const equivalent=explicit && state.equivalent.value!==''?state.equivalent.valueAsNumber:null;
     if(explicit && equivalent!==null && (!Number.isFinite(equivalent)||equivalent<=0||!Number.isSafeInteger(Math.round(equivalent*100))||Math.abs(equivalent*100-Math.round(equivalent*100))>0.00001))
      invalid(state.equivalent,'Enter a positive spending equivalent with up to two decimal places, or leave it blank to use the report exchange rate.');
-    if (!explicit && movement && report.cashPaid(movement) === value && (!description || detail === (movement.description290 || ''))) continue;
+    if (!explicit && movement && Number(movement.outflow) === value && (!description || detail === (movement.description290 || ''))) continue;
     const next = movement ? {...movement} : {id290:crypto.randomUUID(),type290:'spend',worksheetSpend:true,date290:draft.date,
      account:'',reference:'',currency:choice?.value || currency,budgetKey117:line?.key117 || '',inflow:0};
     if (!movement && line && !line.key117) next.worksheetLine = draft.lines.indexOf(line);
     if(explicit){
-     const field=report.equivalentField(movement);
-     if(equivalent===null)delete next[field];
-     else next[field]=equivalent;
+     if(equivalent===null)delete next.budgetAmount290;
+     else next.budgetAmount290=equivalent;
     }
-    if(movement?.cashDistributed!=null)next.cashDistributed=value;
-    else next.outflow=value;
+    next.outflow=value;
     if (description) next.description290 = detail;
     changes.push({state,next});
    }
@@ -350,7 +348,7 @@ window.BudgetReport290 = (() => {
  function amountLines(codes,value){
   return orderedUnits(codes).map(c=>esc(currencySymbolV6(c))+' '+esc(amountText(value(c)))).join('<br>');
  }
- function compare(d,basis="cash"){
+ function compare(d,basis="cost"){
   const spent=(d.movements||[]).filter(m=>kind(m)==='spend');
   const rows=d.lines.map((line,index)=>({line,index,movements:spent.filter(m=>forLine(m,line,index))}));
   const linked=new Set(rows.flatMap(row=>row.movements));
@@ -386,7 +384,7 @@ window.BudgetReport290 = (() => {
     approved.set(line.currency,(approved.get(line.currency)||0)+Number(amount));
    }
    if(line&&!movements.length)spent.set(line.currency,0);
-   for(const m of movements)spent.set(m.currency,(spent.get(m.currency)||0)+cashPaid(m));
+   for(const m of movements)spent.set(m.currency,(spent.get(m.currency)||0)+Number(m.outflow));
    // Exchanges are recorded for the fund, and are not allocated to an individual item.
    if(!line||[...spent.keys()].every(c=>c===line.currency)){
     for(const c of new Set([...funded.keys(),...spent.keys()]))left.set(c,(funded.get(c)||0)-(spent.get(c)||0));
@@ -403,8 +401,9 @@ window.BudgetReport290 = (() => {
   const changes=adjustment('Receipts above or below item funding',(t,c)=>t.receipt-(approved.get(c)||0))+
    adjustment('Currency exchanged',t=>t.convertedIn-t.convertedOut)+
    adjustment('Shortfall covered by restaurant',t=>t.coverage)+adjustment('Temporary advances, less repayments',t=>t.borrow-t.repay);
-  const totals=[values(t=>t.requested,true),values(t=>t.receipt+t.coverage+t.convertedIn-t.convertedOut+t.borrow-t.repay,true),
-   values(t=>t.cashSpent,true),values(t=>t.beforeReturn,true)];
+  const available=t=>t.receipt+t.coverage+t.convertedIn-t.convertedOut+t.borrow-t.repay;
+  const totals=[values(t=>t.requested,true),values(available,true),
+   values(t=>t.spend,true),values(t=>available(t)-t.spend,true)];
   const table='<div class="data-table82"><table style="width:100%;table-layout:fixed;border-collapse:collapse"><colgroup><col style="width:32%"><col style="width:17%"><col style="width:17%"><col style="width:17%"><col style="width:17%"></colgroup><thead><tr>'+
    ['Item / category','Requested','Funds available','Actual spending','Remaining'].map((h,i)=>'<th style="background:#e4eee8;padding:4px;text-align:'+(i?'right':'left')+'">'+h+'</th>').join('')+
    '</tr></thead><tbody>'+body+changes+'<tr data-budget-summary290="total"><th style="text-align:left;'+fill+'">Report total</th>'+
@@ -719,7 +718,7 @@ window.BudgetUtilizationJournal=(()=>{
 (()=>{'use strict';
 function validDate14317(value){if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;const date=new Date(value+'T00:00:00Z');return Number.isFinite(date.getTime())&&date.toISOString().slice(0,10)===value}
 const esc=v=>escapeHtml(String(v??'')),clone=x=>structuredClone(x),num=x=>Number(x)||0;
-let finalTab='submitted',historyTab='journal',allocation=null,allocationRecord=null,fundPopup=null,retainedForm=null,actor='',busy=false,editMove=null,editFx=null,actorClient=null,allocationRequest14370=0;
+let finalTab='submitted',historyTab='journal',allocation=null,allocationRecord=null,fundPopup=null,actor='',busy=false,editMove=null,editFx=null,actorClient=null,allocationRequest14370=0;
 const report=BudgetReport290,journal=BudgetUtilizationJournal;
 let activityPopup=null;
 const equivalentViews=new WeakSet();
@@ -760,7 +759,22 @@ function captureFund(){
  if(form&&allocation&&form.dataset.parent===(allocation.requestId14316||'')&&form.dataset.record===(allocationRecord?.id||''))Object.assign(allocation,Object.fromEntries(new FormData(form)));return allocation;
 }
 function clearFundPopup(){
- closeActivity();retainedForm=null;const root=fundPopup;fundPopup=null;root?.resolve108(false);
+ closeActivity();const root=fundPopup;fundPopup=null;root?.resolve108(false);
+ allocation=null;allocationRecord=null;
+}
+function canLeaveFund(){
+ const host=fundPopup?.querySelector('#budgetFunds290');
+ if(!host||!allocation)return true;
+ captureFund();
+ if(editorData(allocation)===host.savedValues&&!host.worksheetChanged())return true;
+ if(!host.discardPrompt)host.discardPrompt=ui108.modal('Unsaved changes','<p>Discard the changes to this fund utilization report?</p>',
+  [{label:'Keep editing',value:false,primary:true},{label:'Discard changes',value:true}]).finally(()=>{host.discardPrompt=null;});
+ return host.discardPrompt;
+}
+async function closeFundEditor(){
+ const root=fundPopup,documentBeingEdited=allocation;
+ if(!root||busy||!await canLeaveFund()||root!==fundPopup||documentBeingEdited!==allocation||busy)return;
+ allocationRequest14370++;clearFundPopup();
 }
 function newUtilization(){
  const today=today82();
@@ -769,7 +783,8 @@ function newUtilization(){
 }
 function showFunds(open=true){
  guard();if(busy)return;
- if(!open){fundPopup?.resolve108(false);return;}
+ if(!open)return closeFundEditor();
+ if(fundPopup?.isConnected)return;
  if(selectedParent)return startAllocation(selectedParent);
  if(!allocation){
   const saved=requests();
@@ -794,19 +809,10 @@ function reportToolbar(root,actions,activities=''){
 }
 function presentFundEditor(){
  if(fundPopup?.isConnected){closeActivity();renderAllocation();return;}
- const previous=retainedForm;retainedForm=null;
- const {root,pending}=budgetDialog(report.title,'<div id="budgetFunds290"></div>');
+ const {root}=budgetDialog(report.title,'<div id="budgetFunds290"></div>');
  root.classList.add('fund-popup326');fundPopup=root;
- if(previous?.allocation===allocation){
-  root.querySelector('#budgetFunds290').replaceWith(previous.host);
-  pinReportToolbar(root,previous.toolbar);
-  showJournalReference(previous.host,allocationRecord);
- }else renderAllocation();
- pending.then(()=>{
-  if(fundPopup!==root)return;
-  retainedForm=allocation?{allocation,host:root.querySelector('#budgetFunds290'),toolbar:root.querySelector('.fund-report-toolbar')}:null;
-  fundPopup=null;
- });
+ root.querySelector('[data-dismiss]').onclick=closeFundEditor;
+ renderAllocation();
 }
 function requestData(){return requestEditor?.data||null}
 function refreshCategories(){
@@ -1010,7 +1016,6 @@ async function startAllocation(id){
  try{
   const check=context();if(busy)throw Error('Wait for the budget save to finish.');
   const request=++allocationRequest14370,sameParent=allocation?.requestId14316===id;
-  if(allocation&&!sameParent&&!await ui117.confirm('Replace the open fund allocation? Save your changes first.'))return;
   check();if(request!==allocationRequest14370)return;
   const r=await editableRecord(id);check();if(request!==allocationRequest14370)return;
   if(r.data.mode==='utilization')throw Error('Choose an original budget request.');
@@ -1019,7 +1024,7 @@ async function startAllocation(id){
   if(sameParent&&(!child||child.id===allocationRecord?.id&&child.version===allocationRecord?.version)){
    selectedParent=id;if(!fundPopup?.isConnected)presentFundEditor();return;
   }
-  if(sameParent&&allocation&&!await ui117.confirm('A newer utilization report is available. Replace the open worksheet with the saved report?'))return;
+  if(!await canLeaveFund())return;
   check();if(request!==allocationRequest14370)return;
   if(child){
    if(child.data.requestId14316!==id||child.data.requestVersion14316!==r.version)throw Error('Reopen the current saved request before continuing.');
@@ -1037,10 +1042,10 @@ async function openAllocation(id){
   if(isFinal(r))return showFinal(r);
   if(r.data.mode!=='utilization')return view(id);
   if(allocationRecord?.id===id&&allocationRecord.version===r.version){if(!fundPopup?.isConnected)presentFundEditor();return;}
-  if(allocation&&!await ui117.confirm('Replace the open allocation? Save your changes first.'))return;
   check();if(request!==allocationRequest14370)return;
   const parent=r.data.requestId14316?await editableRecord(r.data.requestId14316):null;
   if(parent&&parent.version!==r.data.requestVersion14316)throw Error('The original budget changed. Reopen its current version.');
+  check();if(request!==allocationRequest14370||!await canLeaveFund())return;
   check();if(request!==allocationRequest14370)return;
   selectedParent=r.data.requestId14316||'';allocation=clone(r.data);allocation.requestDate290||=parent?.data.date||r.data.date;
   allocation.budgetMonth290||=parent?.data.budgetMonth290||String(allocation.requestDate290).slice(0,7);
@@ -1111,6 +1116,7 @@ async function combineRequests(){
 function renderAllocation(){
  const host=fundPopup?.querySelector('#budgetFunds290');if(!host||!allocation)return;
  const d=allocation;
+ if(host.editingAllocation!==d){host.editingAllocation=d;host.savedValues=editorData(d);}
  const actions=button('Open reports','chooseRequest()')+button('Print / PDF','previewAllocation()')+
   (supplements(allocationRecord).length?button('Combine requests','combineRequests()'):'')+button('Save draft','saveAllocation(false)')+button('Finalize','saveAllocation(true)')+postControl(allocationRecord);
  const activities='<button type="button" data-add-spending>Add row</button><button type="button" data-activity="spend">Spending details</button>'+
@@ -1140,6 +1146,14 @@ function renderAllocation(){
   toggle.checked=equivalentViews.has(d);
   toggle.oninput=()=>{if(toggle.checked)equivalentViews.add(d);else equivalentViews.delete(d);};
   host.applySpending=BudgetSpendingWorksheet.mount(fundPopup,d,editMovement);
+  const body=host.querySelector('[data-spending-rows]');
+  const fields=['select:not([data-spending-currency])','[name=receivedAmount]','[name=description]','[data-spending-currency]','[name=actualAmount]','[name=equivalentAmount]'];
+  const values=()=>JSON.stringify([...body.rows].map(row=>fields.map(selector=>{
+   const n=row.querySelector(selector);
+   return n?(Number.isFinite(n.valueAsNumber)?n.valueAsNumber:n.value):null;
+  })));
+  const initial=values();
+  host.worksheetChanged=()=>values()!==initial;
  }
  refreshWorksheet();
  toolbar.querySelectorAll('[data-activity]').forEach(b=>b.onclick=()=>openActivity(b.dataset.activity));
@@ -1312,7 +1326,7 @@ async function printUtilization(d,record,dialog){
  const content=document.createElement('div');content.innerHTML=report.report(d,reference);content.querySelector('h1')?.remove();
  if(await print82(report.title,content.innerHTML,'')){
   if(dialog?.isConnected)dialog.resolve108(false);
-  if(origin&&origin===fundPopup)origin.resolve108(false);
+  if(!dialog&&origin&&origin===fundPopup)await closeFundEditor();
  }
 }
 function headerValid(){const form=fundPopup?.querySelector('#fundHeader290');if(form&&!form.checkValidity())form.closest('details').open=true;return form?.reportValidity();}
@@ -1379,7 +1393,7 @@ function chooseRequest(offerNewRequest=false){
  root.querySelector('.ui-body108').addEventListener('click',e=>{if(e.target.closest('button[onclick^="budgetWorkflow14316."]'))root.resolve108(false)},true);
 }
 async function newUnlinked(){
- const check=context();if(busy||!await ui117.confirm('Start a new utilization report? Save any changes you want to keep first.'))return;
+ const check=context();if(busy||!await canLeaveFund())return;
  check();selectedParent='';allocationRequest14370++;allocationRecord=null;allocation=newUtilization();presentFundEditor();
 }
 async function removeConversion(i){try{const check=context();captureFund();const rows=allocation.conversions,item=rows[i];if(!item)return;if(await ui117.confirm('Delete this conversion?')){check();if(allocation.conversions!==rows)return;const index=rows.indexOf(item);if(index<0)return;rows.splice(index,1);closeActivity();renderAllocation()}}catch(e){showCenterStatus(e.message,true)}}
@@ -1411,15 +1425,19 @@ async function saveAllocation(finalize){const check=context(),record=allocationR
  const saved=await linkedUtilization(allocation.requestId14316);check();if(selection!==allocationRequest14370)return;
  if(saved){rememberFinal(saved);if(document.querySelector('#transactions-budget14313.active'))renderRequest();
   throw Error(isFinal(saved)?'This request already has a finalized utilization report. Open View report to review it.':'This request already has a saved utilization draft. Open it with Continue.');}
- }if(!headerValid())return;applySpending();const d=clone(allocation);validateAllocation(d,finalize);for(const node of fundPopup?.querySelectorAll('input,select,textarea,button:not([data-dismiss])')||[]){controls.push([node,node.disabled]);node.disabled=true}if(finalize&&!await ui117.confirm('Finalize the received funding and allocations? This saved version becomes read-only in History.'))return;check();if(finalize){await ensureLifecycle();check();if(d.requestId14316)await live(d.requestId14316,d.requestVersion14316);check();if(record)await live(record.id,record.version);check();}if(selection!==allocationRequest14370)return;delete d.document14316;d.kind='finance';d.mode='utilization';d.status=finalize?'finalized':'draft';d.preparedBy=liveProfile.full_name||liveProfile.email;d.preparedRole290=liveProfile.job_title||livePermission?.job_title||'Prepared by';d.finalizedAt14316=finalize?new Date().toISOString():null;const r=await saveWork82('reports',d,record);check();if(finalize&&r._pending14333)throw Error('Finalization is waiting for database confirmation. Review the saved request in Data Check.');if(selection!==allocationRequest14370)return;Work82.reports=[r,...Work82.reports.filter(old=>old.id!==r.id)];allocationRecord=r;allocation=clone(r.data);if(finalize){allocation=null;allocationRecord=null;clearFundPopup()}else{retainedForm=null;renderAllocation();}if(document.querySelector('#transactions-budget14313.active'))renderRequest();showCenterStatus(r._pending14333?'Fund allocation: Saved on this device; waiting for automatic sync.':finalize?'Fund allocation finalized.':'Fund allocation saved.')}catch(e){showCenterStatus(e.message,true)}finally{for(const [node,disabled]of controls)node.disabled=disabled;busy=false}}
+ }if(!headerValid())return;applySpending();const d=clone(allocation);validateAllocation(d,finalize);for(const node of fundPopup?.querySelectorAll('input,select,textarea,button:not([data-dismiss])')||[]){controls.push([node,node.disabled]);node.disabled=true}if(finalize&&!await ui117.confirm('Finalize the received funding and allocations? This saved version becomes read-only in History.'))return;check();if(finalize){await ensureLifecycle();check();if(d.requestId14316)await live(d.requestId14316,d.requestVersion14316);check();if(record)await live(record.id,record.version);check();}if(selection!==allocationRequest14370)return;delete d.document14316;d.kind='finance';d.mode='utilization';d.status=finalize?'finalized':'draft';d.preparedBy=liveProfile.full_name||liveProfile.email;d.preparedRole290=liveProfile.job_title||livePermission?.job_title||'Prepared by';d.finalizedAt14316=finalize?new Date().toISOString():null;const r=await saveWork82('reports',d,record);check();if(finalize&&r._pending14333)throw Error('Finalization is waiting for database confirmation. Review the saved request in Data Check.');if(selection!==allocationRequest14370)return;Work82.reports=[r,...Work82.reports.filter(old=>old.id!==r.id)];allocationRecord=r;allocation=clone(r.data);if(finalize){allocation=null;allocationRecord=null;clearFundPopup()}else{renderAllocation();}if(document.querySelector('#transactions-budget14313.active'))renderRequest();showCenterStatus(r._pending14333?'Fund allocation: Saved on this device; waiting for automatic sync.':finalize?'Fund allocation finalized.':'Fund allocation saved.')}catch(e){showCenterStatus(e.message,true)}finally{for(const [node,disabled]of controls)node.disabled=disabled;busy=false}}
 function budgetDialog(title,html,save=false){const pending=ui108.modal(title,html,save?[{label:'Cancel',value:false},{label:'Save',value:true,primary:true}]:[{label:'Close',value:false}]);const root=document.querySelector('.ui-overlay108:last-child');root.querySelector('.ui-dialog108').classList.add('budget-dialog14313');return {pending,root}}
 function renderFinalization(){if(liveProfile?.role!=='admin')return;if(finalTab==='funds')finalTab='submitted';const panel=document.getElementById('user-entry-review');if(!panel)return;let bar=panel.querySelector('#finalizationSwitch14316');if(!bar){bar=document.createElement('div');bar.id='finalizationSwitch14316';bar.className='workflow-switch14316';bar.innerHTML=button('Submitted Entries',"finalization('submitted')")+button('Reconciliation',"finalization('reconciliation')");panel.prepend(bar)}let fund=panel.querySelector('#fundAllocation14316');if(!fund){fund=document.createElement('section');fund.id='fundAllocation14316';panel.append(fund)}window.workspace14337?.mountReconciliation(panel);for(const child of panel.children)if(!child.matches('#finalizationSwitch14316,#fundAllocation14316,#reconciliationWork14337,.area-banner113,.module-header,#categoryTabShell'))child.hidden=finalTab!=='submitted';const rec=panel.querySelector('#reconciliationWork14337');if(rec)rec.hidden=finalTab!=='reconciliation';fund.hidden=finalTab!=='funds';bar.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-pressed',String(['submitted','reconciliation'][i]===finalTab)));panel.querySelectorAll('[onclick*=toggleSubmissionHistory]').forEach(b=>b.remove());if(bar.children[1])bar.children[1].hidden=!access113.can('report-reconciliation');if(finalTab==='funds')fund.innerHTML=button('Open budget utilization','showFunds()');if(finalTab==='reconciliation')void renderReconciliationList71()}
 function finalization(tab){if(tab==='reconciliation'&&!access113.can('report-reconciliation'))return showCenterStatus('Reconciliation access is required.',true);if(tab==='funds'&&(liveProfile?.role!=='admin'||!access113.can('transactions-budget14313')))return showCenterStatus('Budget Request access is required for Fund Allocation.',true);if(tab==='funds')tab='submitted';finalTab=tab;window.workspace14337?.closeReconciliationHistory();renderFinalization()}
 function renderHistory(){const budgetAllowed=liveProfile?.role==='admin'&&!!access113.can('transactions-budget14313')&&Work82.owner===liveProfile.id;const submissionAllowed=!!access113.can('user-entry-review');if(historyTab==='budget'&&!(liveProfile?.role==='admin'&&access113.can('transactions-budget14313'))||historyTab==='submitted'&&!submissionAllowed)historyTab='journal';const panel=document.getElementById('transactions-all');if(!panel)return;let bar=panel.querySelector('#historySwitch14316');if(!bar){const journal=document.createElement('div');journal.id='journalHistory14316';for(const child of [...panel.children])if(!child.matches('.area-banner113,.module-header,#categoryTabShell'))journal.append(child);panel.append(journal);bar=document.createElement('div');bar.id='historySwitch14316';bar.className='workflow-switch14316';bar.innerHTML=button('Journal',"history('journal')")+button('Submitted Entries',"history('submitted')")+button('Budget Requests',"history('budget')");journal.before(bar);const budget=document.createElement('section');budget.id='budgetHistory14316';panel.append(budget)}bar.querySelectorAll('button').forEach((b,i)=>b.hidden=i===1&&!submissionAllowed||i===2&&!budgetAllowed);const submission=document.getElementById('userEntryHistoryPanel');if(submission&&submission.parentElement!==panel){panel.append(submission);submission.querySelectorAll('[onclick*=toggleSubmissionHistory]').forEach(b=>b.remove())}document.getElementById('journalHistory14316').hidden=historyTab!=='journal';if(submission)submission.hidden=historyTab!=='submitted';const budget=document.getElementById('budgetHistory14316');budget.hidden=historyTab!=='budget';bar.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-pressed',String(['journal','submitted','budget'][i]===historyTab)));const historyRecords=budgetAllowed?budgetRows():[];const month=historyMonth14341.choose('budget',historyRecords.map(r=>String(r.data.date).slice(0,7)));if(historyTab!=='budget')return;budget.innerHTML=historyMonth14341.control('budget',month)+historyMonth14341.summary([['Budget Records',historyRecords.filter(r=>String(r.data.date).startsWith(month)).length]])+section82('Budget Request History',table82(['Date','Purpose','Record','Status','Action'],historyRecords.filter(r=>String(r.data.date).startsWith(month)).map(r=>[esc(formatAppDate(r.data.date)),esc(r.data.purpose),r.data.mode==='utilization'?'Fund allocation':'Budget request',esc(r.data.status||'Saved'),button('View',`view(${JSON.stringify(r.id)})`)+(r.data.mode!=='utilization'?button('Editor',`openRequest(${JSON.stringify(r.id)})`):r.data.status!=='finalized'?button('Continue',`openAllocation(${JSON.stringify(r.id)})`):'')+button('Delete',`remove(${JSON.stringify(r.id)})`)])));historyMonth14341.bind(budget,'budget',renderHistory,true)}
 function history(tab){historyTab=tab;renderHistory();if(tab==='submitted')window.renderUserEntryReview?.();if(tab==='budget')(window.startup14257?.isPrepared('payroll')?Promise.resolve():loadWork82()).then(renderHistory)}
-function showFinal(record){
+async function showFinal(record){
  rememberFinal(record);
- if(allocation&&(allocationRecord?.id===record.id||record.data.requestId14316&&allocation.requestId14316===record.data.requestId14316)){clearFundPopup();allocation=null;allocationRecord=null;}
+ if(allocation&&(allocationRecord?.id===record.id||record.data.requestId14316&&allocation.requestId14316===record.data.requestId14316)){
+  const current=allocation;
+  if(!await canLeaveFund()||allocation!==current)return;
+  clearFundPopup();
+ }
  selectedParent=record.data.requestId14316||'';
  if(document.querySelector('#transactions-budget14313.active'))renderRequest();
  showReport(record);
@@ -1466,7 +1484,7 @@ window.addEventListener('transactions-reset14316',e=>{if(e.detail.scopes.include
 function checkPopupAccess(){
  if(requestEditor&&(liveProfile?.id!==actor||ojmDb!==actorClient||liveProfile?.role!=='admin'||!access113.can('transactions-budget14313')||!document.getElementById('loginGate')?.classList.contains('is-authenticated'))){requestEditor.root.resolve108(false);requestEditor=null;}
 
- if((fundPopup||retainedForm)&&(liveProfile?.id!==actor||actorClient!==ojmDb||liveProfile?.role!=='admin'||!access113.can('transactions-budget14313')||!document.getElementById('loginGate')?.classList.contains('is-authenticated'))){
+ if(fundPopup&&(liveProfile?.id!==actor||actorClient!==ojmDb||liveProfile?.role!=='admin'||!access113.can('transactions-budget14313')||!document.getElementById('loginGate')?.classList.contains('is-authenticated'))){
   clearFundPopup();allocation=null;allocationRecord=null;allocationRequest14370++;
  }
 }

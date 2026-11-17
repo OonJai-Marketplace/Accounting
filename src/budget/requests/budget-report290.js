@@ -165,7 +165,7 @@ window.BudgetReport290 = (() => {
  function amountLines(codes,value){
   return orderedUnits(codes).map(c=>esc(currencySymbolV6(c))+' '+esc(amountText(value(c)))).join('<br>');
  }
- function compare(d,basis="cash"){
+ function compare(d,basis="cost"){
   const spent=(d.movements||[]).filter(m=>kind(m)==='spend');
   const rows=d.lines.map((line,index)=>({line,index,movements:spent.filter(m=>forLine(m,line,index))}));
   const linked=new Set(rows.flatMap(row=>row.movements));
@@ -201,7 +201,7 @@ window.BudgetReport290 = (() => {
     approved.set(line.currency,(approved.get(line.currency)||0)+Number(amount));
    }
    if(line&&!movements.length)spent.set(line.currency,0);
-   for(const m of movements)spent.set(m.currency,(spent.get(m.currency)||0)+cashPaid(m));
+   for(const m of movements)spent.set(m.currency,(spent.get(m.currency)||0)+Number(m.outflow));
    // Exchanges are recorded for the fund, and are not allocated to an individual item.
    if(!line||[...spent.keys()].every(c=>c===line.currency)){
     for(const c of new Set([...funded.keys(),...spent.keys()]))left.set(c,(funded.get(c)||0)-(spent.get(c)||0));
@@ -218,8 +218,9 @@ window.BudgetReport290 = (() => {
   const changes=adjustment('Receipts above or below item funding',(t,c)=>t.receipt-(approved.get(c)||0))+
    adjustment('Currency exchanged',t=>t.convertedIn-t.convertedOut)+
    adjustment('Shortfall covered by restaurant',t=>t.coverage)+adjustment('Temporary advances, less repayments',t=>t.borrow-t.repay);
-  const totals=[values(t=>t.requested,true),values(t=>t.receipt+t.coverage+t.convertedIn-t.convertedOut+t.borrow-t.repay,true),
-   values(t=>t.cashSpent,true),values(t=>t.beforeReturn,true)];
+  const available=t=>t.receipt+t.coverage+t.convertedIn-t.convertedOut+t.borrow-t.repay;
+  const totals=[values(t=>t.requested,true),values(available,true),
+   values(t=>t.spend,true),values(t=>available(t)-t.spend,true)];
   const table='<div class="data-table82"><table style="width:100%;table-layout:fixed;border-collapse:collapse"><colgroup><col style="width:32%"><col style="width:17%"><col style="width:17%"><col style="width:17%"><col style="width:17%"></colgroup><thead><tr>'+
    ['Item / category','Requested','Funds available','Actual spending','Remaining'].map((h,i)=>'<th style="background:#e4eee8;padding:4px;text-align:'+(i?'right':'left')+'">'+h+'</th>').join('')+
    '</tr></thead><tbody>'+body+changes+'<tr data-budget-summary290="total"><th style="text-align:left;'+fill+'">Report total</th>'+
