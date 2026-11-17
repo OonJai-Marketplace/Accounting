@@ -1,6 +1,6 @@
 {
-  "version": "143.423",
+  "version": "143.424",
   "changes": [
-    "Reports now offer Reporting Amount in LAK using each linked account’s average book rate on the selected date. Currency contributions, posted journal evidence, monthly comparisons, print and CSV use the same reporting figures."
+    "Chart of Accounts now includes an on-demand mapping review. Check all posting dates, direct replacements, journal history and dependencies before deciding which accounts to retire."
   ]
 }

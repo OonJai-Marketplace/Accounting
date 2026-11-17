@@ -8,7 +8,7 @@
 <script src="scripts/system-diagnostics14324.js?v=143.26"></script><script>(()=>{const q=new URLSearchParams(location.search),h=new URLSearchParams(location.hash.slice(1));if(q.has('password-recovery')||q.get('type')==='recovery'||h.get('type')==='recovery'||q.has('error_description')||h.has('error_description')){window.recoveryRedirect14257=true;const u=new URL('recovery.html',location.href);u.search=location.search;u.hash=location.hash;location.replace(u.href)}})();</script>
   <meta charset="UTF-8" />
   <script src="deployment-config.js?v=143.109"></script><script src="scripts/supabase-config.js?v=143.109"></script><script src="scripts/operational-reset143108.js?v=143.184"></script><script src="assets/vendor/noble-gcm14334.js?v=143.34"></script><script src="scripts/device-vault14334.js?v=143.338"></script><script>if(!window.OJM_DEPLOYMENT?.supabase?.url||!window.OJM_DEPLOYMENT?.supabase?.publishableKey)location.replace(new URL("setup.html",location.href).href)</script>
-  <script src="scripts/offline14239.js?v=143.423"></script>
+  <script src="scripts/offline14239.js?v=143.424"></script>
   <link rel="stylesheet" href="styles/desktop14245.css?v=143.417">
   <link rel="stylesheet" href="styles/voucher-layout14299.css?v=143.364">
 <title>Oon Jai Accounting</title>
@@ -573,9 +573,22 @@
                   <label for="searchCoa1439">Search accounts</label>
                   <input id="searchCoa1439" type="search" placeholder="Search code, name, currency, type or description" oninput="renderChartOfAccountsTable()">
                 </div>
+                <button type="button" class="je-btn je-btn-secondary no-print" id="mappingReviewOpen" hidden>Mapping review</button>
                 <button type="button" class="btn btn-primary" onclick="openAddAccountModal()">+ ADD ACCOUNT</button>
               </div>
             </div>
+
+            <dialog id="mappingReview" aria-labelledby="mappingReviewTitle">
+              <header><h3 id="mappingReviewTitle">Mapping account review</h3><button data-close-review class="je-btn je-btn-secondary" type="button">Close</button></header>
+              <div class="mapping-review-controls">
+                <label>Recommendation <select id="mappingReviewFilter" disabled><option value="">All accounts</option></select></label>
+                <button id="mappingReviewRefresh" type="button" class="je-btn je-btn-secondary">Refresh</button>
+              </div>
+              <p id="mappingReviewStatus" role="status"></p>
+              <div class="mapping-review-table" tabindex="0" aria-label="Mapping accounts, all posting dates">
+                <table><thead><tr><th scope="col">Mapping account</th><th scope="col">Recommendation</th><th scope="col">Direct account</th><th scope="col">Posted balance</th><th scope="col">Journal evidence</th></tr></thead><tbody></tbody></table>
+              </div>
+            </dialog>
 
             <div class="table-container">
               <table id="tblChartOfAccounts">
@@ -1356,15 +1369,15 @@
 <script src="scripts/prepared-workspace14364.js?v=143.422"></script>
 <link rel="stylesheet" href="styles/font-size14380.css?v=143.80">
 <script src="scripts/font-size14380.js?v=143.364"></script>
-<script src="scripts/editor-protection14380.js?v=143.417"></script>
+<script src="scripts/editor-protection14380.js?v=143.424"></script>
 <script src="scripts/undo143103.js?v=143.261"></script>
 <script src="scripts/receipt-settings.js?v=143.375"></script>
 <script src="scripts/notification-focus143139.js?v=143.375"></script>
 <link rel="stylesheet" href="styles/settings-stack143176.css?v=143.364">
 <script src="scripts/settings-stack143176.js?v=143.375"></script>
-<link rel="stylesheet" href="styles/account-groups143180.css?v=143.352">
+<link rel="stylesheet" href="styles/account-groups143180.css?v=143.424">
 <script src="scripts/organization-zoom143180.js?v=143.180"></script>
-<script src="scripts/account-groups143180.js?v=143.406"></script>
+<script src="scripts/account-groups143180.js?v=143.424"></script>
 <script src="scripts/word-of-hope183.js?v=143.239"></script>
 <script src="scripts/journal-generator257.js?v=143.421"></script>
 <link rel="stylesheet" href="styles/upcoming-plans280.css?v=143.377">

@@ -59,7 +59,7 @@ function mount(){const root=$('sec-chart-accounts');if(!root||!desktop()||$('cha
 }
 function navigation(host,items,selected,handler){const signature=JSON.stringify(items);if(host.dataset.signature!==signature){host.dataset.signature=signature;host.innerHTML=items.map(([id,name,count,child])=>`<button type="button" class="chart-filter143180${child?' chart-department143180':''}" data-filter="${esc(id)}"><span>${esc(name)}</span><small>${count}</small></button>`).join('');host.querySelectorAll('button').forEach(b=>b.onclick=()=>handler(b.dataset.filter));}for(const b of host.querySelectorAll('button')){b.classList.toggle('active',b.dataset.filter===selected);b.setAttribute('aria-current',b.dataset.filter===selected?'page':'false');}}
 function ordered(){const priority=['Company','Restaurant','Wellness','Other'];return [...groups].sort((a,b)=>{const ai=priority.indexOf(a.name),bi=priority.indexOf(b.name);return (ai<0?priority.length:ai)-(bi<0?priority.length:bi)||a.name.localeCompare(b.name);});}
-function render(){context();if(!desktop()){const grid=$('chartBrowser143180');if(grid){$('chartAssign143180')?.remove();grid.before(...$('chartMain143180').childNodes);grid.remove();}return;}mount();if(!$('chartBrowser143180'))return;
+function render(){context();syncMappingReview();if(!desktop()){const grid=$('chartBrowser143180');if(grid){$('chartAssign143180')?.remove();grid.before(...$('chartMain143180').childNodes);grid.remove();}return;}mount();if(!$('chartBrowser143180'))return;
  const list=accounts(),count=id=>list.filter(a=>inGroup(a,id)).length;
  navigation($('chartGroupNav143180'),[['all','All accounts',list.length],...ordered().map(g=>[g.id,g.name,count(g.id),g.kind==='department']),...(count('unassigned')?[['unassigned','Unassigned',count('unassigned')]]:[])],group,id=>choose(id));
  navigation($('chartTypeNav143180'),types.map(([id,label])=>[id,label,list.filter(a=>inGroup(a,group)&&(id==='ALL'||a.type===id||id==='INCOME'&&a.type==='REVENUE')).length]),type,id=>choose(group,id));
@@ -124,7 +124,86 @@ function openActions(row,event){
  for(const b of buttons){b.setAttribute('role','menuitem');menu.append(b);}
  document.body.append(menu);const box=row.getBoundingClientRect();anchorBox=box;menu.style.left=Math.max(8,Math.min(event?event.clientX+6:box.left,innerWidth-menu.offsetWidth-8))+'px';menu.style.top=Math.max(8,Math.min(event?event.clientY+6:box.bottom+4,innerHeight-menu.offsetHeight-8))+'px';menu.querySelector('button:not(:disabled)')?.focus({preventScroll:true});
 }
+const canReviewMappings=()=>!!actor() && liveProfile.role==='admin' &&
+ (!window.access113 || (access113.can('sec-chart-accounts','view') && access113.can('journal','view')));
+let reviewOwner='',reviewClient=null,reviewRequest=0,reviewRows=[],reviewSubscription,reviewLoading=false;
+function syncMappingReview(){
+ const button=$('mappingReviewOpen'),dialog=$('mappingReview');
+ if(!button||!dialog)return;
+ button.hidden=!canReviewMappings();
+ if(dialog.open && (button.hidden || actor()!==reviewOwner || (typeof ojmDb==='undefined'?null:ojmDb)!==reviewClient ||
+    document.querySelector('.tab-content.active')?.id!=='accounts-modular-container'))dialog.close();
+}
+function renderMappingReview(){
+ const filter=$('mappingReviewFilter').value,rows=reviewRows.filter(row=>!filter||row.recommendation===filter);
+ const body=$('mappingReview').querySelector('tbody'),fragment=document.createDocumentFragment();
+ const number=new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+ for(const item of rows){
+  const row=document.createElement('tr');
+  const cell=(label,detail)=>{
+   const td=document.createElement('td');td.textContent=label;
+   if(detail){const small=document.createElement('small');small.textContent=detail;td.append(small);}
+   row.append(td);
+  };
+  const balance=Number(item.balance),journals=item.journals||[];
+  cell(item.code+' · '+item.name,item.active?'Active':'Inactive');
+  cell(item.recommendation,(item.reasons||[]).join(' · '));
+  cell(item.replacement||'—');
+  cell(number.format(Math.abs(balance))+' '+item.currency+(balance>0?' DR':balance<0?' CR':''));
+  cell(item.posting_count+' posted',journals.join(', '));fragment.append(row);
+ }
+ body.replaceChildren(fragment);
+ $('mappingReviewStatus').textContent=rows.length+' of '+reviewRows.length+' mapping accounts · All posting dates';
+}
+async function readMappingReview(){
+ const dialog=$('mappingReview'),filter=$('mappingReviewFilter');
+ if(reviewLoading)return;
+ const request=++reviewRequest,selection=filter.value;
+ filter.disabled=true;reviewLoading=true;
+ reviewRows=[];dialog.querySelector('tbody').replaceChildren();
+ $('mappingReviewStatus').textContent='Checking accounts and posted journals…';
+ try{
+  if(!reviewClient||!navigator.onLine)throw Error('Connect to the internet and select Refresh to check the database.');
+  const {data,error}=await reviewClient.rpc('review_mapping_accounts');
+  if(error)throw error;
+  if(!Array.isArray(data))throw Error('The account review could not be read.');
+  if(request!==reviewRequest||!dialog.open)return;
+  syncMappingReview();if(!dialog.open)return;
+  reviewRows=data;
+  const choices=[...new Set(data.map(row=>row.recommendation))].sort();
+  filter.replaceChildren(new Option('All accounts',''),...choices.map(value=>new Option(value,value)));
+  if(choices.includes(selection))filter.value=selection;
+  filter.disabled=false;renderMappingReview();
+ }catch(error){
+  if(request===reviewRequest&&dialog.open)$('mappingReviewStatus').textContent=error?.message||'Could not load mapping accounts. Select Refresh to try again.';
+ }finally{if(request===reviewRequest)reviewLoading=false;}
+}
+function initMappingReview(){
+ const button=$('mappingReviewOpen'),dialog=$('mappingReview');
+ if(!button||!dialog)return;
+ button.onclick=()=>{
+  if(!canReviewMappings()||dialog.open)return;
+  reviewOwner=actor();reviewClient=typeof ojmDb==='undefined'?null:ojmDb;
+  dialog.showModal();
+  reviewSubscription=reviewClient?.auth?.onAuthStateChange?.((event,session)=>{
+   if(dialog.open && (event==='SIGNED_OUT'||(session?.user && session.user.id!==reviewOwner)))dialog.close();
+  })?.data?.subscription;
+  readMappingReview();
+ };
+ dialog.querySelector('[data-close-review]').onclick=()=>dialog.close();
+ $('mappingReviewRefresh').onclick=readMappingReview;
+ $('mappingReviewFilter').onchange=renderMappingReview;
+ dialog.addEventListener('close',()=>{
+  reviewRequest++;reviewSubscription?.unsubscribe();reviewSubscription=null;reviewRows=[];reviewOwner='';reviewClient=null;
+  dialog.querySelector('tbody').replaceChildren();$('mappingReviewStatus').textContent='';
+  reviewLoading=false;
+  $('mappingReviewFilter').replaceChildren(new Option('All accounts',''));
+ });
+ syncMappingReview();
+}
+
 function ready(){
+ initMappingReview();
  document.addEventListener('dblclick',e=>{if(e.target.closest('button,input,select,a,.column-resize143117'))return;const row=e.target.closest('#coaTableBody tr');if(row)openActions(row,e);});
  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&actionMenu){e.preventDefault();closeActions(true);return;}if(actionMenu?.contains(e.target)){if(e.key==='Tab'){closeActions(true);return;}if(['ArrowDown','ArrowUp','Home','End'].includes(e.key)){const buttons=[...actionMenu.querySelectorAll('button:not(:disabled)')],i=buttons.indexOf(document.activeElement);e.preventDefault();buttons[e.key==='Home'?0:e.key==='End'?buttons.length-1:(i+(e.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length]?.focus();return;}}if(e.key==='Enter'&&e.target.matches('#coaTableBody tr')){e.preventDefault();openActions(e.target);}});
  document.addEventListener('focusin',e=>{if(actionMenu&&!actionMenu.contains(e.target))closeActions();});
@@ -144,7 +223,7 @@ function ready(){
  document.addEventListener('change',e=>{if(e.target.id==='userAccessDepartment14229'){assignment=groups.find(g=>g.name.toLocaleLowerCase()===e.target.value.trim().toLocaleLowerCase())?.id||'all';refreshAssignment();}else if(e.target.closest?.('#userFundAccountGrid,#userAccountAccessGrid'))filterAssignment();});
  let desktopLayout=desktop();
  function route(){
-  context();
+  context();syncMappingReview();
   const area=document.querySelector('.tab-content.active')?.id;
   if(!desktop()||!canRead()||!['accounts-modular-container','settings-users'].includes(area))return;
   if(area==='accounts-modular-container'&&(!document.getElementById('chartBrowser143180')||renderedEditAccess!==canEdit())){

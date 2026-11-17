@@ -141,3 +141,18 @@
   }
  }
 }
+
+#mappingReviewOpen[hidden]{display:none!important}
+#mappingReview{box-sizing:border-box;width:min(1060px,94vw);max-height:86vh;padding:20px;border:1px solid #a6b9ab;border-radius:8px;color:#233d30;background:#fffdf8}
+#mappingReview[open]{display:flex;flex-direction:column;gap:12px}
+#mappingReview::backdrop{background:rgb(21 36 28 / 50%)}
+#mappingReview header,.mapping-review-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+#mappingReview header{justify-content:space-between}
+#mappingReview h3,#mappingReview p{margin:0}
+.mapping-review-controls label{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.mapping-review-table{overflow:auto;min-height:0;border:1px solid #d6dfd7}
+#mappingReview table{width:100%;border-collapse:collapse;min-width:680px;font-size:.9rem}
+#mappingReview th,#mappingReview td{padding:8px 10px;text-align:left;vertical-align:top;border-bottom:1px solid #d6dfd7}
+#mappingReview th{position:sticky;top:0;background:#eef4ed}
+#mappingReview td:nth-child(4){white-space:nowrap;font-variant-numeric:tabular-nums}
+#mappingReview td small{display:block;margin-top:3px;color:#506156;line-height:1.4}
