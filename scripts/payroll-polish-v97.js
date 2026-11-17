@@ -85,7 +85,7 @@
     const fields = [
       ['code', 'name', 'profileEmail', 'photoFile', 'phone', 'address', 'emergencyContact', 'position', 'currency', 'salary', 'renewal'],
       ['payrollAccountId'],
-      ['vacation', 'sick', 'minorSick', 'personal', 'bereavement'],
+      ['vacation','vacationGraceEnabled','vacationGraceMonths', 'sick', 'minorSick', 'personal', 'bereavement'],
       ['active', 'salaryApplies', 'pit', 'sso', 'pitShare', 'isSample']
     ];
     const labels = new Map();

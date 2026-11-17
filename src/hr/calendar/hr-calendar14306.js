@@ -20,7 +20,62 @@ function linked(){const leaves=Work82.leaves.filter(r=>r.data.status!=='cancelle
  const contracts=Work82.employees.flatMap(e=>(e.data.contracts99||[]).flatMap(c=>{if(!M.valid(c.end))return[];return [{id:'contract:'+e.id+':'+c.id,employeeId:e.id,recordId:c.id,title:e.data.name+' · '+(c.status==='vacation'?'Renewal after vacation':'Contract ends'),start:c.status==='vacation'&&M.valid(c.renewal)?c.renewal:c.end,end:c.status==='vacation'&&M.valid(c.renewal)?c.renewal:c.end,type:'contract',status:c.status||'active',reminderMonths:Number(c.reminderMonths??1),reminderDays:Number(c.reminderDays||0),effect:'none',notes:c.title,linked:true}]}));return [...leaves,...contracts];}
 function allEvents(year=Number(state.month.slice(0,4))){const own=M.events(year,state.rows,config().holidayOverrides,config().approvedCalendarNews14309);return [...own,...linked()].sort((a,b)=>a.start.localeCompare(b.start)||a.title.localeCompare(b.title))}
 function reminders(){if(!admin()||!Work82.loaded||Work82.owner!==liveProfile.id||state.owner!==liveProfile.id)return[];const year=Number(M.today().slice(0,4));const list=[...new Map([year-1,year,year+1].flatMap(allEvents).map(e=>[e.id,e])).values()];const due=M.upcoming(list);const overdue=list.filter(e=>e.type==='contract'&&!['ended','terminated','renewed','cancelled'].includes(e.status)&&e.end<M.today());return [...overdue,...due].sort((a,b)=>a.start.localeCompare(b.start));}
-function notices(){return [...(window.hrCalendarNews14309?.notices()||[]),...reminders().map(e=>({type:e.type==='contract'?'Contract review':e.type==='leave'?'Employee leave':'Upcoming event',title:e.title,detail:dateLabel(e.start)+(e.end<M.today()?' · Review overdue':''),target:'hr-calendar',hrEventId:e.id}))]}
+let inbox={actor:null,rows:[],version:0,error:''};
+function hubNotices(){return admin()&&inbox.actor===liveProfile.id?inbox.rows.map(r=>({type:'HR leave request',noticeId:'hub-leave-'+r.id,title:'Leave request · '+r.submitted_name,detail:dateLabel(r.starts)+' · '+r.kind,target:'hr-leave'})):[];}
+async function loadInbox(){
+ const actor=admin()?liveProfile.id:null,db=ojmDb,version=++inbox.version;
+ if(inbox.actor!==actor){inbox.rows=[];inbox.error='';inbox.actor=actor;}
+ if(!actor||!db)return;
+ const result=await db.from('hub_leave_intake').select('id,employee_id,submitted_name,kind,starts,ends,reason,workdays,received').eq('disposition','new').order('received',{ascending:false});
+ if(!admin()||actor!==liveProfile.id||db!==ojmDb||version!==inbox.version)return;
+ inbox.error=result.error?'Hub requests could not be refreshed.':'';
+ if(!result.error)inbox.rows=result.data||[];
+ paintInbox();window.refreshNotices1443?.();
+}
+function paintInbox(){
+ const host=document.querySelector('#hr-leave [data-hub-inbox]');if(!host||!admin())return;
+ host.replaceChildren();
+ const heading=document.createElement('h4');heading.textContent='Leave requests from the Hub';host.append(heading);
+ const refresh=document.createElement('button');refresh.type='button';refresh.textContent='Refresh requests';refresh.onclick=loadInbox;host.append(refresh);
+ const status=document.createElement('p');status.textContent=inbox.error||(inbox.actor!==liveProfile.id?'Open or refresh to check requests.':!inbox.rows.length?'No new requests.':'Confirm the employee and payment treatment before opening the approval screen.');host.append(status);
+ if(inbox.actor!==liveProfile.id)return;
+ const history=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Rejected Hub requests';history.append(summary);host.append(history);
+ history.ontoggle=async()=>{
+   if(!history.open||history.dataset.loaded)return;
+   const {data,error}=await ojmDb.from('hub_leave_intake').select('employee_id,kind,starts,ends,decided_at').eq('disposition','rejected').order('decided_at',{ascending:false}).limit(100);
+   if(!history.isConnected||!admin())return;
+   const list=document.createElement('div');history.append(list);
+   if(error){list.textContent='Could not load decisions.';return;}
+   history.dataset.loaded='yes';
+   for(const r of data){const line=document.createElement('p');line.textContent=(Work82.employees.find(e=>e.id===r.employee_id)?.data.name||'Employee')+' · '+r.kind+' · '+dateLabel(r.starts)+' – '+dateLabel(r.ends)+' · Rejected '+dateLabel(r.decided_at.slice(0,10));list.append(line);}
+   if(!data.length)list.textContent='No rejections.';
+ };
+ for(const r of inbox.rows){
+   const panel=document.createElement('details'),title=document.createElement('summary');
+   const employee=(Work82.employees||[]).find(e=>e.id===r.employee_id);
+   title.textContent=r.submitted_name+' · '+r.kind+' · '+dateLabel(r.starts);panel.append(title);
+   const info=document.createElement('p');info.textContent='Employee on file: '+(employee?.data.name||'Load employee records')+' · '+dateLabel(r.starts)+' – '+dateLabel(r.ends)+' · '+r.workdays+' working days';panel.append(info);
+   if(employee&&r.kind==='vacation'){
+     const bal=window.vacationLedger.balance(employee,r.starts);
+     if(bal){const detail=document.createElement('p');detail.textContent='Available on first day: '+bal.available+' · Used this entitlement year: '+bal.used;panel.append(detail);}
+   }
+   const reason=document.createElement('p');reason.textContent=r.reason;panel.append(reason);
+   const paid=document.createElement('select');paid.setAttribute('aria-label','Payment treatment');for(const [v,t] of [['','Select payment treatment'],['yes','Paid'],['no','Unpaid']])paid.add(new Option(t,v));panel.append(paid);
+   for(const [action,label] of [['import','Review for approval'],['reject','Reject']]){
+     const button=document.createElement('button');button.type='button';button.textContent=label;panel.append(button);
+     button.onclick=async()=>{
+       if(action==='import'&&!paid.value){paid.focus();return;}
+       if(!confirm(action==='import'?'Move this request to Leave Records for your approval?':'Reject this request and discard the submitted name and reason?'))return;
+       button.disabled=true;
+       try{const result=await ojmDb.rpc('hub_review_leave',{p_key:r.id,p_action:action,p_paid:paid.value==='yes'});if(result.error)throw result.error;
+       await loadInbox();if(action==='import'){await window.loadWork82?.(true);window.hrWorkspace14306?.openLeave(r.id);}}
+       catch(error){status.textContent=error.message||'Request could not be reviewed.';}finally{button.disabled=false;}
+     };
+   }
+   host.append(panel);
+ }
+}
+function notices(){return [...hubNotices(),...(window.hrCalendarNews14309?.notices()||[]),...reminders().map(e=>({type:e.type==='contract'?'Contract review':e.type==='leave'?'Employee leave':'Upcoming event',title:e.title,detail:dateLabel(e.start)+(e.end<M.today()?' · Review overdue':''),target:'hr-calendar',hrEventId:e.id}))]}
 function snapshot(){return {settings:M.clone(config()),events:M.clone(state.rows),capturedAt:new Date().toISOString()}}
 function day(date,employeeId,run){if((run?.status==='finalized'||!!run?.correction277)&&!run.calendarSnapshot14306)return null;if((run?.status!=='finalized'&&!run?.correction277)&&!state.ready)return null;const data=(run?.status==='finalized'||!!run?.correction277)?run.calendarSnapshot14306:null;return M.dayInfo(date,employeeId,data?.settings||config(),data?.events||state.rows,run?.settingsSnapshot?.payroll||ApplicationSettings.payroll)}
 function errorBox(){return state.error?'<p class="notice82 warn82">'+esc(state.error)+' <button type="button" data-cal-retry>Retry</button> <a href="setup/INSTALL-HR-CALENDAR-v143.06.sql" download>HR setup SQL</a></p>':''}
@@ -92,6 +147,6 @@ function render(){const root=calendarRoot();if(!root||(!railCalendar?.open&&!roo
  const previous=root.querySelector(':scope>.hr-calendar14306');if(previous)previous.replaceWith(content.content);else root.append(content.content);
  bind(root);if(state.center){requestAnimationFrame(centerUpcoming);state.center=false;}}
 function bind(root){root.querySelector("[data-cal-news]")?.addEventListener("click",()=>window.localEvents14310?localEvents14310.open():window.hrCalendarNews14309?.open());root.querySelector('[data-cal-retry]')?.addEventListener('click',()=>load(true));root.querySelector('[data-cal-add]')?.addEventListener('click',()=>editEvent());root.querySelector('[data-cal-holiday]')?.addEventListener('click',()=>addHoliday());root.querySelector('[data-cal-work]')?.addEventListener('click',workSchedule);root.querySelector('[data-cal-center]')?.addEventListener('click',centerUpcoming);root.querySelector('[data-cal-today]')?.addEventListener('click',()=>{state.month=M.today().slice(0,7);state.center=true;render()});root.querySelector('[data-calendar-month]')?.addEventListener('change',e=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value)){state.center=e.target.value.slice(0,4)!==state.month.slice(0,4);state.month=e.target.value;render()}});root.querySelectorAll('[data-cal-shift]').forEach(b=>b.onclick=()=>{const next=M.addMonths(state.month+'-01',Number(b.dataset.calShift)).slice(0,7);state.center=next.slice(0,4)!==state.month.slice(0,4);state.month=next;render()});root.querySelectorAll('[data-cal-open]').forEach(b=>b.onclick=()=>eventDetails(b.dataset.calOpen));root.querySelectorAll('[data-cal-day]').forEach(b=>b.onclick=()=>{const date=b.dataset.calDay,items=allEvents(Number(date.slice(0,4))).filter(e=>e.start<=date&&e.end>=date),box=dialog(dateLabel(date),'<div class="hr-day-events14306">'+(items.length?items.map(e=>'<p><strong>'+esc(e.title)+'</strong> · '+esc(e.type==='leave'?e.status:caption(e))+' <button type="button" data-cal-open="'+esc(e.id)+'">Details</button></p>').join(''):'<p>No company events.</p>')+'<button type="button" class="je-btn je-btn-secondary" data-add-holiday-day>Add Holiday</button> <button type="button" class="je-btn je-btn-secondary" data-add-day>Add Event</button></div>');box.querySelectorAll('[data-cal-open]').forEach(x=>x.onclick=()=>{box.close();eventDetails(x.dataset.calOpen)});box.querySelector('[data-add-holiday-day]').onclick=()=>{box.close();void addHoliday(date)};box.querySelector('[data-add-day]').onclick=()=>{box.close();editEvent('',date)}})}
-window.hrCalendar14306={openRail,closeRail:()=>railCalendar?.close(),state,load,config,saveConfig,saveEvent,allEvents,reminders,notices,snapshot,day,open,editEvent,addHoliday,workSchedule,render,changed,dialog,guard};
-window.addEventListener('DOMContentLoaded',()=>{const oldLoad=window.loadWork82;window.loadWork82=async function(...args){const r=await oldLoad.apply(this,args);if(admin())await load(!!args[0]);return r};const oldSwitch=window.switchTab;window.switchTab=function(id,...args){const r=oldSwitch.call(this,id,...args);if(!window.workspaceViews14364?.reuseView(id)){if(id==='hr-calendar'){state.center=true;if(state.ready)render();else void load().then(render)}}return r};let currentDay=M.today();setInterval(()=>{if(!admin())return;const day=M.today();if(day!==currentDay){if(state.month===currentDay.slice(0,7))state.month=day.slice(0,7);currentDay=day;state.center=true;changed()}},60000);});
+window.hrCalendar14306={paintInbox,loadInbox,openRail,closeRail:()=>railCalendar?.close(),state,load,config,saveConfig,saveEvent,allEvents,reminders,notices,snapshot,day,open,editEvent,addHoliday,workSchedule,render,changed,dialog,guard};
+window.addEventListener('DOMContentLoaded',()=>{const oldLoad=window.loadWork82;window.loadWork82=async function(...args){const r=await oldLoad.apply(this,args);if(admin())await Promise.all([load(!!args[0]),loadInbox()]);return r};const oldSwitch=window.switchTab;window.switchTab=function(id,...args){const r=oldSwitch.call(this,id,...args);if(!window.workspaceViews14364?.reuseView(id)){if(id==='hr-calendar'){state.center=true;if(state.ready)render();else void load().then(render)}}return r};let currentDay=M.today();setInterval(()=>{if(!admin())return;const day=M.today();if(day!==currentDay){if(state.month===currentDay.slice(0,7))state.month=day.slice(0,7);currentDay=day;state.center=true;changed()}},60000);});
 })();

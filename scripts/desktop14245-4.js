@@ -802,8 +802,110 @@ let queued=false;new MutationObserver(records=>{if(queued||!records.some(r=>r.ta
 const esc=v=>escapeHtml(String(v??''));
 function modal(title,html,buttons=[{label:'Close',value:false}],wide=false){return new Promise(resolve=>{const prior=document.activeElement,root=document.createElement('div');root.className='ui-overlay108';root.innerHTML=`<section class="ui-dialog108 ${wide?'wide':''}" role="dialog" aria-modal="true" aria-label="${esc(title)}"><header><h3>${esc(title)}</h3><button type="button" data-dismiss aria-label="Close">×</button></header><div class="ui-body108">${html}</div><footer></footer></section>`;const done=value=>{root.remove();prior?.isConnected&&prior.focus?.();resolve(value)};root.querySelector('[data-dismiss]').onclick=()=>done(false);buttons.filter(item=>!(/^(close|done)$/i.test(item.label)&&item.value===false)).forEach(item=>{const b=document.createElement('button');b.type='button';b.textContent=item.label;b.className=item.primary?'primary108':item.danger?'danger108':'';b.onclick=()=>done(item.value);root.querySelector('footer').append(b)});root.addEventListener('pointerdown',e=>{if(e.target===root)done(false)});root.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();done(false)}if(e.key==='Tab'){const list=[...root.querySelectorAll('button,input,select,textarea,a[href]')].filter(n=>!n.disabled&&n.getClientRects().length);const a=list[0],z=list.at(-1);if(e.shiftKey&&document.activeElement===a){e.preventDefault();z.focus()}else if(!e.shiftKey&&document.activeElement===z){e.preventDefault();a.focus()}}});document.body.append(root);(root.querySelector('footer button')||root.querySelector('[data-dismiss]'))?.focus();root.resolve108=done})}
 window.ui108={modal,confirm:(title,message)=>modal(title,`<p>${esc(message)}</p>`,[{label:'Cancel',value:false},{label:'Delete',value:true,danger:true}]),esc};
+// Annual vacation is earned on each completed service month. Each year's
+// entitlement has its own expiry, so unused grace never becomes new accrual.
+window.vacationLedger = (() => {
+  const date = value => new Date(value+'T00:00:00Z');
+  const iso = d => d.toISOString().slice(0,10);
+  function addMonths(start,n) {
+    const d=date(start), day=d.getUTCDate();
+    d.setUTCDate(1); d.setUTCMonth(d.getUTCMonth()+n);
+    const last=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0)).getUTCDate();
+    d.setUTCDate(Math.min(day,last)); return iso(d);
+  }
+  function calculate(start,annual,grace,through,usage,opening=[]) {
+    const events=new Map(), buckets=opening.map(b=>({...b,carry:true})), byYear=new Map();
+    const round=n=>Math.round((n+Number.EPSILON)*100)/100;
+    const add=(day,field,n)=>{
+      const row=events.get(day)||{earned:[],used:0};
+      if(field==='earned') row.earned.push(n); else row.used+=n;
+      events.set(day,row);
+    };
+    function bucket(year){
+      if(!byYear.has(year)){
+        const end=addMonths(start,(year+1)*12);
+        const months=typeof grace==='function'?grace(end):grace;
+        const item={year,end,expiry:addMonths(start,(year+1)*12+months),amount:0};
+        byYear.set(year,item);buckets.push(item);
+      }
+      return byYear.get(year);
+    }
+    let yearStart=start,expired=0;
+    for(let month=1;;month++){
+      const anniversary=addMonths(start,month);
+      // The twelfth instalment is available on the final service day of its year.
+      const day=month%12===0?iso(new Date(+date(anniversary)-86400000)):anniversary;
+      if(day>through)break;
+      const part=(month-1)%12+1;
+      add(day,'earned',{year:Math.floor((month-1)/12),days:round(annual*part/12)-round(annual*(part-1)/12)});
+      if(month%12===0&&anniversary<=through)yearStart=anniversary;
+    }
+    for(const row of usage)if(row.date>=start&&row.date<=through)add(row.date,'used',Number(row.days));
+    add(through,'used',0);
+    for(const [day,row] of [...events].sort(([a],[b])=>a.localeCompare(b))){
+      for(const credit of row.earned)bucket(credit.year).amount+=credit.days;
+      for(const item of buckets)if(item.expiry<=day&&item.amount>0){expired+=item.amount;item.amount=0;}
+      let debit=row.used;
+      for(const item of [...buckets].sort((a,b)=>a.expiry.localeCompare(b.expiry))){
+        if(item.expiry<=day||debit<=0)continue;
+        const spend=Math.min(Math.max(0,item.amount),debit);item.amount-=spend;debit-=spend;
+      }
+      if(debit>0){
+        let year=0;while(addMonths(start,(year+1)*12)<=day)year++;
+        bucket(year).amount-=debit;
+      }
+    }
+    const carry=buckets.filter(b=>(b.carry||b.end<=through)&&b.expiry>through&&round(b.amount)>0);
+    const used=usage.filter(r=>r.date>=yearStart&&r.date<=through).reduce((n,r)=>n+Number(r.days),0);
+    return {available:round(buckets.reduce((n,b)=>n+b.amount,0)),used:round(used),expired:round(expired),yearStart,carry};
+  }
+  function graceAt(d,end){
+    const history=d.vacationGraceHistory;
+    if(Array.isArray(history))return history.filter(x=>x.from<=end).at(-1)?.months||0;
+    return d.vacationGraceEnabled?Number(d.vacationGraceMonths)||0:0;
+  }
+  function leaveLines(d){
+    if(d.type!=='vacation'||!d.days)return [];
+    if(Array.isArray(d.dayFractions))return d.dayFractions.map((days,i)=>({date:HRCalendarModel14306.addDays(d.from,i),days})).filter(x=>x.days>0);
+    const basis=d.calendarBasis14306, result=[];
+    let total=0;
+    for(let day=d.from;day<=d.to;day=HRCalendarModel14306.addDays(day,1)){
+      const n=HRCalendarModel14306.dayInfo(day,d.employeeId,basis?.settings||window.hrCalendar14306?.config?.(),basis?.events||window.hrCalendar14306?.state.rows||[],ApplicationSettings.payroll).fraction;
+      if(n>0){result.push({date:day,days:n});total+=n;}
+    }
+    if(!total)return [{date:d.from,days:Number(d.days)}];
+    return result.map(x=>({...x,days:x.days*Number(d.days)/total}));
+  }
+  function balance(employee,through,extra=[],excludeRun=''){
+    const d=employee.data||employee,id=employee.id||d.employeeId;
+    const start=d.contractStart||(d.contracts99||[]).filter(c=>c.start&&c.start<=through).map(c=>c.start).sort().at(-1)||d.renewal;
+    if(!/^\d{4}-\d\d-\d\d$/.test(start||''))return null;
+    const grace=end=>graceAt(d,end);
+    const usage=Work82.leaves.filter(r=>r.data.employeeId===id&&r.data.status==='approved'&&r.data.type==='vacation').flatMap(r=>leaveLines(r.data));
+    const loaded=new Set(Work82.runs.map(r=>r.id));
+    for(const r of Work82.runs.filter(r=>r.id!==excludeRun&&r.data.status==='finalized'&&!r.data.isSample))
+      for(const row of (r.data.results||[]).filter(x=>x.employeeId===id))
+        for(const a of row.attendance95||[])if(!a.linked&&a.leaveType==='vacation')usage.push({date:a.date,days:Number(a.scheduleFraction??1)});
+    for(const r of Work82.leaveCarry14334||[])if(r.runId!==excludeRun&&!loaded.has(r.runId)&&r.employeeId===id&&r.type==='vacation')usage.push({date:r.date,days:Number(r.days)});
+    const opening=[];
+    for(const p of d.leaveHistory200?.closedPeriods||[]){
+      if(p.end>=start||!p.endConfirmed||!p.end)continue;
+      const expiry=addMonths(HRCalendarModel14306.addDays(p.end,1),grace(HRCalendarModel14306.addDays(p.end,1)));
+      if(expiry>start)opening.push({expiry,amount:Math.max(0,Number(p.vacationAtClose??Math.min(Number(p.remainingAgainstAllowance?.vacation)||0,window.leaveAccrual108(p.sourcePeriodDate,p.end,Number(p.allowance?.vacation)||0)-Number(p.used?.vacation||0)))||0)});
+    }
+    return calculate(start,Number(d.vacation??15),grace,through,usage.concat(extra),opening.sort((a,b)=>a.expiry.localeCompare(b.expiry)));
+  }
+  function check(employee,extra,excludeRun){
+    for(const day of [...new Set(extra.map(x=>x.date))].sort()){
+      const row=balance(employee,day,extra,excludeRun);
+      if(!row||row.available<0)throw Error('Insufficient accrued vacation on '+day+'. Check Leave entitlements and grace for this employee.');
+    }
+  }
+  return {calculate,balance,leaveLines,check};
+})();
+
 window.leaveAccrual108=function(start,asOf=today82(),annual=15){if(!/^\d{4}-\d{2}-\d{2}$/.test(start||'')||asOf<start)return 0;const [y,m,d]=start.split('-').map(Number),[ay,am,ad]=asOf.split('-').map(Number);let months=(ay-y)*12+am-m;const anniversary=Math.min(d,new Date(ay,am,0).getDate());if(ad<anniversary)months--;return Math.round(Math.max(0,months)*Number(annual)/12*100)/100};
-leaveSummary82=function(e){const d=e.data,asOf=today82(),start=d.contractStart||(d.contracts99||[]).filter(c=>c.start&&c.start<=asOf).map(c=>c.start).sort().at(-1)||d.renewal,leaves=Work82.leaves.filter(r=>r.data.employeeId===e.id&&r.data.status==='approved'&&r.data.from>=start),used=k=>leaves.filter(r=>r.data.type===k||(k==='sick'&&r.data.type==='minorSick')).reduce((s,r)=>s+Number(r.data.days||0),0)+(window.payroll95?.usedLegendLeave(e.id,k,start)||0),annual=d.vacation===undefined?15:Number(d.vacation);return [esc(d.name),money82(leaveAccrual108(start,asOf,annual)-used('vacation')),money82(used('vacation')),money82(used('sick')),money82(used('personal')),money82(used('bereavement')),esc(start?formatAppDate(start):'Set contract start')]};
+leaveSummary82=function(e){const d=e.data,asOf=today82(),start=d.contractStart||(d.contracts99||[]).filter(c=>c.start&&c.start<=asOf).map(c=>c.start).sort().at(-1)||d.renewal,leaves=Work82.leaves.filter(r=>r.data.employeeId===e.id&&r.data.status==='approved'&&r.data.from>=start),used=k=>leaves.filter(r=>r.data.type===k||(k==='sick'&&r.data.type==='minorSick')).reduce((s,r)=>s+Number(r.data.days||0),0)+(window.payroll95?.usedLegendLeave(e.id,k,start)||0),v=vacationLedger.balance(e,asOf);return [esc(d.name),money82(v?.available||0)+(v?.carry.length?'<br><small>'+v.carry.map(b=>money82(b.amount)+' through '+esc(formatAppDate(HRCalendarModel14306.addDays(b.expiry,-1)))).join('<br>')+'</small>':''),money82(v?.used||0),money82(used('sick')),money82(used('personal')),money82(used('bereavement')),esc(v?formatAppDate(v.yearStart):'Set contract start')]};
 window.deleteWork108=async function(kind,id){const actor=liveProfile?.id,db=ojmDb,current=()=>actor===liveProfile?.id&&db===ojmDb;const r=Work82[kind]?.find(r=>r.id===id);if(!r)return;const name=r.data.name||r.data.reference||r.data.title||r.data.from||'record';const linked=kind==='employees'&&(window.payrollWindow14334?.hasEmployee(id)||Work82.leaves.some(l=>l.data.employeeId===id)||Work82.runs.some(p=>p.data.rows?.some(x=>x.employeeId===id))||r.data.contracts99?.length||r.data.assessments99?.length);if(kind==='leaves'&&r.data.status==='approved'){await modal('Approved leave','<p>Cancel the approved leave before deleting it. Leave used in finalized payroll remains protected.</p>');return}if(kind==='runs'&&r.data.status==='finalized'){await modal('Finalized payroll','<p>This finalized calculation is preserved. Use a correction in the next payroll period and reverse any related posted journal through Transactions.</p>');return}const yes=await modal(linked?'Archive employee':'Delete record',`<p>${esc(linked?name+' has linked history. Archive the employee while preserving records?':'Permanently delete '+name+'?')}</p>`,[{label:'Cancel',value:false},{label:linked?'Archive':'Delete',value:true,danger:true}]);if(!yes||!current())return;return runAction82(async()=>{if(!current())return;if(linked){await saveWork82('employees',{...r.data,active:false},r)}else{const out=await db.rpc('delete_record108',{p_table:tables82[kind],p_id:id,p_version:r.version});if(!current())return;if(out.error)throw Error(out.error.message+' See setup/SETUP-GUIDE-v142.20.txt if the function is missing.');Work82[kind]=Work82[kind].filter(x=>x.id!==id);if(kind==='runs'&&Work82.runRecord?.id===id){Work82.run=null;Work82.runRecord=null}}if(current())renderWork82()})};
 const oldAction=action82;action82=function(label,fn,primary){let html=oldAction(label,fn,primary);const m=fn.match(/^(openEmployee82|openRun82|openReport82)\('([^']+)'\)/);if(m)html+=oldAction('Delete',`deleteWork108('${{openEmployee82:'employees',openRun82:'runs',openReport82:'reports'}[m[1]]}','${m[2]}')`);return html};
 const formBefore=employeeForm82;employeeForm82=function(r){return formBefore(r).replace('Contract renewal / entitlement start','Contract start / entitlement start').replace('Vacation allowance (days)','Annual vacation allowance (days)').replace(!r?.data?'name="vacation" type="number" value="0"':'__never__','name="vacation" type="number" value="15"')};
