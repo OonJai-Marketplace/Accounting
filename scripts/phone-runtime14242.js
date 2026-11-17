@@ -140,7 +140,7 @@ function appLocalDate(date=new Date()) {
 /* Independent, own-account phone workspace. No desktop runtime or business modules. */
 (() => {
   'use strict';
-  const VERSION = '143.435', $ = id => document.getElementById(id);
+  const VERSION = '143.436', $ = id => document.getElementById(id);
   const scope = String(window.OJM_SUPABASE_URL || ''), today = () => appLocalDate();
   const pages = ['home', 'accounts', 'post', 'entries', 'history'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -714,7 +714,8 @@ function appLocalDate(date=new Date()) {
   const reopened14348=new Set();
   const correctionKey14348=j=>S.actor+':'+S.owner+':'+j.id;
   const editable14348=j=>(j.status==='draft'||j.status==='returned'&&reopened14348.has(correctionKey14348(j)));
-  function returnedReview14348(){if(S.page!=='entries')return '';const returned=headers().filter(j=>j.status==='returned'&&!reopened14348.has(correctionKey14348(j)));return returned.length?'<section class="card"><h2>Review <span class="returned-badge14347">'+returned.length+'</span></h2>'+returned.map((j,i)=>'<article><p><strong>'+esc(j.period_start)+'</strong></p><p>'+esc(j.return_note||'Returned for correction')+'</p>'+action('reopen-correction','Reopen for correction','data-index="'+i+'"')+'</article>').join('')+'</section>':'';}
+  const returnedReports=()=>headers().filter(j=>j.status==='returned'&&!reopened14348.has(correctionKey14348(j))).sort(StaffJournalView.newestReport);
+  function returnedReview14348(){if(S.page!=='entries')return '';const returned=returnedReports();return returned.length?'<section class="card"><h2>Review <span class="returned-badge14347">'+returned.length+'</span></h2>'+returned.map((j,i)=>'<article><p><strong>'+esc(j.period_start)+'</strong></p><p>'+esc(j.return_note||'Returned for correction')+'</p>'+action('reopen-correction','Reopen for correction','data-index="'+i+'"')+'</article>').join('')+'</section>':'';}
   function groupEntries() {
     const visible=S.printing14294?monthHeaders():S.page==='entries'?headers().filter(editable14348):monthHeaders().filter(j=>!['draft','returned'].includes(j.status));
     const batches=new Map(visible.map(j=>[j.id,j])),groups=new Map();
@@ -722,8 +723,13 @@ function appLocalDate(date=new Date()) {
     for(const l of rows.filter(l=>batches.has(l.staff_journal_id)&&!l.voided_at&&l.status!=='voided')){const snapshot=l.editor_snapshot1437;
       const splitSlip=snapshot?.splitByLine && snapshot.components1437?.every(item=>item.fund===l.fund_account_id);
       const groupKey=l.staff_journal_id+':'+(rules().entryMode==='cashbook'&&S.page==='entries'&&!splitSlip?l.id:l.editor_group1437||l.id);if(!groups.has(groupKey))groups.set(groupKey,{batch:batches.get(l.staff_journal_id),lines:[]});groups.get(groupKey).lines.push(l);}
-    if(rules().entryMode==='cashbook'&&S.page==='entries'){const ids=rules().fundIds;if(!ids.includes(S.cashbookFund240))S.cashbookFund240=ids[0]||'';return [...groups.values()].filter(g=>g.lines.some(l=>l.fund_account_id===S.cashbookFund240||l.account_id===S.cashbookFund240)).sort((a,b)=>String(a.batch.period_start).localeCompare(String(b.batch.period_start))||Number(a.lines[0].line_no)-Number(b.lines[0].line_no));}
-    return [...groups.values()].sort((a,b)=>Number(b.batch.status==='returned')-Number(a.batch.status==='returned')||String(b.lines[0].transaction_date).localeCompare(String(a.lines[0].transaction_date)));
+    let result=[...groups.values()];
+    if(rules().entryMode==='cashbook'&&S.page==='entries'){
+      const ids=rules().fundIds;
+      if(!ids.includes(S.cashbookFund240))S.cashbookFund240=ids[0]||'';
+      result=result.filter(g=>g.lines.some(l=>l.fund_account_id===S.cashbookFund240||l.account_id===S.cashbookFund240));
+    }
+    return result.sort((a,b)=>StaffJournalView.newestLine(a.lines[0],b.lines[0]));
   }
   function monthControl(){return `<header class="phone-history-header14359"><strong>${esc(new Date(S.month+'-01T12:00:00Z').toLocaleDateString('en-GB',{month:'long',year:'numeric',timeZone:'UTC'}))}</strong><label class="no-print"><input id="month" aria-label="History month" type="month" value="${esc(S.month)}"></label></header>`;}
   function commonActions(){return `<div class="actions no-print">${action('submit',S.submitting?'Submitting…':'Submit',S.submitting?'disabled':'',true)}${action('refresh',S.loading?'Updating…':'Refresh',S.loading?'disabled':'')}</div>`;}
@@ -740,7 +746,7 @@ function appLocalDate(date=new Date()) {
     if(!visible()||document.hidden){WorkingStanding379.close();return}
     WorkingStanding379.open({owner,actor:S.actor,client:db,current:visible,host:()=>$('workspace').querySelector('[data-standing379]'),
       cashier:String(S.data.access?.permissions?.job_title||'').trim().toLowerCase()==='cashier',money,date:d=>typeof formatAppDate==='function'?formatAppDate(d):d,
-      cached:S.data.workingStanding,queue:()=>queue().map(q=>q.params),read:()=>rpc('workspace_standing379',{p_owner:owner}),
+      cached:S.data.workingStanding,queue:()=>queue().map(q=>({...q.params,deviceStatus:q.status,savedAt:q.createdAt?new Date(q.createdAt).toISOString():''})),read:()=>rpc('workspace_standing379',{p_owner:owner}),
       remember:async data=>{if(visible()){S.data.workingStanding=data;await persist(owner,{workingStanding:data})}}
     });
   }
@@ -752,6 +758,48 @@ function appLocalDate(date=new Date()) {
     const cash=new Set(accounts().filter(a=>['1016','1017','1018'].includes(a.code)).map(a=>a.id));
     const others=funds().filter(f=>!cash.has(f.account_id));
     return others.length?'<h2>Other assigned accounts</h2>'+fundCards(others):'';
+  }
+
+  function mountPhoneLedger(previous){
+    const host=$('workspace').querySelector('[data-phone-ledger]');
+    if(!host)return;
+    const owner=S.owner,epoch=S.epoch;
+    if(previous?.dataset.ledgerOwner===owner&&previous.dataset.epoch===String(epoch)){host.replaceWith(previous);return;}
+    host.dataset.ledgerOwner=owner;host.dataset.epoch=String(epoch);
+    let request=0;
+    const live=()=>host.isConnected&&current(owner,epoch)&&S.area==='users'&&S.page==='accounts'&&permission('sub-users-workspace');
+    const select=host.querySelector('select'),month=host.querySelector('[type=month]'),result=host.querySelector('[data-ledger-result]');
+    month.value=S.month;
+    async function load(){
+      if(!live()||!host.open)return;
+      const stamp=++request,period=month.value;
+      if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(period)){result.textContent='Choose a month.';return;}
+      const read=async args=>{
+        if(!live()||stamp!==request)throw Error('Ledger view changed.');
+        return rpc('assigned_ledger14281',args);
+      };
+      result.textContent='Loading posted ledger…';
+      try{
+        const dates={from:period+'-01',to:new Date(Date.UTC(Number(period.slice(0,4)),Number(period.slice(5)),0)).toISOString().slice(0,10)};
+        const grants=await read({p_owner:owner,p_account:null,p_from:dates.from,p_to:dates.to,p_offset:0});
+        if(!live()||stamp!==request)return;
+        if(!Array.isArray(grants?.accounts))throw Error('Ledger access could not be checked.');
+        const selected=select.value;
+        select.innerHTML=grants.accounts.map(a=>'<option value="'+esc(a.id)+'">'+esc(a.code+' — '+a.name)+'</option>').join('');
+        const account=grants.accounts.find(a=>a.id===selected)||grants.accounts[0];
+        select.disabled=!account;
+        if(!account){result.textContent='No company ledger accounts have been assigned.';return;}
+        select.value=account.id;
+        const data=await StaffJournalView.ledgerPeriod(read,owner,account.id,dates);
+        if(!live()||stamp!==request)return;
+        const amount=n=>esc(money(n,account.currency)),balance=n=>StaffJournalView.balance(n,amount);
+        result.innerHTML='<p>Opening <b>'+balance(data.opening)+'</b> · Closing <b>'+balance(data.closing)+'</b></p>'+
+          (data.rows.map(r=>'<article class="acc-ledger-line"><small>'+esc(dateLabel(r.date))+' · '+esc(r.reference)+'</small><b>'+esc(r.description)+'</b>'+
+            '<div class="row"><span>'+ (Number(r.debit)?'Debit '+amount(r.debit):'Credit '+amount(r.credit))+'</span><span>Running balance <b>'+balance(r.balance)+'</b></span></div></article>').join('')||'<p>No posted transactions this month.</p>');
+      }catch(error){if(live()&&stamp===request){result.textContent=error.message;}}
+    }
+    host.ontoggle=()=>{if(host.open)void load();else{request++;result.replaceChildren();}};
+    select.onchange=month.onchange=host.querySelector('button').onclick=load;
   }
   const maxReceiptParts = 10;
 
@@ -1114,14 +1162,28 @@ function appLocalDate(date=new Date()) {
     return group.lines.map(l=>`<p><strong>${(rules().entryMode==='cashbook'&&S.page==='entries'&&l.fund_account_id!==S.cashbookFund240?l.direction!=='in':l.direction==='in')?'Money In':'Money Out'} · ${esc(money(l.amount,l.currency_code||currency(l.fund_account_id)))}</strong><br>${accountTitle(l.fund_account_id)}<br>${l.direction==='out'?accountTitle(l.account_id)+'<br>':''}${saved?.receiptEditor341&&l.memo===saved.memo?'':esc(l.memo)}${l.reference?'<br>Reference: '+esc(l.reference):''}</p>`).join('');
   }
   window.PhoneCashbook240=id=>{if(rules().fundIds.includes(id)){S.cashbookFund240=id;render();}};
-  function entries(){const groups=groupEntries(),pending=S.page==='history'?[]:queue();return '<h1>'+ (rules().entryMode==='cashbook'&&S.page==='entries'?'Active Cashbook':'Entries')+'</h1>'+ (rules().entryMode==='cashbook'&&S.page==='entries'?'<label>Account<select data-cashbook-fund240 onchange="PhoneCashbook240(this.value)">'+rules().fundIds.map(id=>'<option value="'+esc(id)+'" '+(id===S.cashbookFund240?'selected':'')+'>'+esc(cleanName(id))+'</option>').join('')+'</select></label>':'')+'<nav class=entry-tabs212 aria-label="Entry views"><button type=button data-page=entries aria-current="'+(S.page==='entries'?'page':'false')+'">Current</button><button type=button data-page=history aria-current="'+(S.page==='history'?'page':'false')+'">History</button></nav>'+returnedReview14348()+(S.page==='history'?monthControl()+'<input id=historySearch14359 type=search placeholder="Search this month" aria-label="Search selected month"><p class=history-summary14359>'+groups.length+' entries · '+new Set(groups.map(g=>g.batch.id)).size+' reports</p>':'')+pending.map(q=>`<section class="card queue-item"><div class="row"><strong>Saved on this device</strong><span class="status">${q.status==='uncertain'?'Needs confirmation':q.status==='blocked'?'Needs attention':'Pending sync'}</span></div><p>${esc(q.draft.date)} · ${esc(q.draft.memo)}</p><p class="muted">${esc(q.message||'Saved entries sync automatically when connected. Submission is available after all entries are confirmed.')}</p></section>`).join('')+groups.slice(0,S.limit).map((g,i)=>{const first=g.lines[0],canEdit=S.page==='entries'&&editable14348(g.batch)&&permission('sub-users-workspace','edit'),amounts=new Map();for(const l of g.lines){const c=l.currency_code||currency(l.fund_account_id);amounts.set(c,(amounts.get(c)||0)+Number(l.amount));}return `<details class="entry" data-group="${esc(first.id)}" data-batch-description="${esc(first.editor_snapshot1437?.memo||'')}"><summary class="entry-heading"><span class="entry-copy"><small>${first.editor_snapshot1437?.splitByLine?'Split receipt · ':''}${esc(first.transaction_date)}${S.page==='history'&&first.workspace_entry_no?' · '+esc(window.submissionHistoryIds.entry(first)):rules().entryMode==='cashbook'&&S.page==='entries'?' · '+esc(first.workspace_entry_no||''):''}</small><b>${esc(receiptHeading(g))}</b></span><span class="entry-value"><span class="amount">${[...amounts].map(([c,n])=>esc(money(n,c))).join(' · ')}</span><span class="status ${esc(g.batch.status)}">${esc(g.batch.status)}</span></span><span class="entry-chevron" aria-hidden="true">⌄</span></summary><div class="entry-body">${receiptDetails(g)}<button type="button" class="scan-support-link208" data-scan-line208="${esc(first.id)}">Documents</button>${S.page==='history'?submissionReconciliation14345.summary(g.batch):''}${g.batch.return_note?'<p>Review note: '+esc(g.batch.return_note)+'</p>':''}${canEdit?`<div class="actions no-print">${action('edit','Edit',`data-index="${i}"`)}${permission('sub-users-workspace','void')?action('void','Void',`data-index="${i}"`):''}</div>`:''}</div></details>`;}).join('')+(groups.length>S.limit?action('more','Show more'):'')+(!groups.length&&!pending.length?empty(S.data.months?.[S.month]?'No saved entries in this period.':'This period has not downloaded yet.'):'')+commonActions();}
+  function entries(){
+    const groups=groupEntries(),pending=S.page==='history'?[]:queue();
+    const visibleGroups=groups.map((group,index)=>({group,index,line:group.lines[0]}));
+    const incomplete=pending.filter(q=>!groups.some(g=>g.lines.some(l=>l.editor_group1437?.startsWith(q.key+':'))));
+    const timeline=visibleGroups.filter(({group})=>!incomplete.some(q=>group.lines.some(l=>q.params?.p_edit_ids?.includes(l.id))));
+    for(const q of incomplete){
+      const items=q.params?.p_items||[],cashbook=rules().entryMode==='cashbook';
+      const relevant=cashbook?items.filter(l=>l.fund===S.cashbookFund240||l.account===S.cashbookFund240):items;
+      if(cashbook&&items.length&&!relevant.length)continue;
+      const date=relevant.map(l=>l.date).filter(Boolean).sort().at(-1)||q.draft.date;
+      timeline.push({q,line:{transaction_date:date,created_at:q.createdAt?new Date(q.createdAt).toISOString():'',id:q.key}});
+    }
+    timeline.sort((a,b)=>StaffJournalView.newestLine(a.line,b.line));
+    return '<h1>'+ (rules().entryMode==='cashbook'&&S.page==='entries'?'Active Cashbook':'Entries')+'</h1>'+ (rules().entryMode==='cashbook'&&S.page==='entries'?'<label>Account<select data-cashbook-fund240 onchange="PhoneCashbook240(this.value)">'+rules().fundIds.map(id=>'<option value="'+esc(id)+'" '+(id===S.cashbookFund240?'selected':'')+'>'+esc(cleanName(id))+'</option>').join('')+'</select></label>':'')+'<nav class=entry-tabs212 aria-label="Entry views"><button type=button data-page=entries aria-current="'+(S.page==='entries'?'page':'false')+'">Current</button><button type=button data-page=history aria-current="'+(S.page==='history'?'page':'false')+'">History</button></nav>'+returnedReview14348()+(S.page==='history'?monthControl()+'<input id=historySearch14359 type=search placeholder="Search this month" aria-label="Search selected month"><p class=history-summary14359>'+groups.length+' entries · '+new Set(groups.map(g=>g.batch.id)).size+' reports</p>':'')+timeline.slice(0,S.limit).map(({q,group:g,index:i,line})=>{if(q)return `<section class="card queue-item"><div class="row"><strong>Saved on this device</strong><span class="status">${q.status==='uncertain'?'Needs confirmation':q.status==='blocked'?'Needs attention':'Pending sync'}</span></div><p>${esc(dateLabel(line.transaction_date))} · ${esc(q.draft.memo)}</p><p class="muted">${esc(q.message||'Saved entries sync automatically when connected. Submission is available after all entries are confirmed.')}</p></section>`;const first=g.lines[0],canEdit=S.page==='entries'&&editable14348(g.batch)&&permission('sub-users-workspace','edit'),amounts=new Map();for(const l of g.lines){const c=l.currency_code||currency(l.fund_account_id);amounts.set(c,(amounts.get(c)||0)+Number(l.amount));}return `<details class="entry" data-group="${esc(first.id)}" data-batch-description="${esc(first.editor_snapshot1437?.memo||'')}"><summary class="entry-heading"><span class="entry-copy"><small>${first.editor_snapshot1437?.splitByLine?'Split receipt · ':''}${esc(first.transaction_date)}${S.page==='history'&&first.workspace_entry_no?' · '+esc(window.submissionHistoryIds.entry(first)):rules().entryMode==='cashbook'&&S.page==='entries'?' · '+esc(first.workspace_entry_no||''):''}</small><b>${esc(receiptHeading(g))}</b></span><span class="entry-value"><span class="amount">${[...amounts].map(([c,n])=>esc(money(n,c))).join(' · ')}</span><span class="status ${esc(g.batch.status)}">${esc(g.batch.status)}</span></span><span class="entry-chevron" aria-hidden="true">⌄</span></summary><div class="entry-body">${receiptDetails(g)}<button type="button" class="scan-support-link208" data-scan-line208="${esc(first.id)}">Documents</button>${S.page==='history'?submissionReconciliation14345.summary(g.batch):''}${g.batch.return_note?'<p>Review note: '+esc(g.batch.return_note)+'</p>':''}${canEdit?`<div class="actions no-print">${action('edit','Edit',`data-index="${i}"`)}${permission('sub-users-workspace','void')?action('void','Void',`data-index="${i}"`):''}</div>`:''}</div></details>`;}).join('')+(timeline.length>S.limit?action('more','Show more'):'')+(!timeline.length?empty(S.data.months?.[S.month]?'No saved entries in this period.':'This period has not downloaded yet.'):'')+commonActions();}
   function render(force=true) {
     paintConnection();if(!S.owner)return;
     if(S.area!=='users')return;
     if(!permission('sub-users-workspace')){$('workspace').innerHTML=empty(S.error||'Checking your account access…')+action('refresh','Retry loading','',true)+action('signout','Sign out');return;}
     if(!force && S.page==='post')return;
-    const content={home,accounts:()=>'<h1>My accounts</h1><section class="card" data-standing379></section>'+otherAssignedFunds(),post,entries,history:entries};
-    $('workspace').innerHTML=content[S.page]();phoneStanding();
+    const previousLedger=$('workspace').querySelector('[data-phone-ledger]');
+    const content={home,accounts:()=>'<h1>My accounts</h1><section class="card" data-standing379></section>'+otherAssignedFunds()+'<details class="card" data-phone-ledger><summary>Posted company ledger</summary><label>Ledger account<select aria-label="Ledger account"></select></label><label>Period<input type="month" aria-label="Ledger month"></label><button type="button" class="btn">Refresh ledger</button><div data-ledger-result role="status"></div></details>',post,entries,history:entries};
+    $('workspace').innerHTML=content[S.page]();phoneStanding();mountPhoneLedger(previousLedger);
     const m=$('month');if(m)m.onchange=()=>{if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(m.value))return;S.month=m.value;S.limit=30;rememberLocation();void persist(S.owner,{month:S.month});render();void loadMonth();};
     const search=$('historySearch14359');if(search)search.oninput=()=>{const q=search.value.trim().toLowerCase();$('workspace').querySelectorAll('details.entry').forEach(row=>row.hidden=!!q&&!row.textContent.toLowerCase().includes(q)&&!row.dataset.batchDescription.toLowerCase().includes(q))};
     const form=$('postForm');if(form){form.addEventListener('beforeinput',skipGroupingComma);form.addEventListener('compositionend',captureDraft);form.addEventListener('input',captureDraft);form.addEventListener('change',captureDraft);form.onsubmit=e=>{e.preventDefault();void saveEntry();};updateValidation();}
@@ -1392,7 +1454,7 @@ function appLocalDate(date=new Date()) {
             const next=await updateQueue(owner,q.key,{status:'confirmed',receipt:response},false);clearLegacy(q);if(current(owner,epoch))S.data.queue=next.queue;
           }catch(e){if(!current(owner,epoch))return;const next=await updateQueue(owner,q.key,{status:ambiguous(e)?'uncertain':'blocked',message:e.message});if(current(owner,epoch))S.data.queue=next.queue;throw e;}
         }
-        if(current(owner,epoch)){S.online=true;if(!queue().some(q=>q.status!=='confirmed'))notice('All device entries were confirmed.');await refresh();}
+        if(current(owner,epoch)){S.online=true;if(!queue().some(q=>q.status!=='confirmed'))notice('All device entries were confirmed.');await Promise.all([refresh(),window.WorkingStanding379?.refresh()]);}
       }catch(e){if(!current(owner,epoch))return;if(denied(e))await revoke(e);else{S.online=false;notice('Pending entries are kept with their original save references. '+e.message,true);}}
     };
     try{if(navigator.locks)await navigator.locks.request('ojm-phone-sync:'+key(owner),{},run);else await run();}
@@ -1422,7 +1484,7 @@ function appLocalDate(date=new Date()) {
         reopened14348.delete(correctionKey14348(batch));notice('Submitted for review.');
         const stored=await record(owner,old=>({...old,headers:(old.headers||[]).map(j=>j.id===batch.id?{...j,...result}:j),pendingSubmit:null}));if(!current(owner,epoch))return;S.data=stored;
       }
-      notice('Submitted for review.');render();void refresh();
+      notice('Submitted for review.');render();void refresh();void window.WorkingStanding379?.refresh();
     }catch(e){if(!current(owner,epoch))return;if(denied(e))await revoke(e);else{if(!ambiguous(e)){const stored=await persist(owner,{pendingSubmit:null});if(!current(owner,epoch))return;S.data=stored}notice('Submission was not confirmed. Refresh to check its status before retrying. '+e.message,true);render();}}
   }
   async function edit(index){const owner=S.owner,epoch=S.epoch;const g=groupEntries()[index];if(!g||!permission('sub-users-workspace','edit')||!editable14348(g.batch))return;
@@ -1461,7 +1523,7 @@ function appLocalDate(date=new Date()) {
     }
     if(name==='issue-receipt')return await openReceipt245();
     if(name==='scan'||name==='scan-settings')return await openScanner209(name==='scan-settings');
-    if(name==='reopen-correction'){const j=headers().filter(j=>j.status==='returned'&&!reopened14348.has(correctionKey14348(j)))[index];if(j&&permission('sub-users-workspace','edit')){reopened14348.add(correctionKey14348(j));render();}return;}if(name==='tool-back'){S.area='users';window.PhoneTools14242?.close();render();drawUsers();return;}if(name==='reopen')return await boot();if(name==='directory-refresh')return await loadDirectory();if(name==='signout')return await signout();if(name==='refresh'){await Promise.all([refresh(),window.WorkingStanding379?.refresh()]);return;}if(name==='sync')return await sync();if(name==='submit')return await submit();if(name==='print')return await printReport();if(name==='edit')return await edit(index);if(name==='void')return await voidEntry(index);if(name==='more'){S.limit+=30;render();return;}
+    if(name==='reopen-correction'){const j=returnedReports()[index];if(j&&permission('sub-users-workspace','edit')){reopened14348.add(correctionKey14348(j));render();}return;}if(name==='tool-back'){S.area='users';window.PhoneTools14242?.close();render();drawUsers();return;}if(name==='reopen')return await boot();if(name==='directory-refresh')return await loadDirectory();if(name==='signout')return await signout();if(name==='refresh'){await Promise.all([refresh(),window.WorkingStanding379?.refresh()]);return;}if(name==='sync')return await sync();if(name==='submit')return await submit();if(name==='print')return await printReport();if(name==='edit')return await edit(index);if(name==='void')return await voidEntry(index);if(name==='more'){S.limit+=30;render();return;}
     if(S.page!=='post'||S.saving||!S.draft)return;
     if(name==='switch-method'){
       readPhoneForm();

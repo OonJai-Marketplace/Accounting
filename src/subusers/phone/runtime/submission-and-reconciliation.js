@@ -22,6 +22,6 @@
         reopened14348.delete(correctionKey14348(batch));notice('Submitted for review.');
         const stored=await record(owner,old=>({...old,headers:(old.headers||[]).map(j=>j.id===batch.id?{...j,...result}:j),pendingSubmit:null}));if(!current(owner,epoch))return;S.data=stored;
       }
-      notice('Submitted for review.');render();void refresh();
+      notice('Submitted for review.');render();void refresh();void window.WorkingStanding379?.refresh();
     }catch(e){if(!current(owner,epoch))return;if(denied(e))await revoke(e);else{if(!ambiguous(e)){const stored=await persist(owner,{pendingSubmit:null});if(!current(owner,epoch))return;S.data=stored}notice('Submission was not confirmed. Refresh to check its status before retrying. '+e.message,true);render();}}
   }

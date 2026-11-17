@@ -13,11 +13,11 @@ const assert=require('node:assert/strict'),create=require('./phase0-browser-fixt
  await page.evaluate(id=>{openWorkspaceUser(id);personalJournal1437.show(id,'journal');},info.user);
  await page.waitForSelector('.cashbook240');
  assert.equal(await page.locator('.cashbook240 tbody tr').count(),3);
- assert.deepEqual(await page.locator('.cashbook240 [data-entry-menu14387]').allTextContents(),['TEST-0001','TEST-0002','TEST-0003']);
+ assert.deepEqual(await page.locator('.cashbook240 [data-entry-menu14387]').allTextContents(),['TEST-0003','TEST-0002','TEST-0001']);
  assert.match(await page.locator('.cashbook240').innerText(),/Money In/i);assert.doesNotMatch(await page.locator('.cashbook240').innerText(),/Date summary/);
  await page.selectOption('[data-cashbook-fund240]',info.second);assert.equal(await page.locator('.cashbook240 tbody tr').count(),1);assert.match(await page.locator('.cashbook240 tbody tr td').nth(4).innerText(),/50/);
  await page.selectOption('[data-cashbook-fund240]',info.fund);
- await page.waitForFunction(()=>document.querySelector('.cashbook240 .jr-link226')?.dataset.receiptState226==='linked');
+ await page.waitForFunction(()=>document.querySelector('.cashbook240 tr[data-entry-id$="241"] .jr-link226')?.dataset.receiptState226==='linked');
  const before=checks.length;await page.evaluate(()=>{window.originalNow240=Date.now;Date.now=()=>originalNow240()+120000;window.dispatchEvent(new Event('focus'));window.dispatchEvent(new Event('idle-sync14341'));document.dispatchEvent(new Event('scroll'));});await page.waitForTimeout(450);
  assert.equal(checks.length,before,'cached linked and missing results survive focus/scroll/time');assert.equal(await page.locator('.jr-check-note226').count(),0);
  await page.evaluate(()=>window.dispatchEvent(new CustomEvent('receipt-links-changed240',{detail:{actor:liveProfile.id,labels:['TEST-0002']}})));await page.waitForTimeout(450);assert.equal(checks.length,before+1);assert.deepEqual(checks.at(-1).staffLines,['00000000-0000-4000-8000-000000000242']);await page.evaluate(()=>Date.now=originalNow240);

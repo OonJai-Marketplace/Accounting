@@ -13,7 +13,7 @@
     if(!visible()||document.hidden){WorkingStanding379.close();return}
     WorkingStanding379.open({owner,actor:S.actor,client:db,current:visible,host:()=>$('workspace').querySelector('[data-standing379]'),
       cashier:String(S.data.access?.permissions?.job_title||'').trim().toLowerCase()==='cashier',money,date:d=>typeof formatAppDate==='function'?formatAppDate(d):d,
-      cached:S.data.workingStanding,queue:()=>queue().map(q=>q.params),read:()=>rpc('workspace_standing379',{p_owner:owner}),
+      cached:S.data.workingStanding,queue:()=>queue().map(q=>({...q.params,deviceStatus:q.status,savedAt:q.createdAt?new Date(q.createdAt).toISOString():''})),read:()=>rpc('workspace_standing379',{p_owner:owner}),
       remember:async data=>{if(visible()){S.data.workingStanding=data;await persist(owner,{workingStanding:data})}}
     });
   }
@@ -25,4 +25,46 @@
     const cash=new Set(accounts().filter(a=>['1016','1017','1018'].includes(a.code)).map(a=>a.id));
     const others=funds().filter(f=>!cash.has(f.account_id));
     return others.length?'<h2>Other assigned accounts</h2>'+fundCards(others):'';
+  }
+
+  function mountPhoneLedger(previous){
+    const host=$('workspace').querySelector('[data-phone-ledger]');
+    if(!host)return;
+    const owner=S.owner,epoch=S.epoch;
+    if(previous?.dataset.ledgerOwner===owner&&previous.dataset.epoch===String(epoch)){host.replaceWith(previous);return;}
+    host.dataset.ledgerOwner=owner;host.dataset.epoch=String(epoch);
+    let request=0;
+    const live=()=>host.isConnected&&current(owner,epoch)&&S.area==='users'&&S.page==='accounts'&&permission('sub-users-workspace');
+    const select=host.querySelector('select'),month=host.querySelector('[type=month]'),result=host.querySelector('[data-ledger-result]');
+    month.value=S.month;
+    async function load(){
+      if(!live()||!host.open)return;
+      const stamp=++request,period=month.value;
+      if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(period)){result.textContent='Choose a month.';return;}
+      const read=async args=>{
+        if(!live()||stamp!==request)throw Error('Ledger view changed.');
+        return rpc('assigned_ledger14281',args);
+      };
+      result.textContent='Loading posted ledger…';
+      try{
+        const dates={from:period+'-01',to:new Date(Date.UTC(Number(period.slice(0,4)),Number(period.slice(5)),0)).toISOString().slice(0,10)};
+        const grants=await read({p_owner:owner,p_account:null,p_from:dates.from,p_to:dates.to,p_offset:0});
+        if(!live()||stamp!==request)return;
+        if(!Array.isArray(grants?.accounts))throw Error('Ledger access could not be checked.');
+        const selected=select.value;
+        select.innerHTML=grants.accounts.map(a=>'<option value="'+esc(a.id)+'">'+esc(a.code+' — '+a.name)+'</option>').join('');
+        const account=grants.accounts.find(a=>a.id===selected)||grants.accounts[0];
+        select.disabled=!account;
+        if(!account){result.textContent='No company ledger accounts have been assigned.';return;}
+        select.value=account.id;
+        const data=await StaffJournalView.ledgerPeriod(read,owner,account.id,dates);
+        if(!live()||stamp!==request)return;
+        const amount=n=>esc(money(n,account.currency)),balance=n=>StaffJournalView.balance(n,amount);
+        result.innerHTML='<p>Opening <b>'+balance(data.opening)+'</b> · Closing <b>'+balance(data.closing)+'</b></p>'+
+          (data.rows.map(r=>'<article class="acc-ledger-line"><small>'+esc(dateLabel(r.date))+' · '+esc(r.reference)+'</small><b>'+esc(r.description)+'</b>'+
+            '<div class="row"><span>'+ (Number(r.debit)?'Debit '+amount(r.debit):'Credit '+amount(r.credit))+'</span><span>Running balance <b>'+balance(r.balance)+'</b></span></div></article>').join('')||'<p>No posted transactions this month.</p>');
+      }catch(error){if(live()&&stamp===request){result.textContent=error.message;}}
+    }
+    host.ontoggle=()=>{if(host.open)void load();else{request++;result.replaceChildren();}};
+    select.onchange=month.onchange=host.querySelector('button').onclick=load;
   }

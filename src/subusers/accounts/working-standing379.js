@@ -5,26 +5,59 @@ window.WorkingStanding379=(()=>{
  const cents=n=>Math.round(Number(n||0)*100);
  let active=null;
  function projected(data,requests){
-  const rows=new Map(data.accounts.map(a=>[a.id,{...a,available:cents(a.opening)+cents(a.received),out:cents(a.used)}]));
-  const seen=new Set(),replaced=new Set();
-  function apply(id,change){const a=rows.get(id);if(a){a.available+=Math.max(change,0);a.out+=Math.max(-change,0)}}
+  const rows=new Map(data.accounts.map(a=>[a.id,{...a,available:cents(a.opening)+cents(a.received),out:cents(a.used),pending:[]}]));
+  const seen=new Set(),replaced=new Set(),stages={draft:'Unsubmitted',returned:'Returned',submitted:'Submitted',approved:'Approved'};
+  for(const line of data.lines){
+   const row=rows.get(line.account);
+   if(row&&stages[line.status]&&line.counted!==false&&cents(line.amount)){
+    row.pending.push({...line,transaction_date:line.date,delta:cents(line.amount),label:stages[line.status]});
+   }
+  }
   for(const p of requests){
    if(!p?.p_key||seen.has(p.p_key))continue;
    seen.add(p.p_key);
    if(data.lines.some(l=>l.group?.startsWith(p.p_key+':')))continue;
    for(const l of data.lines){
-    if(!p.p_edit_ids?.includes(l.id)||replaced.has(l.id+'/'+l.account))continue;
+    if(!p.p_edit_ids?.includes(l.id)||replaced.has(l.id+'/'+l.account)||l.counted===false)continue;
     replaced.add(l.id+'/'+l.account);
-    const a=rows.get(l.account);if(a){a.available-=Math.max(cents(l.amount),0);a.out-=Math.max(-cents(l.amount),0)}
+    const a=rows.get(l.account);
+    if(a){
+     a.available-=Math.max(cents(l.amount),0);a.out-=Math.max(-cents(l.amount),0);
+     a.pending=a.pending.filter(item=>item.id!==l.id);
+    }
    }
-   for(const l of p.p_items||[]){
+   for(const [index,l] of (p.p_items||[]).entries()){
+    if(l.fund===l.account)continue;
     const n=cents(l.amount)*(l.direction==='in'?1:-1);
     for(const [id,delta] of [[l.fund,n],[l.account,-n]]){
-     const a=rows.get(id);if(a&&l.date<=data.asOf&&(!a.start||l.date>a.start))apply(id,delta);
+     const a=rows.get(id);
+     if(!a||!delta||l.date>data.asOf||(a.start?l.date<=a.start:l.date<data.asOf.slice(0,4)+'-01-01'))continue;
+     a.available+=Math.max(delta,0);a.out+=Math.max(-delta,0);
+     a.pending.push({id:p.p_key+':'+index,transaction_date:l.date,line_no:index+1,created_at:p.savedAt||'',
+      memo:l.memo,delta,label:['attention','blocked'].includes(p.deviceStatus)?'Device save · Needs attention':'Saved on device'});
     }
    }
   }
   return [...rows.values()];
+ }
+ function breakdown(a,amount,date){
+  const net=a.available-a.out;
+  let unsubmitted=0,submitted=0;
+  for(const item of a.pending){
+   if(item.label==='Submitted'||item.label==='Approved')submitted+=item.delta;
+   else unsubmitted+=item.delta;
+  }
+  const base=net-unsubmitted-submitted;
+  let html='<dl class="fund-breakdown"><dt>Before pending entries</dt><dd>'+amount(base)+'</dd>'+
+   '<dt>Submitted, awaiting posting</dt><dd>'+amount(submitted)+'</dd><dt>Unsubmitted, including device saves</dt><dd>'+amount(unsubmitted)+'</dd></dl>';
+  if(!a.pending.length)return html;
+  let running=net;
+  const details=a.pending.sort(StaffJournalView.newestLine).map(item=>{
+   const after=running;running-=item.delta;
+   return '<li><div><b>'+escape(item.memo||item.label)+'</b><small>'+escape(date(item.transaction_date))+' · '+escape(item.label)+'</small></div>'+
+    '<div><b>'+amount(item.delta)+'</b><small>Remaining '+amount(after)+'</small></div></li>';
+  }).join('');
+  return html+'<details data-fund-detail="'+escape(a.id)+'"><summary>Pending journal lines ('+a.pending.length+')</summary><ul class="fund-pending">'+details+'</ul></details>';
  }
  function panel(s){
   const host=s.host();if(!host||!s.current())return;
@@ -33,15 +66,16 @@ window.WorkingStanding379=(()=>{
   if(s.data){
    const rows=projected(s.data,s.queue());
    html+='<div class="personal-metrics1437">'+rows.map(a=>{
-    const amount=n=>escape(s.money(n/100,a.currency));
-    return '<article class="card currency-coded14231" data-currency-code="'+escape(a.currency)+'"><small>'+escape(a.name)+'</small><strong>'+amount(a.available-a.out)+'</strong><p>Available '+amount(a.available)+' · Paid or handed over '+amount(a.out)+'</p>'+
+    const amount=n=>escape(StaffJournalView.balance(n,x=>s.money(x/100,a.currency)));
+    return '<article class="card currency-coded14231" data-currency-code="'+escape(a.currency)+'"><small>'+escape(a.name)+'</small><strong>'+amount(a.available-a.out)+'</strong><p>Opening and receipts '+amount(a.available)+' · Paid or handed over '+amount(a.out)+'</p>'+
+      (s.data.detailVersion?breakdown(a,amount,s.date):'')+
       (a.settledThrough&&a.settled?'<p>Carried forward '+amount(cents(a.opening))+' · Handed over by '+escape(s.date(a.settledThrough))+' '+amount(cents(a.settled))+'</p>':'')+'</article>';
    }).join('')+'</div>';
    if(!rows.length)html+='<p>No tracked accounts are assigned.</p>';
   }else html+='<p role="status">'+(s.failed?'Balance unavailable.':'Loading balances…')+'</p>';
   if(s.failed&&s.data)html+='<small>Showing the last downloaded balance.</small>';
   if(s.failed)html+='<button type="button" class="je-btn je-btn-secondary" data-standing-retry>Refresh balance</button>';
-  if(host._standingHtml!==html){host.innerHTML=html;host._standingHtml=html;const retry=host.querySelector('[data-standing-retry]');if(retry)retry.onclick=()=>refresh(s)}
+  if(host._standingHtml!==html){const open=new Set([...(s.lastHost||host).querySelectorAll('[data-fund-detail][open]')].map(el=>el.dataset.fundDetail));host.innerHTML=html;host._standingHtml=html;s.lastHost=host;for(const el of host.querySelectorAll('[data-fund-detail]'))el.open=open.has(el.dataset.fundDetail);const retry=host.querySelector('[data-standing-retry]');if(retry)retry.onclick=()=>refresh(s)}
  }
  async function refresh(s){
   if(active!==s)return;
