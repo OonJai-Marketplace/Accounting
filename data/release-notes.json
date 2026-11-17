@@ -1,6 +1,6 @@
 {
-  "version": "143.454",
+  "version": "143.455",
   "changes": [
-    "Fund utilization follows the board report with a funding summary, requested and adjusted items, and disbursements by currency and reference. New items added to a linked budget request appear in its open utilization draft."
+    "Phone users can open their assigned posted ledger from the bottom navigation. The administrator’s phone Home keeps account details under Accounts."
   ]
 }

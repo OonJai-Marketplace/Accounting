@@ -70,7 +70,12 @@
     if(!permission('sub-users-workspace')){$('workspace').innerHTML=empty(S.error||'Checking your account access…')+action('refresh','Retry loading','',true)+action('signout','Sign out');return;}
     if(!force && S.page==='post')return;
     const previousLedger=$('workspace').querySelector('[data-phone-ledger]');
-    const content={home,accounts:()=>'<h1>My accounts</h1><section class="card" data-standing379></section>'+otherAssignedFunds()+'<details class="card" data-phone-ledger><summary>Posted company ledger</summary><label>Ledger account<select aria-label="Ledger account"></select></label><label>Period<input type="month" aria-label="Ledger month"></label><button type="button" class="btn">Refresh ledger</button><div data-ledger-result role="status"></div></details>',post,entries,history:entries};
+    const content={
+      home,
+      accounts:()=>'<h1>My accounts</h1><section class="card" data-standing379></section>'+otherAssignedFunds()+'<button type="button" class="btn" data-go="ledger">View ledger</button>',
+      ledger:()=>'<h1>My ledger</h1><section class="card" data-phone-ledger><label>Ledger account<select aria-label="Ledger account"></select></label><label>Period<input type="month" aria-label="Ledger month"></label><button type="button" class="btn">Refresh ledger</button><div data-ledger-result role="status"></div></section>',
+      post,entries,history:entries
+    };
     $('workspace').innerHTML=content[S.page]();phoneStanding();mountPhoneLedger(previousLedger);
     const m=$('month');if(m)m.onchange=()=>{if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(m.value))return;S.month=m.value;S.limit=30;rememberLocation();void persist(S.owner,{month:S.month});render();void loadMonth();};
     const search=$('historySearch14359');if(search)search.oninput=()=>{const q=search.value.trim().toLowerCase();$('workspace').querySelectorAll('details.entry').forEach(row=>row.hidden=!!q&&!row.textContent.toLowerCase().includes(q)&&!row.dataset.batchDescription.toLowerCase().includes(q))};
