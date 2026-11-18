@@ -1,6 +1,10 @@
 {
-  "version": "143.478",
+  "version": "143.479",
   "changes": [
+    "Scans collected before one Save stay together in one bookmarked PDF, with each entry ID linked to its own pages.",
+    "Next ID and Jump ID remain visible at the bottom of the phone scanner; entry rows use less space.",
+    "Successful saves close the capture batch; failed uploads retain all scans and reuse the same reserved file ID.",
+    "Full-page web captures skip unnecessary perspective resampling; native capture improvements require a separate Android release.",
     "Keep full startup preparation and existing server jobs while reducing recurring browser work.",
     "Refresh dashboard, receipt access, backup access and settings summaries when their data or account changes.",
     "Run reminders at configured deadlines, consolidate missed reminders and update calendar dates daily.",

@@ -67,3 +67,10 @@ body:has(#destinationDialog204[open]) #scanDialog[open]{visibility:hidden}
 #journalTools369:not([hidden]){display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;flex-wrap:wrap}
 #journalTools369 label{display:inline-flex;align-items:center;gap:6px;font-weight:normal}#journalTools369 input{width:auto;margin:0}
 #journalTools369[hidden],#moreIDs369[hidden]{display:none}
+
+/* Compact phone batch and recovery list; primary ID actions remain in reach. */
+.scan-entry-row477{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 0;border-bottom:1px solid #dce3d9}
+.scan-entry-row477>div{min-width:0}.scan-entry-row477 strong,.scan-entry-row477 small{display:block;margin:0;line-height:1.35}.scan-entry-row477 strong{font-size:15px}.scan-entry-row477 small{font-size:12px}.scan-entry-row477 .scan-action{flex-shrink:0;padding:5px 8px;font-size:12px}
+.scan-group{padding:10px;margin:7px 0}.scan-group-title h2{font-size:16px;margin:0}.scan-group .scan-pages{margin-top:8px;gap:6px}.scan-group .scan-page img{height:110px}
+.scan-batch-footer211{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.scan-batch-footer211 .scan-action{padding:6px;font-size:13px;min-height:36px}.scan-batch-footer211 .scan-icon211{width:auto;height:36px;min-width:36px}
+body:has(.scan-batch-footer211) #scanMain{padding-bottom:125px}

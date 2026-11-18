@@ -678,3 +678,12 @@ Used. Keep currency amounts separate, verify each receipt reference, preserve
 unexplained mismatches and use targeted reads only when the report is opened.
 Journal preparation still requires review for existing native transfer allocations;
 never bypass its duplicate-payment or existing-allocation guards.
+
+Scanner correction 2026-11-18: the user supersedes per-ID PDF splitting. Keep all
+photos collected before one Save together in one bookmarked PDF; preserve each
+ID's page links. A successful save closes the batch; later captures start a new
+one. Recover unsaved split drafts only if no upload/save/link has begun. Keep
+legacy partial uploads independently retryable. Use compact phone entry rows and
+visible Next ID / Jump ID controls. Integrate Google's native scanner into the
+existing Hub package with its retained signer; do not promise device speed from
+synthetic tests. The proposed year-folder change was cancelled.
