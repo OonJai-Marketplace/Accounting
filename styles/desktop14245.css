@@ -3778,7 +3778,8 @@ html body .monthly-trial-dialog>header .monthly-trial-tools>select{width:auto!im
 html body .monthly-trial-dialog>header .monthly-trial-tools>:is(button,[data-accounts]){flex:none;width:auto;min-width:0;margin:0;white-space:nowrap}
 html body .monthly-trial-dialog>header .monthly-trial-tools>.close{position:static;inset:auto;transform:none;height:32px;padding:4px 10px}
 html body dialog.monthly-trial-dialog .monthly-trial-table tbody th[scope=row]{font-weight:400!important;text-transform:none!important;letter-spacing:normal!important}
-html body dialog.monthly-trial-dialog .monthly-trial-table tbody .trial-parent th[scope=row]{font-weight:600!important}
+html body dialog.monthly-trial-dialog .monthly-trial-table tbody tr:not(.trial-parent):has(th[scope=row]) :is(th[scope=row],td,.trial-account-label){font-weight:400!important}
+html body dialog.monthly-trial-dialog .monthly-trial-table tbody tr.trial-parent :is(th[scope=row],td,.trial-account-label){font-weight:700!important}
 .monthly-trial-dialog .trial-account-label{display:inline-block}
 :is(body,#printableDocArea) :is(dialog.monthly-trial-dialog,#report-tb,#report-open-tb) .monthly-trial-table tbody tr.trial-category>th{background:#174e3b!important;color:#fff!important;border-top:3px solid #fffdf7!important;border-bottom:1px solid #123d2f!important;text-align:left!important;font-size:13px!important;font-weight:700!important;text-transform:none!important;letter-spacing:normal!important;padding:6px 5px!important}
 :is(body,#printableDocArea) :is(dialog.monthly-trial-dialog,#report-tb,#report-open-tb) .monthly-trial-table tbody tr.trial-currency>th{background:#e4eee6!important;color:#174e3b!important;border-bottom:1px solid #bdcfc0!important;text-align:left!important;font-weight:600!important;text-transform:none!important;letter-spacing:normal!important;padding:3px 5px!important}
@@ -3789,6 +3790,8 @@ html body dialog.monthly-trial-dialog .monthly-trial-table tbody .trial-parent t
 :is(body,#printableDocArea) :is(dialog.monthly-trial-dialog,#report-tb,#report-open-tb) .monthly-trial-table.trial-fitted th[scope=colgroup]>span{white-space:normal!important;overflow-wrap:anywhere!important}
 html body dialog.monthly-trial-dialog .monthly-trial-table :is(tbody,tfoot) td{text-align:right!important}
 html body dialog.monthly-trial-dialog .monthly-trial-table thead th[scope=col]{font:600 12px/1.15 Arial,sans-serif!important;text-transform:none!important;letter-spacing:normal!important}
+html body dialog.monthly-trial-dialog .monthly-trial-table .trial-balance-column{background:#edf5ee!important}
+html body dialog.monthly-trial-dialog .monthly-trial-table :is(thead,tfoot) .trial-balance-column{background:#e1eee3!important;color:#174e3b!important}
 
 /* styles/desktop-corrections-v80.css */
 .ledger-side80{display:none}

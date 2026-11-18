@@ -641,3 +641,9 @@ Keep each parent subtotal in its own currency and do not append extra currencies
 to account names or picker labels. This is presentation only. Each numeric column
 fits its own widest displayed amount (including totals and parentheses), with
 readable headings, in full and balance-only views; recalculate only on redraw.
+
+Account balances correction, 2026-11-18: only parent account rows are bold;
+posting/child account labels and amounts stay regular. Classify mapping-purpose
+accounts with the shared chart classifier, including nontechnical parent 9400,
+under System at the bottom. In Debit, Credit, Balance view, highlight each Balance
+column with a light green fill; Balance-only view has no extra highlight.

@@ -1,6 +1,9 @@
 {
-  "version": "143.474",
+  "version": "143.475",
   "changes": [
+    "Account balances keeps only parent account rows bold; posting and child account names and amounts use regular weight.",
+    "Mapping-purpose accounts, including parent 9400 Foreign Currency Asset Mapping - System, appear in the System section at the bottom.",
+    "In Debit, Credit, Balance view, each Balance column has a light green highlight. Balance-only view keeps its normal background.",
     "Account balances overrides the shared bold uppercase table style: ordinary account names use regular weight and readable capitalization, while currency codes and familiar acronyms stay uppercase.",
     "Dark category bands clearly separate Assets through System. Each category groups LAK, USD and THB accounts in that order.",
     "Parent accounts precede their children, with a 16-pixel indent per level. Each currency keeps its own existing parent subtotal.",
@@ -24,7 +27,7 @@
     "Budget utilization saves and finalization confirm in one database request, preserving record versions and linked-request checks.",
     "A reopened report clears an older finalized copy when its current database draft is opened.",
     "Funding summaries include USD exchanged out and exact LAK proceeds with each saved exchange reference.",
-    "Used and remaining are calculated in each transaction\u2019s native currency; LAK costs are no longer converted back into USD.",
+    "Used and remaining are calculated in each transaction’s native currency; LAK costs are no longer converted back into USD.",
     "Utilization register headers total Requested, Approved, Received, Exchanged out, Exchanged in, Used and Remaining by currency.",
     "Supabase provides the same currency summary from current saved reports, preserving their financial data and edits.",
     "Leave History uses one table with employee, month and view filters, with 25 records per page.",

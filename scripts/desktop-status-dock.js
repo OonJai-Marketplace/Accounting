@@ -36,7 +36,7 @@ function monthlyTrialPopupGroups(model){
  const categories=[['ASSET','Assets'],['LIABILITY','Liabilities'],['EQUITY','Equity'],['INCOME','Income'],['EXPENSE','Expenses'],['DRAWING','Drawings'],['OTHER','Other accounts'],['SYSTEM','System']],groups=new Map(),parents=ForeignFunds14386.parentIndex();
  const compare=(a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true});
  model.values.slice(0,model.values.length-model.totalCount).forEach((row,i)=>{
-  const account=model.rowAccounts?.[i],raw=String(account?.isTechnical||account?.is_technical?'SYSTEM':account?.type||account?.baseType||account?.account_type||'OTHER').toUpperCase();
+  const account=model.rowAccounts?.[i],raw=String(window.AccountGroups14253?.type(account)||(account?.isTechnical||account?.is_technical||account?.purpose&&account.purpose!=='regular'||account?.account_purpose&&account.account_purpose!=='regular'?'SYSTEM':account?.type||account?.baseType||account?.account_type||'OTHER')).toUpperCase();
   const type=raw==='REVENUE'?'INCOME':categories.some(([key])=>key===raw)?raw:'OTHER';
   const ancestors=account?parents(account).slice().reverse():[];
   const parent=account&&monthlyTrialParent(account,account.currency),unit=model.rowCurrencies?.[i]??(parent?'':account?.currency||'');
@@ -172,10 +172,11 @@ function monthlyTrialTable(model,print=false,groupCategories=false){
  if(!values.length)return '<p class="r79-note">No accounts match this selection.</p>';
  for(let first=0;first<months.length;first+=span){
   const part=months.slice(first,first+span),labels=part.map((m,i)=>'<th colspan="'+width+'" scope="colgroup"'+(model.rateDates?' data-as-of="'+re79(model.rateDates[first+i])+'"':'')+'><span>'+re79(model.rateDates?formatAppDate(model.rateDates[first+i]):summaryPeriod14331.monthLabel(m))+'</span></th>').join('');
-  const headers=part.map(()=>subheads.map((h,j)=>'<th scope="col"'+(j===0?' class="month-start"':'')+'>'+h+'</th>').join('')).join('');
+  const columnClass=j=>[j%width===0?'month-start':'',groupCategories&&width>1&&subheads[j%width]==='Balance'?'trial-balance-column':''].filter(Boolean).join(' ');
+  const headers=part.map(()=>subheads.map((h,j)=>'<th scope="col" class="'+columnClass(j)+'">'+h+'</th>').join('')).join('');
   const rowHTML=(row,item)=>{
    const name=item?.name||row[0],label=item?'<span class="trial-account-label" style="padding-inline-start:'+item.depth*16+'px">'+re79(name)+'</span>':re79(name);
-   return '<tr'+(item?.parent?' class="trial-parent"':'')+'><th scope="row" title="'+re79(name)+'">'+label+'</th>'+row.slice(1+first*width,1+(first+part.length)*width).map((value,j)=>'<td'+(j%width===0?' class="month-start"':'')+'>'+re79(value)+'</td>').join('')+'</tr>';
+   return '<tr'+(item?.parent?' class="trial-parent"':'')+'><th scope="row" title="'+re79(name)+'">'+label+'</th>'+row.slice(1+first*width,1+(first+part.length)*width).map((value,j)=>'<td class="'+columnClass(j)+'">'+re79(value)+'</td>').join('')+'</tr>';
   };
   const split=values.length-totalCount;
   let body=values.slice(0,split).map(row=>rowHTML(row)).join('');
