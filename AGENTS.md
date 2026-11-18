@@ -710,3 +710,10 @@ month/field or account labels need first-use measurement. Keep the content-width
 window aligned right; one month must not leave a full-width blank area. Put Period,
 Currency view, Columns and Edit accounts together inside one Filter button, with
 Refresh and Close beside it. Keep the current-month opening default.
+
+Negative fund alerts clarification, 2026-11-18: administrators are exempt even when
+they can post to every chart account. Alert only on assigned cash/bank operating
+funds for active non-administrator users; exclude income, equity, liabilities,
+clearing/bridge, prepaid and reconciliation-difference accounts. Negative balances
+remain permitted and never block saving or posting. Clear false saved notices,
+retain one notice per user and no repeat event for an unchanged genuine shortage.
