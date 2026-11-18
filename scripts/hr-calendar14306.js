@@ -41,21 +41,23 @@ async function loadInbox(force=false){
 }
 function paintInbox(){
  const host=document.querySelector('#hr-leave [data-hub-inbox]');if(!host||!admin())return;
- host.replaceChildren();
- const heading=document.createElement('h4');heading.textContent='Leave requests from the Hub';host.append(heading);
- const refresh=document.createElement('button');refresh.type='button';refresh.textContent='Refresh requests';refresh.onclick=()=>loadInbox(true);host.append(refresh);
- const status=document.createElement('p');status.textContent=inbox.error||(inbox.actor!==liveProfile.id?'Open or refresh to check requests.':!inbox.rows.length?'No new requests.':'Confirm the employee and payment treatment before opening the approval screen.');host.append(status);
+ const key=String(inbox.version)+'|'+String(inbox.actor)+'|'+inbox.error+'|'+inbox.rows.length+'|'+String(inboxReady459);
+ if(host.dataset.inbox466===key)return;host.dataset.inbox466=key;host.replaceChildren();
+ const heading=document.createElement('header'),title=document.createElement('h4');title.textContent='Hub requests';heading.append(title);host.append(heading);
+ const status=document.createElement('span');status.className='hr-inbox-status466';status.setAttribute('role','status');status.textContent=inbox.error||(inbox.actor!==liveProfile.id?'Not checked':!inbox.rows.length?'No pending requests':inbox.rows.length+' pending');heading.append(status);
+ const actions=document.createElement('div');actions.className='actions82';heading.append(actions);
+ const refresh=document.createElement('button');refresh.type='button';refresh.textContent='Refresh requests';refresh.onclick=()=>loadInbox(true);actions.append(refresh);
  if(inbox.actor!==liveProfile.id)return;
- const history=document.createElement('details'),summary=document.createElement('summary');summary.textContent='Rejected Hub requests';history.append(summary);host.append(history);
- history.ontoggle=async()=>{
-   if(!history.open||history.dataset.loaded)return;
-   const {data,error}=await ojmDb.from('hub_leave_intake').select('employee_id,kind,starts,ends,decided_at').eq('disposition','rejected').order('decided_at',{ascending:false}).limit(100);
-   if(!history.isConnected||!admin())return;
-   const list=document.createElement('div');history.append(list);
-   if(error){list.textContent='Could not load decisions.';return;}
-   history.dataset.loaded='yes';
-   for(const r of data){const line=document.createElement('p');line.textContent=(Work82.employees.find(e=>e.id===r.employee_id)?.data.name||'Employee')+' · '+r.kind+' · '+dateLabel(r.starts)+' – '+dateLabel(r.ends)+' · Rejected '+dateLabel(r.decided_at.slice(0,10));list.append(line);}
-   if(!data.length)list.textContent='No rejections.';
+ const rejected=document.createElement('button');rejected.type='button';rejected.textContent='Rejected requests';actions.append(rejected);
+ rejected.onclick=async()=>{
+   const actor=liveProfile.id,db=ojmDb,box=dialog('Rejected Hub Requests','<div data-rejections466 role="status">Loading decisions…</div>');
+   const current=()=>box.isConnected&&admin()&&actor===liveProfile.id&&db===ojmDb;
+   try{
+    const {data,error}=await db.from('hub_leave_intake').select('employee_id,kind,starts,ends,decided_at').eq('disposition','rejected').order('decided_at',{ascending:false}).limit(100);
+    if(!current())return;
+    const list=box.querySelector('[data-rejections466]');list.textContent=error?'Could not load decisions.':!data?.length?'No rejected requests.':'';
+    for(const r of data||[]){const line=document.createElement('p');line.textContent=(Work82.employees.find(e=>e.id===r.employee_id)?.data.name||'Employee')+' · '+r.kind+' · '+dateLabel(r.starts)+' – '+dateLabel(r.ends)+' · Rejected '+dateLabel(String(r.decided_at||'').slice(0,10));list.append(line);}
+   }catch{if(current())box.querySelector('[data-rejections466]').textContent='Could not load decisions. Check the connection and try again.';}
  };
  for(const r of inbox.rows){
    const panel=document.createElement('article'),title=document.createElement('h4');panel.className='hr-history-employee459';

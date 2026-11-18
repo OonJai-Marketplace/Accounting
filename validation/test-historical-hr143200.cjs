@@ -13,7 +13,7 @@ vm.runInContext(read('src/payroll/workspace/groups-v96/calculation-details143157
 const details=c.window.payrollExplain143157.build(run,{input:{}},c.results(run)[0],'late',{});
 assert(details.notes.includes('Original band formula'));assert(!details.notes.some(t=>t.includes('Occurrences are counted')));assert.equal(details.total,20);
 vm.runInContext(read('src/hr/leave/leave-forms-v82.js'),c);
-assert(c.historicalLeaveHistory200().includes('12'));assert(c.historicalLeaveHistory200().includes('JAN.xlsx'));
+assert(c.historicalLeaveHistory200().includes('12'));assert(!c.historicalLeaveHistory200().includes('JAN.xlsx'));assert.equal(employee.data.leaveHistory200.snapshots[0].source,'JAN.xlsx','Hide provenance in the display without deleting saved reconstruction data');
 c.Work82.leaves=[{data:{employeeId:'e',status:'approved',type:'vacation',from:'2025-03-01',to:'2025-03-03',days:3}}];
 const closed=c.closeLeavePeriod200(employee,{id:'contract',title:'Term',start:'2025-01-01'},{date:'2025-12-31',status:'renewed'});
 assert.equal(closed.closedPeriods[0].remainingAgainstAllowance.vacation,12);assert.equal(closed.snapshots.length,1);assert.equal(employee.data.renewal,'2025-01-01');
