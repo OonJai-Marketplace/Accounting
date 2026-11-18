@@ -33,6 +33,7 @@ const april={date:'2026-04-30',lines:[],movements:[movement('receipt','USD',100)
 (async()=>{
  let h=harness(april);await h.ctx.saveAllocation(true);
  assert.equal(h.calls.saved.length,1);assert.equal(h.calls.saved[0].status,'finalized');
+ assert.equal(h.calls.statuses.length,1);assert.equal(h.calls.statuses[0].message,'Fund allocation finalized.');
  assert.deepEqual(h.calls.saved[0].movements,april.movements);
  assert.equal(h.ctx.report.balances(h.calls.saved[0]).get('USD').remaining,-20);
  assert.equal(h.ctx.report.balances(h.calls.saved[0]).get('LAK').remaining,1900000);

@@ -43,8 +43,32 @@ function mainSave(job,id=actor()){const k=mainPrefix(id)+job.id,prior=JSON.parse
 function mainFinish(id,ref){const k=mainPrefix(id)+ref,prior=JSON.parse(localStorage.getItem(k)||'null');if(prior)localStorage.setItem(k,JSON.stringify({...prior,done14333:true}));}
 function mainLoad(id=actor()){const legacy='ojm_pending_posts99_'+id;const old=window.accountingReset143108?.enabled()?[]:JSON.parse(localStorage.getItem(legacy)||'[]');for(const j of old)mainSave(j,id);if(old.length)localStorage.removeItem(legacy);const list=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(!k.startsWith(mainPrefix(id)))continue;const row=JSON.parse(localStorage.getItem(k));if(!row.done14333)list.push(row)}return list}
 function changed(){window.dispatchEvent(new Event('local-work14333'));window.offline14239?.changed();window.refreshNotices1443?.()}
-async function initialize(){const id=actor();if(!id)return;if(owner===id&&readyJob)return readyJob;if(owner!==id){error='';errorKind='';}owner=id;jobs=[];readyJob=edit(id,'outbox').then(rows=>{if(rows&&!Array.isArray(rows))throw Error('The device save queue is unreadable. Keep the browser data for recovery.');if(actor()===id){jobs=rows||[];changed()}}).catch(e=>{if(actor()===id){readyJob=null;error=e.message;errorKind='read';changed();}throw e});return readyJob}
+async function initialize(){const id=actor();if(!id)return;if(owner===id&&readyJob)return readyJob;if(owner!==id){error='';errorKind='';}owner=id;jobs=[];readyJob=edit(id,'outbox').then(async rows=>{if(rows&&!Array.isArray(rows))throw Error('The device save queue is unreadable. Keep the browser data for recovery.');if(actor()===id){jobs=rows||[];await verifyConfirmedCopies(id);assertActor(id);changed()}}).catch(e=>{if(actor()===id){readyJob=null;error=e.message;errorKind='read';changed();}throw e});return readyJob}
 async function updateJob(id,op,patch){const list=await edit(id,'outbox',rows=>(rows||[]).map(j=>j.id===op?{...j,...patch}:j));if(actor()===id){jobs=list;changed()}return list}
+// A matching Supabase response is the server confirmation. Read its durable local
+// copy back before marking verification complete; keep it as the offline overlay
+// until a later refreshed snapshot includes this version. No full sync is needed.
+function matchesSaveReceipt(job,receipt){
+ return !!receipt&&receipt.id===job.row.id&&Number(receipt.version)===Number(job.row.version)
+  &&canonical(receipt.data)===canonical(job.row.data)
+  &&(job.kind!=='runs'||['period_start','period_end','status'].every(k=>receipt[k]===job.row[k]));
+}
+async function verifyConfirmedCopies(id){
+ if(!jobs.some(j=>j.status==='synced'&&!j.retired14333&&!j.deviceVerified143464))return;
+ const client=ojmDb;
+ const current=()=>{assertActor(id);if(client!==ojmDb)throw Error('Connection changed while verifying the saved device copy.');};
+ const stored=await edit(id,'outbox');current();
+ const confirmed=new Map((stored||[]).filter(j=>j.actor===id&&j.status==='synced'&&!j.retired14333&&!j.deviceVerified143464&&matchesSaveReceipt(j,j.receipt)).map(j=>[j.id,j]));
+ if(!confirmed.size)return;
+ const verified=await edit(id,'outbox',rows=>{
+  current();return (rows||[]).map(j=>{
+   const prior=confirmed.get(j.id);
+   return prior&&j.status==='synced'&&canonical(j.row)===canonical(prior.row)&&canonical(j.receipt)===canonical(prior.receipt)
+    ?{...j,deviceVerified143464:true}:j;
+  });
+ });
+ current();jobs=verified;if(errorKind==='verification'){error='';errorKind='';}
+}
 const unresolved=()=>jobs.filter(j=>!['synced','resolved'].includes(j.status));
 function latestRows(kind,rows){const map=new Map((rows||[]).map(r=>[r.id,r]));for(const j of jobs.filter(j=>j.kind===kind&&j.status!=='resolved'&&!j.retired14333)){const existing=map.get(j.row.id);if(j.status==='synced'){if(!existing||Number(existing.version)<j.row.version||existing._pending14333&&Number(existing.version)===j.row.version)map.set(j.row.id,j.receipt||j.row)}else map.set(j.row.id,{...j.row,_pending14333:true})}return [...map.values()]}
 function applyWork(){if(typeof Work82==='undefined'||Work82.owner!==actor())return;for(const kind of Object.keys(tableNames))Work82[kind]=latestRows(kind,Work82[kind]);if(Work82.runRecord){const row=Work82.runs.find(r=>r.id===Work82.runRecord.id);if(row&&row.version===Work82.runRecord.version)Work82.runRecord=row}}
@@ -88,7 +112,7 @@ async function syncOnce283({automatic=false,targetId=null,draftsOnly=false}={}){
  }
  const read=client.from(j.table).select('*').eq('id',j.row.id);
  const lookup=await (read.setHeader?read.setHeader('x-ojm-database-only','1'):read).maybeSingle();current();if(lookup.error)throw lookup.error;const remote=lookup.data;
- const same=r=>r&&Number(r.version)===Number(j.row.version)&&canonical(r.data)===canonical(j.row.data)&&(j.kind!=='runs'||['period_start','period_end','status'].every(k=>r[k]===j.row[k]));
+ const same=r=>matchesSaveReceipt(j,r);
  let saved=remote;
  if(!same(remote)){
   if(j.baseVersion===null&&remote||j.baseVersion!==null&&(!remote||Number(remote.version)!==j.baseVersion))throw Object.assign(Error('This record changed in another session. Both versions are retained; review before retrying.'),{code:'LOCAL_CONFLICT'});
@@ -96,11 +120,12 @@ async function syncOnce283({automatic=false,targetId=null,draftsOnly=false}={}){
   const req=j.baseVersion===null?client.from(j.table).insert({...payload,id:j.row.id}):client.from(j.table).update(payload).eq('id',j.row.id).eq('version',j.baseVersion);
   const response=await req.select('*');current();if(response.error)throw response.error;saved=response.data?.[0];if(!same(saved))throw Object.assign(Error('The save receipt was not confirmed. The original reference is retained.'),{code:'NETWORK_RECEIPT'});
  }
- await updateJob(id,j.id,{status:'synced',receipt:saved,syncedAt:new Date().toISOString()});if(actor()!==id)break;
+ await updateJob(id,j.id,{status:'synced',receipt:saved,syncedAt:new Date().toISOString(),deviceVerified143464:false});if(actor()!==id)break;
  window.dispatchEvent(Object.assign(new Event('record-confirmed421'),{detail:{actor:id,kind:j.kind,id:saved.id,version:saved.version}}));
  const currentRecord=Work82[j.kind]?.find(r=>r.id===saved.id);if(currentRecord&&currentRecord.version===saved.version){Work82[j.kind]=Work82[j.kind].map(r=>r.id===saved.id?saved:r);for(const name of ['runRecord','reportRecord','employee'])if(Work82[name]?.id===saved.id&&Work82[name].version===saved.version)Work82[name]=saved;}
  }catch(e){current();await updateJob(id,j.id,{status:e.code==='LOCAL_CONFLICT'?'conflict':transient(e)?'uncertain':'blocked',message:e.message||'Save was interrupted.'});if(draftsOnly&&transient(e))window.startup14257?.retryDelivery?.();}
  }
+ try{await verifyConfirmedCopies(id);current();}catch(e){current();error='The database save is confirmed, but device verification needs attention: '+e.message;errorKind='verification';}
  }finally{running=false;changed()}};
  if(navigator.locks)await navigator.locks.request('ojm-local-sync:'+key(id,''),automatic?{ifAvailable:true}:{},lock=>lock?execute():undefined);else await execute();
 }
@@ -109,7 +134,7 @@ async function confirmJournalReceipts(){if(window.offline14239?.offline()||!acto
 function projectJournal(){if(typeof JournalModule==='undefined'||!actor())return;const base=JournalModule.entries.filter(r=>!r.local14333),ids=new Set(base.map(r=>r.dbEntryId));for(const j of window.pendingPosts99?.values()||[]){if(!j.payload||!['saving','uncertain','failed','saved'].includes(j.status))continue;const entries=j.payload.p_entries||[j.payload];entries.forEach((p,index)=>{const receipt=j.receipt?.[index];if(receipt?.entry_id&&(ids.has(receipt.entry_id)||j.voidedEntryIds?.includes(receipt.entry_id)))return;for(const line of p.p_lines){const a=AccountingStore.accounts.find(a=>a.id===line.account_id);base.push({local14333:true,pendingSync:!receipt?.entry_id,requestKey:j.id,id:receipt?.entry_no||'Device-'+j.id+(entries.length>1?'-'+(index+1):''),dbEntryId:receipt?.entry_id||null,date:p.p_transaction_date,created_at:j.created||'',source:'device-pending',account:a?.name||'Unknown Account',accountId:line.account_id,accountCode:a?.code,currency:line.currency_code,memo:line.description||p.p_memo,generalMemo:p.p_memo,debit:Number(line.debit||0),credit:Number(line.credit||0),fx_rate_lak:line.fx_rate_lak,book_rate_lak:line.book_rate_lak,archived:false})}})}if(base.length!==JournalModule.entries.length||base.some((row,index)=>row!==JournalModule.entries[index]))JournalModule.entries=base;window.journalDurable14385?.project();
 }
 function staffFunds(id,rows){if(!rows)return rows;const known=(typeof reviewStaffJournals==='undefined'?[]:reviewStaffJournals).filter(j=>j.owner_id===id).flatMap(j=>j.lines||[]);const queued=(window.offline14239?.queue?.()||[]).filter(j=>j.payload.p_owner===id&&j.status!=='synced'&&!known.some(l=>String(l.editor_group1437||'').startsWith(j.payload.p_key+':')));return rows.map(f=>({...f,closing:Number(f.closing||0)+queued.flatMap(j=>j.payload.p_items||[]).filter(l=>String(l.fund)===String(f.account_id||f.id)).reduce((n,l)=>n+(l.direction==='in'?1:-1)*Number(l.amount||0),0),pendingSync14333:queued.length>0}))}
-function findings(){const list=unresolved().map(j=>({id:j.id,kind:'record',periods:[j.row.data?.month||j.row.data?.from?.slice(0,7)||j.row.period_start?.slice(0,7)].filter(Boolean),critical:['conflict','blocked','uncertain'].includes(j.status),title:(j.kind==='runs'?'Payroll':j.kind==='employees'?'Employee':j.kind==='leaves'?'Leave':j.kind==='documents'?'Document':'Report')+' · '+(j.row.data?.reference||j.row.data?.name||j.row.data?.month||j.row.id),detail:j.message||'Saved on this device. Database confirmation is pending.',status:j.status,job:j}));for(const j of jobs.filter(j=>j.status==='synced'&&!j.retired14333))list.push({id:j.id,kind:'cleanup',periods:[],critical:false,title:({reports:'Report',documents:'Document',runs:'Payroll',employees:'Employee',leaves:'Leave'}[j.kind]||'Record')+' · '+(j.row.data?.reference||j.row.data?.purpose||j.row.data?.title||j.row.data?.name||j.row.id),status:'Saved · device check pending',detail:'The server confirmed this save. Verify the device copy to finish cleanup.',job:j});if(notice)list.push({id:'year-loading14333',kind:'setup',periods:[],critical:false,title:'Loading preparation',detail:notice});if(error)list.push({id:'local-storage14333',kind:'storage',periods:[],critical:true,title:'Saved work on this device needs attention',detail:error+(errorKind==='write'?' The editor was retained. Retry Save after checking device storage.':' Use Check device storage in Connection & sync to recheck the saved queue.'),status:'attention'});return list}
+function findings(){const list=unresolved().map(j=>({id:j.id,kind:'record',periods:[j.row.data?.month||j.row.data?.from?.slice(0,7)||j.row.period_start?.slice(0,7)].filter(Boolean),critical:['conflict','blocked','uncertain'].includes(j.status),title:(j.kind==='runs'?'Payroll':j.kind==='employees'?'Employee':j.kind==='leaves'?'Leave':j.kind==='documents'?'Document':'Report')+' · '+(j.row.data?.reference||j.row.data?.name||j.row.data?.month||j.row.id),detail:j.message||'Saved on this device. Database confirmation is pending.',status:j.status,job:j}));for(const j of jobs.filter(j=>j.status==='synced'&&!j.retired14333&&!j.deviceVerified143464&&!running))list.push({id:j.id,kind:'cleanup',periods:[],critical:false,title:({reports:'Report',documents:'Document',runs:'Payroll',employees:'Employee',leaves:'Leave'}[j.kind]||'Record')+' · '+(j.row.data?.reference||j.row.data?.purpose||j.row.data?.title||j.row.data?.name||j.row.id),status:'Saved · device check pending',detail:'The server confirmed this save. Verify the device copy to finish cleanup.',job:j});if(notice)list.push({id:'year-loading14333',kind:'setup',periods:[],critical:false,title:'Loading preparation',detail:notice});if(error)list.push({id:'local-storage14333',kind:'storage',periods:[],critical:true,title:'Saved work on this device needs attention',detail:error+(errorKind==='write'?' The editor was retained. Retry Save after checking device storage.':errorKind==='verification'?' The confirmed recovery copy is retained; retry Verify device copy.':' Use Check device storage in Connection & sync to recheck the saved queue.'),status:'attention'});return list}
 async function retireConfirmed(id,name,started,value){
  if(!started)return;
  const documents=name==='documents'||name==='documents-index143198';
@@ -126,8 +151,8 @@ async function retireConfirmed(id,name,started,value){
 }
 async function verifyCleanup(jobId){
  const who=actor(),client=ojmDb;
- await initialize();assertActor(who);
- const job=jobs.find(j=>j.id===jobId&&j.status==='synced'&&!j.retired14333);
+ await initialize();assertActor(who);await verifyConfirmedCopies(who);assertActor(who);changed();
+ const job=jobs.find(j=>j.id===jobId&&j.status==='synced'&&!j.retired14333&&!j.deviceVerified143464);
  if(!job)return;
  if(window.offline14239?.offline())throw Error('Reconnect to verify the device copy.');
  const refresh=()=>job.kind==='documents'?loadDocuments(true):window.loadWork82(true);

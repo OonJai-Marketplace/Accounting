@@ -1,6 +1,8 @@
 {
-  "version": "143.463",
+  "version": "143.464",
   "changes": [
+    "Confirmed saves automatically verify their durable device copy without asking for Verify device copy or triggering a full sync.",
+    "Negative utilization finalization shows one warning before confirmation, with a simple success message afterward.",
     "Database status is checked once at login, with no periodic checks; Check connection runs another check only when requested.",
     "A paused database shows Database is paused in red on the storage button and as one persistent bell notification.",
     "The same red bell warning gently pulses once an hour without new notices, popups or database requests; offline editing and local saves remain available.",
