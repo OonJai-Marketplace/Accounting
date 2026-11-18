@@ -198,14 +198,6 @@ body #transactions-budget14313 .data-table82:has(>.budget-saved-table){overflow-
  body #transactions-budget14313 table.budget-saved-table tbody td :is(button,.row-menu99>summary){height:32px!important;min-height:32px!important;max-height:32px!important;line-height:20px!important;padding:5px 10px!important}
 }
 
-/* Funding entry list keeps every source and reference visible before editing. */
-body .funding-list .budget-dialog14313{width:min(1050px,calc(100vw - 36px))!important}
-.funding-list .funding-help{margin:0 0 12px;color:#50655c}
-.funding-list .block82>header{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.funding-list .data-table82 table{width:100%;min-width:680px}
-.funding-list .data-table82 :is(th,td){padding:3px 6px!important;white-space:normal;overflow-wrap:anywhere;vertical-align:middle}
-.funding-list .funding-entry-link{height:32px;min-height:32px;padding:4px 0;background:transparent;color:#145c4a;border:0;text-decoration:underline;text-underline-offset:3px;text-align:left;cursor:pointer;max-width:100%}
-.funding-entry-toolbar{margin:0 0 12px}
 /* Compact single-line rows; keep the utilization register's stacked currency room. */
 @layer compact14327{
  body #transactions-budget14313 table#savedBudgetRequests :is(th,td){padding-top:1px!important;padding-bottom:1px!important}
@@ -218,3 +210,38 @@ body .funding-list .budget-dialog14313{width:min(1050px,calc(100vw - 36px))!impo
 
 #budgetFunds290 [data-disbursements]:not(.table-resized143117) :is(th,td):first-child{min-width:6em}
 #budgetFunds290 [data-disbursements]:not(.table-resized143117) :is(th,td):nth-child(2){min-width:8em;overflow-wrap:normal!important;word-break:normal!important}
+
+/* Funding edits stay in the table; horizontal scrolling preserves usable cells. */
+body .funding-inline .budget-dialog14313{width:min(1320px,calc(100vw - 36px))!important;max-height:92dvh}
+.funding-inline .ui-body108{overflow:auto;min-height:0}
+.funding-inline .block82>header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.funding-inline .funding-grid-scroll{overflow-x:auto;max-width:100%}
+.funding-inline .funding-edit-grid{border-collapse:collapse;width:100%;table-layout:auto}
+.funding-inline .funding-edit-grid :is(th,td){padding:2px 5px!important;vertical-align:middle!important;height:auto!important;white-space:nowrap}
+.funding-inline .funding-edit-grid :is(input,select){box-sizing:border-box;width:100%;min-width:7.5rem;max-width:none;height:32px!important;min-height:32px!important;margin:0!important;padding:4px!important;border:1px solid transparent!important;border-radius:0!important;background:transparent!important;color:inherit}
+.funding-inline .funding-edit-grid :is(input,select):focus{outline:1px solid #228164!important;outline-offset:-1px;background:#fff!important}
+.funding-inline .funding-edit-grid [data-funding-cell=description290]{min-width:10rem}
+.funding-inline .funding-edit-grid :is([data-funding-cell=currency],[data-funding-cell=target]) :is(input,select){width:5rem;min-width:5rem}
+.funding-inline .funding-edit-grid :is([data-funding-cell=amount],[data-funding-cell=targetAmount290],[data-funding-cell=rate],[data-funding-cell=loanAmount290]) input{width:8rem;min-width:8rem;text-align:right}
+.funding-inline .funding-edit-grid [type=date]{width:8.5rem;min-width:8.5rem}
+.funding-inline .funding-edit-grid button{height:32px!important;min-height:32px!important;padding:4px 8px!important}
+.funding-inline .fund-form-actions{position:sticky;bottom:0;background:#fffdf7;gap:8px;padding:12px 0 4px}
+.funding-inline [data-funding-status]{color:#9b2929;margin:6px 0}
+
+body .funding-inline form[data-inline-funding]{display:block!important;min-width:0;width:100%;max-width:100%}
+.funding-inline [data-funding-tables]{min-width:0;max-width:100%}
+@layer compact14327{
+ body .funding-inline .funding-edit-grid :is(input,select){border:1px solid transparent!important;background:transparent!important;border-radius:0!important;box-shadow:none!important}
+ body .funding-inline .funding-edit-grid :is(input,select):focus{outline:1px solid #228164!important;outline-offset:-1px;background:#fff!important}
+}
+
+body .funding-inline table.funding-edit-grid{table-layout:auto!important;min-width:1050px}
+body .funding-inline table[data-funding-grid=conversion]{min-width:1170px}
+body .funding-inline table[data-funding-grid=other]{min-width:1400px}
+@layer compact14327{
+ body .funding-inline .funding-edit-grid button{white-space:nowrap!important;min-width:64px!important}
+ body .funding-inline .funding-edit-grid th{white-space:nowrap!important;overflow-wrap:normal!important;word-break:normal!important}
+}
+
+.funding-inline .funding-edit-grid [data-funding-cell=loanId290]{min-width:7rem}
+.funding-inline .funding-edit-grid [data-funding-cell=loanAmount290]{min-width:8rem}

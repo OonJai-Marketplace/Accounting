@@ -1,8 +1,8 @@
 {
-  "version": "143.458",
+  "version": "143.459",
   "changes": [
-    "Edit funding lists every receipt and reference, with Add row for additional amounts received and direct access to exchange details.",
-    "Category and Item have separate columns in budget request summaries and disbursement breakdowns.",
-    "Compact saved request and report rows while retaining space for stacked utilization currency totals."
+    "Edit funding directly in table cells for receipts, exchanges and other funding movements.",
+    "Add row inserts a blank editable line; Apply changes updates the funding summary together.",
+    "Funding summary includes Add row beside Edit funding."
   ]
 }
