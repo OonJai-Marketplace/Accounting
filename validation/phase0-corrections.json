@@ -5,20 +5,20 @@
   "runtime_sha256": {
     "styles/refinements-v93.css": "e060e980ecaf5b921f480cf9de77068cda78dcc38fa3f271add6dbd780b17880",
     "recovery.html": "afcdd18604ff0d2acb696d8dd5d4ea51c123777d022c1154995c2799b8e07df9",
-    "phone-sw.js": "3019d2f739698741344eac9608a001f77d432f9213a3298809b9bc93101a00b1",
+    "phone-sw.js": "85eb845ed10f05607fb40682e96b1b9feb3cc4f2cb1ab692ee16fc71d6f4ccc8",
     "phone-accounting.html": "b1242a5cd79644de75c24434b3da9843bc58bb199e5fa3bc5f064dd1cef3afc4",
-    "desktop-sw14242.js": "cddd47f1f8a09cc5129f9c3b8edafd472e3a1f7229fba2ba9c57cdc9b57f1f77",
-    "phone.html": "8f4f39ae6a1b8ccfbbcfc05ea2cdada46035dfdd6c17c95b0fdc6ec75938508f",
-    "desktop.html": "f1c5ed3e225e0781a519f8e745d8a3cea711d71e54a44c02892796363bd0a58d",
-    "scripts/phone-runtime14242.js": "90dc70547662e9d7f88fe6dc28b35877e78d2cc35f17df0bd2e5249828c2bd77",
+    "desktop-sw14242.js": "784651fff4ebc1af45c54725f5863c7de93bb596fe6eac37d8a703c833b88f6d",
+    "phone.html": "ed6a66cac6926ade40f01a2ab48070908bf68947e90b5d23f63d16beeacb317b",
+    "desktop.html": "174c197ac631b906f91d6d22f677a08760a443d08b55d39fcbfb1b85fb96be9c",
+    "scripts/phone-runtime14242.js": "07bfda12524dc25ef1eb57673ebf15b6a45fd485d051400eaf2da3f797b13a01",
     "scripts/device-vault14334.js": "e990ab64e5b60b83660f569ef5dbcbaa6f726941487a56b084d45d71c7bb7a1f",
     "scripts/script.js": "415683d566a396a52c3d9489f252cf27c3ebb62d7cb31a87fd135b583b9bc0b6",
     "scripts/local-first14333.js": "2f6eb90e56fcad5f390c6e54fe9a5652aa82e029040125867cafff75f8c1d1cf",
     "scripts/corrections14231.js": "e1ed44058bcf8f434dfdbc423e7675fa8c77f8fc83e9687e9c078a4176fd7ee6",
     "scripts/payroll-polish-v97.js": "d1801d89617f2fd793a3c67869d838a1312d4589f58594a56b6a7a019f8d087f",
     "scripts/startup14257.js": "64774650c9aa80f22e1db60706487c20045fb56d7cc40296ac9e44909d635d71",
-    "scripts/desktop14245-6.js": "b52f16e0b214ce4b479152801ee39cff1c7795797f39b13ffcc3e4e2572cdbc5",
-    "scripts/offline14239.js": "9b76d43f9d0f54e5f5d32c1ca088a7086073e597f76b4baf711e19fecb056eac",
+    "scripts/desktop14245-6.js": "34d392d7aeeed2661b3d31be3fc3f2526ddf578313af14aa8eda0bef0431d944",
+    "scripts/offline14239.js": "8d0e17425ee834e5f3ce60ef7f9cc243fa0da16a8a735314d52a95ca2e71262e",
     "scripts/desktop14245-3.js": "764b4dd3e8e7570cdefef760acd891c0003aa002af9401d15591e367ed0cb6f0",
     "scripts/desktop14245-4.js": "32d617caf982dc65adddb2789c2811464f4448cf5489bbbfc804228a46c585d0",
     "scripts/drafts1427.js": "f87e5ae3aba767e23b1ed190473c9a0ab08fac4c8c1c1bded2cdbdadec7ff388",
@@ -171,7 +171,7 @@
     "scripts/report-library14285.js": "0f228741faaff2d5e4c0951be36d47efb5d87219bd465bc0d39b3104cee2d2c6",
     "scripts/period-filters14331.js": "6e807e90e84c43dd866c1f58917c3b084b655b3fd8c3312380c78ad6f024c3b0",
     "scripts/recovery14257.js": "7d66eba951340317d52a2f7f7dfa67902919f07cc4a672c94c438fe3bb658d28",
-    "scripts/payroll-journal1429.js": "f321851cd6151f4bc9b504748469778e933c886c3b6238097638fe19f4cd1abb",
+    "scripts/payroll-journal1429.js": "23ae1b744807fe8e29bc17ba0d2fd2f599dc951371706a78ecb4231898ecca7e",
     "scripts/document-export-v108.js": "c79a3870303fc55dc9d9a119331abecbc179edfd3677c5b74b6c19a4407b99f6",
     "scripts/document-import-v1422.js": "711beedd9438fc41cb12bd2df5780a5c982a1887bd974db4dd355a4f5de8d9f6",
     "scripts/payroll-v99.js": "3f214882dc9a7b5d42ccfd7258b19e82defa3287aafc5469979ab1656de46e38",
@@ -179,7 +179,7 @@
     "scripts/funds-v113.js": "c20c8a60cda78a465af43bd5207c9d23be0c6d85ab143fff5a336f91f2d1255f",
     "scripts/voucher-signatories1433.js": "1f2dc3f5bd74cb570e9716888e2ffc1ac91e2514c60c065b36bab0c275952d7b",
     "scripts/summary-period14331.js": "c3892ad3ea151e1f9d159278657010615317b7ca4198777c46060e616916fd12",
-    "scripts/payroll-template1431.js": "616dacba2259e13065482fd98fed0580ae71c70c4dce3f1cba5b802d25f8d472",
+    "scripts/payroll-template1431.js": "315d45fd6ff6ec4970ca46aaeae3bd84d240c832e84ccd6021aaee7960ed5f01",
     "scripts/layout14256.js": "3157b3f28d45242d155de64ba7806b1f3f451de8dbfb7b13ac2c1b103f5a5201",
     "scripts/backup-validation1441.js": "8680a3fa5beeb3878a00ed5a1f7faec0359fb4fd52119c72794047b6333752f4",
     "scripts/admin-access14251.js": "5f85c2441deb276354fa4144c7fa5269f0045732e3c9d274029db3706fa254dc",
@@ -265,7 +265,7 @@
     "styles/editor-tables-v107.css": "0b0ff1cff19ef81093dce79c995122bcc9169d25b47227fd775a2dbab33e7a3b",
     "styles/polish1444.css": "fc55764b2a9b4f597a1fd408717f6d101630ee937f06485251153e5e6f9f871f",
     "styles/transactions-mobile-v72.css": "11b7fafa86437a6edeb18e295f92909bd4eecd6b2366208c06bd9886fa708556",
-    "sw14239.js": "ee3932a7a13af89949161d415eded7b9e6497cfe0ba4a0875c893f4598b98bf5",
+    "sw14239.js": "2f447da14986e893475d729735528d680be4b89260ec50f929daf5db69c80ed5",
     "styles/header-profile-v104.css": "e3f51d6513bea097f66fee9a4335ee0814e927fa734bdb4ba336b61e06c8ce39"
   },
   "retired_assets": {
@@ -617,5 +617,6 @@
     "limits": "Visual browser execution unavailable. Legacy test-journal-completion258 partial-settlement assertion also fails on unchanged HEAD; focused native and catalog tests pass."
   },
   "calculationHandoffs143485": "2026-11-18: Approved correction for overtime and leave, in-flight payroll saves, independent phone entries, journal draft protection, and per-currency funding warnings.",
-  "payrollValuation143486": "2026-11-18: preserve the finalized payroll valuation on prepared journals and restored drafts while retaining explicit book rates."
+  "payrollValuation143486": "2026-11-18: preserve the finalized payroll valuation on prepared journals and restored drafts while retaining explicit book rates.",
+  "payrollHistoricalMappings143487": "2026-11-18: resolve retired payroll rule identities during user-initiated journal preparation and retain the approved direct-account migration."
 }

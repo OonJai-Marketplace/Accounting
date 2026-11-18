@@ -72,4 +72,19 @@ assert(result.some(l=>l.account.code==='2111'&&l.amount===10&&l.side==='CR'));
 assert(!result.some(l=>l.account.code==='9042'));
 const edited=structuredClone(template);edited.lines.find(r=>r.basis==='gross').account='9231';
 assert.throws(()=>payrollTemplate1431.buildLines(payroll,edited),/Review this payroll rule/);
+
+// This saved layout predates retirement of 9231 and 9290. Neither ID is in the eligible chart.
+const historical=[{id:'retired-salary-id',code:'9231'},{id:'retired-offset-id',code:'9290'}];
+const group={scope:'total',employees:'USD',groupCurrency275:'USD',manual:''};
+const saved={employeeAccounts:{a:'1220'},lines:[
+ {...group,basis:'gross',side:'DR',expectedCurrency:'USD',account:historical[0].id,conversionSource274:true},
+ {...group,basis:'gross',side:'DR',expectedCurrency:'LAK',account:'5311'},
+ {...group,basis:'rounding',side:'AUTO',expectedCurrency:'LAK',account:historical[1].id,derived274:'salaryOffset'}
+]};
+const migrated=payrollTemplate1431.upgrade308(saved,historical);
+assert.deepEqual(migrated.lines.map(r=>r.account),['5316']);
+migrated.employeeAccounts.a='different';assert.equal(saved.employeeAccounts.a,'1220');assert.equal(saved.lines.length,3);
+const custom=structuredClone(saved);custom.lines[1].manual='12';
+assert.equal(payrollTemplate1431.upgrade308(custom,historical).lines.length,3,'explicit manual amounts require review');
+
 console.log('Direct purchase, bank fee, salary settlement, owner support, amortization and payroll passed.');

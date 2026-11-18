@@ -91,8 +91,8 @@ function defaultTemplate(run){
 }
 // Upgrade only generated arithmetic rows. Preserve custom accounts, manual
 // amounts, dates and employee mappings; never rewrite a saved payroll result.
-function upgrade308(template){
- const t={...template,lines:template.lines.map(r=>({...r}))};
+function upgrade308(template,historicalAccounts=[]){
+ const t={...template,employeeAccounts:{...template.employeeAccounts},lines:template.lines.map(r=>({...r}))};
  t.lines=t.lines.flatMap(r=>{
   if(['taxConversionRounding308','pitRoundingPayable308','pitRoundingOffset308'].includes(r.derived274))return [];
   if(r.derived274==='taxBridge')return [{...r,memo:'Employee withholding · converted value'}];
@@ -101,7 +101,8 @@ function upgrade308(template){
  });
  const chart=eligible(),registry=window.JournalCompletion258?.registry(chart);
  if(registry?.replacement.size){
-  const account=r=>chart.find(a=>a.id===r.account);
+  // Historical identities identify only the source rule. Posting targets always come from the eligible chart.
+  const account=r=>chart.find(a=>a.id===r.account)||historicalAccounts.find(a=>a.id===r.account);
   for(const gross of t.lines.filter(r=>r.basis==='gross'&&r.conversionSource274)){
    const group=gross.groupCurrency275||gross.employees,old=account(gross),direct=registry.replacement.get(String(old?.code));
    if(!direct||!['5316','5317'].includes(String(direct.code)))continue;
