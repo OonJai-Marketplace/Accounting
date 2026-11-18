@@ -1,6 +1,10 @@
 {
-  "version": "143.459",
+  "version": "143.460",
   "changes": [
+    "Leave Request Form print and export follow the supplied A4 form, with structured answers and reusable letterhead.",
+    "Full-width leave balances and readable history distinguish imported entitlement dates from the current period.",
+    "Add Leave Request avoids rebuilding history; HR inbox reads are shared and cached until refresh.",
+    "Contracts & Documents defaults to all employees with an employee filter.",
     "Edit funding directly in table cells for receipts, exchanges and other funding movements.",
     "Add row inserts a blank editable line; Apply changes updates the funding summary together.",
     "Funding summary includes Add row beside Edit funding."

@@ -1,0 +1,17 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const M=require('../src/hr/calendar/hr-calendar-model14306.js');
+const employee={id:'e',data:{name:'Example employee',active:true,vacation:15}};
+const c={window:{},M,HRCalendarModel14306:M,Work82:{employees:[employee],leaves:[],runs:[]},ApplicationSettings:{payroll:{}},employee:()=>employee,hrCalendar14306:{guard(){},config:()=>M.scheduleDefaults({nonWorkDays99:[0,6]}),state:{rows:[]}},vacationLedger:{leaveLines:d=>{assert.deepEqual(Array.from(d.dayFractions),[1,1]);return []},check(){}},escape:v=>String(v).replaceAll('<','&lt;'),formatAppDate:v=>v,PrintSettings:{},currentMonth:()=>''};
+vm.createContext(c);vm.runInContext(fs.readFileSync('src/hr/leave/approval14306.js','utf8'),c);
+const pending={employeeId:'e',status:'pending',type:'vacation',paid:'yes',from:'2026-11-23',to:'2026-11-24',month:'2026-11',days:1,dayFractions:[.5,.5],calendarBasis14306:{large:'old snapshot'},coverage459:'yes',enoughTime459:'no'};
+const approved=c.leaveApprovalData({data:pending});
+assert.equal(approved.days,2);assert.equal(approved.requestedDays14307,1);assert(!('calendarBasis14306' in approved));assert.equal(approved.coverage459,'yes');assert.equal(approved.enoughTime459,'no');assert.equal(pending.days,1,'Source is unchanged until confirmed save');
+assert.throws(()=>c.leaveApprovalData({data:{...pending,status:'approved'}}),/Only pending/);
+const prepared=c.prepareLeaveRequest({...pending,type:'absent'},true);assert.equal(prepared.paid,'no');assert(!('calendarBasis14306' in prepared));assert.deepEqual(Array.from(prepared.dayFractions),[1,1]);
+vm.runInContext(fs.readFileSync('src/hr/leave/print-application-v97.js','utf8'),c);
+const blank=c.window.leaveRequestHtml459();assert(!blank.includes('✓'));assert(!/<img|<canvas|data:image/.test(blank));
+const html=c.window.leaveRequestHtml459({...pending,status:'approved',notes:'<script>bad</script>'},employee.data);
+assert(html.includes('LEAVE REQUEST FORM'));assert(html.includes('Supervisor Signature:'));assert(html.includes('&lt;script>'));assert(!html.includes('<script>'));assert(html.includes('Example employee'));
+const src=fs.readFileSync('src/hr/calendar/hr-calendar14306.js','utf8');let reads=0,release;
+const ctx={window:{},admin:()=>true,liveProfile:{id:'a'},ojmDb:{from(){reads++;const q={select:()=>q,eq:()=>q,order:()=>new Promise(r=>release=r)};return q}},inbox:{actor:null,rows:[],version:0,error:''},paintInbox(){}};vm.createContext(ctx);vm.runInContext(src.slice(src.indexOf('let inboxJob459'),src.indexOf('function paintInbox()')),ctx);
+(async()=>{const a=ctx.loadInbox(),b=ctx.loadInbox();assert.equal(reads,1,'Concurrent opening shares the request');release({data:[],error:null});await Promise.all([a,b]);await ctx.loadInbox();assert.equal(reads,1,'Cached navigation does not refetch');const refresh=ctx.loadInbox(true);assert.equal(reads,2);release({data:[],error:null});await refresh;ctx.liveProfile={id:'b'};const changed=ctx.loadInbox();assert.equal(reads,3);release({data:[],error:null});await changed;console.log('PASS compact calendar fractions, unpaid handling, approval checks, printable form escaping, and account-scoped inbox caching');})().catch(e=>{console.error(e);process.exitCode=1});

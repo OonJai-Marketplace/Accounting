@@ -211,3 +211,28 @@ dialog.rail-calendar379{position:fixed;inset:12px 58px auto auto;margin:0;paddin
 .hr-date14306>.hr-cal-chip14306:hover,.hr-date14306>.hr-cal-chip14306:focus-visible{text-decoration:underline}
 .hr-detail14306.calendar-record dd{white-space:pre-wrap;overflow-wrap:anywhere}
 .hr-agenda14306 .hr-event14306{position:relative}.hr-agenda14306 [data-cal-open]::after{content:"";position:absolute;inset:0;cursor:pointer}
+
+/* Leave screens use the available workspace; history is readable without nested disclosure panels. */
+body #hr-leave .work82,body #hr-contracts .work82{width:100%;max-width:none;min-width:0}
+body #hr-leave .data-table82{width:100%!important;max-width:100%!important;overflow:auto}
+body #hr-leave .data-table82 table{width:100%!important;table-layout:fixed!important;min-width:720px}
+body #hr-leave .data-table82 :is(th,td){white-space:normal!important;overflow-wrap:break-word;vertical-align:top;padding:8px 10px!important}
+body #hr-leave .hr-leave-balances459 th:first-child{width:25%!important}
+body #hr-leave .hr-leave-balances459 th:last-child{width:15%!important}
+body #hr-leave .hr-leave-balances459 :is(th,td):not(:first-child){text-align:right!important}
+body #hr-leave .hr-leave-balances459 :is(th,td):last-child{text-align:left!important}
+.hr-history-employee459{margin:18px 0 24px;border-top:2px solid #afc6b7;padding-top:12px;min-width:0}
+.hr-history-employee459>h4{font-size:15px;margin:0 0 5px;color:#1f5642}
+.hr-history-note459{color:#596b62;font-size:12px;line-height:1.5;margin:6px 0 12px}
+.hr-history-period459{margin-top:14px}.hr-history-period459>p{margin:0 0 7px;font-size:12px}
+body .hr-leave-request459{width:min(880px,94vw);max-height:90dvh;padding:0;overflow:auto}
+body .hr-leave-request459>header{display:flex;justify-content:space-between;align-items:center;padding:12px 18px;border-bottom:1px solid #c9d8cd}
+body .hr-leave-request459>header h3{margin:0}.hr-leave-request459>header button{border:0;background:transparent;font-size:22px;cursor:pointer}
+body .hr-leave-request459 .fields82{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;align-items:start}
+body .hr-leave-request459 .fields82>label,body .hr-leave-request459 .leave-employee-field143154{min-width:0!important}
+body .hr-leave-request459 .fields82 input,body .hr-leave-request459 .fields82 select{width:100%;box-sizing:border-box}
+body .hr-leave-request459 .fields82 .check82 input{width:auto}
+body #hr-contracts .data-table82 table{width:100%!important;table-layout:fixed!important}
+body #hr-contracts .data-table82 :is(th,td){white-space:normal!important;overflow-wrap:break-word;padding:8px 10px!important}
+body #hr-contracts .hr-employee-select14306{display:block;max-width:360px;margin:12px}
+@media(max-width:650px){body .hr-leave-request459 .fields82{grid-template-columns:1fr}}
