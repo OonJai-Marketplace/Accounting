@@ -607,3 +607,10 @@ Keep physical cash details separately. Finalized payroll corrections use the
 administrator-only, version/fingerprint-checked payroll amendment with audit history.
 Preserve all unrelated report edits, cash payments, approval statuses, source payroll
 and posted journals. Missing payment evidence must be visibly unconfirmed.
+
+Budget saves, 2026-11-18: utilization Save and Finalize stay in the foreground.
+Use one atomic, idempotent save with version and linked-request validation on the
+server; retain the durable local request and exact receipt verification. Do not
+start background budget delivery or full-workspace refresh after Save. Offline
+budget drafts wait for explicit Sync Now. A newer server draft supersedes an
+older finalized copy retained in the current tab.

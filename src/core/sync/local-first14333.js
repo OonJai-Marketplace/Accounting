@@ -73,6 +73,7 @@ const unresolved=()=>jobs.filter(j=>!['synced','resolved'].includes(j.status));
 function latestRows(kind,rows){const map=new Map((rows||[]).map(r=>[r.id,r]));for(const j of jobs.filter(j=>j.kind===kind&&j.status!=='resolved'&&!j.retired14333)){const existing=map.get(j.row.id);if(j.status==='synced'){if(!existing||Number(existing.version)<j.row.version||existing._pending14333&&Number(existing.version)===j.row.version)map.set(j.row.id,j.receipt||j.row)}else map.set(j.row.id,{...j.row,_pending14333:true})}return [...map.values()]}
 function applyWork(){if(typeof Work82==='undefined'||Work82.owner!==actor())return;for(const kind of Object.keys(tableNames))Work82[kind]=latestRows(kind,Work82[kind]);if(Work82.runRecord){const row=Work82.runs.find(r=>r.id===Work82.runRecord.id);if(row&&row.version===Work82.runRecord.version)Work82.runRecord=row}}
 function backgroundRecord(kind,data){
+ if(kind==='reports'&&data.kind==='finance'&&data.mode==='utilization')return false;
  if(kind==='runs')return data.status==='draft';
  if(kind==='leaves')return !['approved','cancelled','rejected'].includes(data.status);
  if(kind==='reports')return !data.sharedSnapshot14313&&!['finalized','approved','submitted'].includes(data.status);
@@ -105,20 +106,23 @@ async function syncOnce283({automatic=false,targetId=null,draftsOnly=false}={}){
  const position=jobs.findIndex(p=>p.id===j.id);
  if(jobs.slice(0,position).some(p=>!['synced','resolved'].includes(p.status)&&depends283(p,j)))continue;
  try{
+ const same=r=>matchesSaveReceipt(j,r);let saved;
  if(j.kind==='reports'&&j.row.data.kind==='finance'&&j.row.data.mode==='utilization'){
-  const result=await client.rpc('budget_capabilities14316');current();
-  if(result.error)throw result.error;
-  if(result.data?.version!==14316)throw Object.assign(Error('The budget allocation database setup requires review.'),{code:'BUDGET_SETUP'});
- }
+  const request=client.rpc('save_budget_utilization',{p_report:j.row.id,p_base_version:j.baseVersion,p_data:j.row.data});
+  const result=await (request.setHeader?request.setHeader('x-ojm-database-only','1'):request);current();
+  if(result.error)throw Object.assign(Error(result.error.message),result.error,{code:['40001','23505'].includes(result.error.code)?'LOCAL_CONFLICT':result.error.code});
+  saved=result.data;
+  if(!same(saved))throw Object.assign(Error('The save receipt was not confirmed. The original reference is retained.'),{code:'NETWORK_RECEIPT'});
+ }else{
  const read=client.from(j.table).select('*').eq('id',j.row.id);
  const lookup=await (read.setHeader?read.setHeader('x-ojm-database-only','1'):read).maybeSingle();current();if(lookup.error)throw lookup.error;const remote=lookup.data;
- const same=r=>matchesSaveReceipt(j,r);
- let saved=remote;
+ saved=remote;
  if(!same(remote)){
   if(j.baseVersion===null&&remote||j.baseVersion!==null&&(!remote||Number(remote.version)!==j.baseVersion))throw Object.assign(Error('This record changed in another session. Both versions are retained; review before retrying.'),{code:'LOCAL_CONFLICT'});
   const payload={data:j.row.data,version:j.row.version};if(j.kind==='runs')Object.assign(payload,{period_start:j.row.period_start,period_end:j.row.period_end,status:j.row.status});
   const req=j.baseVersion===null?client.from(j.table).insert({...payload,id:j.row.id}):client.from(j.table).update(payload).eq('id',j.row.id).eq('version',j.baseVersion);
   const response=await req.select('*');current();if(response.error)throw response.error;saved=response.data?.[0];if(!same(saved))throw Object.assign(Error('The save receipt was not confirmed. The original reference is retained.'),{code:'NETWORK_RECEIPT'});
+ }
  }
  await updateJob(id,j.id,{status:'synced',receipt:saved,syncedAt:new Date().toISOString(),deviceVerified143464:false});if(actor()!==id)break;
  window.dispatchEvent(Object.assign(new Event('record-confirmed421'),{detail:{actor:id,kind:j.kind,id:saved.id,version:saved.version}}));

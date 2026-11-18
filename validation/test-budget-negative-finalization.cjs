@@ -19,7 +19,7 @@ function harness(data,answer=true){
   ojmDb:{rpc:async()=>{calls.lifecycle++;return {data:{version:14316}};}},
   live:async(...args)=>calls.live.push(args),liveProfile:{full_name:'Test'},livePermission:{},
   saveWork82:async(table,d)=>{calls.saved.push(structuredClone(d));return {id:'report',version:5,data:d};},
-  Work82:{reports:[]},clearFundPopup:()=>{},renderAllocation:()=>{},renderRequest:()=>{},
+  Work82:{reports:[]},rememberFinal:()=>{},clearFundPopup:()=>{},renderAllocation:()=>{},renderRequest:()=>{},
   document:{querySelector:()=>null},showCenterStatus:(message,error)=>calls.statuses.push({message,error})
  });
  vm.runInContext(fs.readFileSync('src/budget/requests/budget-report290.js','utf8'),ctx);
@@ -39,7 +39,7 @@ const april={date:'2026-04-30',lines:[],movements:[movement('receipt','USD',100)
  assert.equal(h.ctx.report.balances(h.calls.saved[0]).get('LAK').remaining,1900000);
  assert.match(h.calls.dialogs[0].html,/USD \(20.00\)/);
  assert.equal(h.calls.dialogs[0].buttons[1].label,'Finalize anyway');
- assert.equal(h.calls.lifecycle,1);assert.deepEqual(h.calls.live,[['report',4]]);assert.equal(h.control.disabled,false);
+ assert.equal(h.calls.lifecycle,0);assert.deepEqual(h.calls.live,[]);assert.equal(h.control.disabled,false);
  h=harness(april,false);await h.ctx.saveAllocation(true);
  assert.equal(h.calls.saved.length,0);assert.equal(h.calls.lifecycle,0);assert.equal(h.control.disabled,false);
  h=harness(april);await h.ctx.saveAllocation(false);

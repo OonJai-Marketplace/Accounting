@@ -1,8 +1,11 @@
 {
-  "version": "143.468",
+  "version": "143.470",
   "changes": [
+    "Budget utilization saves and finalization confirm in one database request, preserving record versions and linked-request checks.",
+    "Budget utilization draft saves stay in the foreground; offline drafts remain available for manual Sync Now.",
+    "A reopened report clears an older finalized copy when its current database draft is opened.",
     "Funding summaries include USD exchanged out and exact LAK proceeds with each saved exchange reference.",
-    "Used and remaining are calculated in each transaction\u2019s native currency; LAK costs are no longer converted back into USD.",
+    "Used and remaining are calculated in each transaction’s native currency; LAK costs are no longer converted back into USD.",
     "Utilization register headers total Requested, Approved, Received, Exchanged out, Exchanged in, Used and Remaining by currency.",
     "Supabase provides the same currency summary from current saved reports, preserving their financial data and edits.",
     "Leave History uses one table with employee, month and view filters, with 25 records per page.",
