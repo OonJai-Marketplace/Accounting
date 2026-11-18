@@ -576,6 +576,7 @@
       rawLocal.setItem(P + id + ":generation", crypto.randomUUID());
     secret?.fill(0);
     secret = null;
+    window.activity477?.accessChanged();
     ephemeral.forEach((m) => m.clear());
     try {
       window.invalidateRequests1430?.();
@@ -766,6 +767,7 @@
         rawLocal.setItem(P + actor + ":generation", crypto.randomUUID());
       secret?.fill(0);
       secret = null;
+      window.activity477?.accessChanged();
       ephemeral.forEach((m) => m.clear());
     },
     pack,

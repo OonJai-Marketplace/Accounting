@@ -1,6 +1,11 @@
 {
-  "version": "143.477",
+  "version": "143.478",
   "changes": [
+    "Keep full startup preparation and existing server jobs while reducing recurring browser work.",
+    "Refresh dashboard, receipt access, backup access and settings summaries when their data or account changes.",
+    "Run reminders at configured deadlines, consolidate missed reminders and update calendar dates daily.",
+    "Avoid duplicate normal opening reads for user funds, with a bounded fallback for slow connections.",
+    "Preserve save/post-triggered negative-fund notifications and the latest owner-support currency corrections.",
     "Owner support shows matched currency transfers separately from new receipts and spending.",
     "Remaining follows received plus exchange in, less exchange out and used, separately for each currency.",
     "Combined receipt references can verify one funding amount without creating another receipt. Unexplained journal differences still require review.",

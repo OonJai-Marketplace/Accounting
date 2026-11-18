@@ -181,11 +181,12 @@ function start226(){
  document.addEventListener('scroll',schedule226,true);window.addEventListener('page113',schedule226);window.addEventListener('focus',schedule226);window.addEventListener('online',schedule226);
 
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule226();});
- setInterval(()=>{if(scopeChanged226())schedule226();},1000);
+ for(const event of ['account-access477','page113','pageshow','focus','tabletviewport132'])window.addEventListener(event,guard477);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)guard477();});
  window.addEventListener('storage',e=>{if(e.key==='ojm-receipts-changed240')receiptChanged240(e.newValue);});
  window.addEventListener('receipt-links-changed240',e=>receiptChanged240(e.detail));
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start226,{once:true});else start226();
-setInterval(()=>{if(actor&&locked()){views.clear();actor='';if(dialog?.open)dialog.close();else clear();}},1000);
+function guard477(){if(actor&&locked()){views.clear();actor='';if(dialog?.open)dialog.close();else clear();}if(scopeChanged226())schedule226();}
 window.JournalReceipts224={enabled,open,button,refresh:refresh226};
 })();

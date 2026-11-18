@@ -18,7 +18,7 @@
   }
   function sessionGate(message = '') {
     window.WorkingStanding379?.close();
-    window.ReceiptPhone245?.close();window.PhoneTools14242?.close();S.epoch++; S.actor=S.owner = ''; S.session = null; S.data = {}; S.directory=[];S.directoryLoading=false;S.directoryLoaded=false;S.selection=false;S.area='users';S.draft = null; S.loading = S.syncing = S.saving = S.submitting = false; refreshJob = monthJob = enterJob = null;enterOwner=''; touchAt=0;
+    window.ReceiptPhone245?.close();window.PhoneTools14242?.close();S.epoch++; S.actor=S.owner = ''; S.session = null; S.data = {}; S.directory=[];S.directoryLoading=false;S.directoryLoaded=false;S.selection=false;S.area='users';S.draft = null; S.loading = S.syncing = S.saving = S.submitting = false; refreshJob = monthJob = enterJob = null;enterOwner=''; touchAt=0;window.activity477?.accessChanged();
     window.phoneLogin210?.show();clearTimeout(draftTimer); $('workspace').replaceChildren(); $('workspace').hidden = true; $('loginForm').hidden = false;$('phoneRecoveryForm').hidden=true; $('bottom').hidden = true; $('accountMenu').hidden = true; $('dialog').close(); loginMessageTarget14293().textContent = message; paintConnection(); notice();
   }
   async function revoke(error) {
@@ -39,7 +39,8 @@
     const owner = S.owner, epoch = S.epoch, value = await rpc('current_access14228');
     if (!current(owner, epoch)) throw fail('Your account changed.', 'ACCOUNT_CHANGED');
     if (value?.profile?.id !== S.actor || value.profile.status !== 'active') throw fail('Your account is no longer active.', 'ACCESS_REVOKED');
-    S.data.access = value;
+    const accessChanged477=JSON.stringify(S.data.access)!==JSON.stringify(value);S.data.access = value;
+    if(accessChanged477)window.activity477?.accessChanged();
     if(owner!==S.actor)throw fail('Use your laptop to open another user’s workspace.','ACCESS_REVOKED');
     if (!permission('sub-users-workspace')) throw fail('Your account does not have a phone workspace. Ask the administrator to assign Sub-users Workspace access.', 'ACCESS_REVOKED');
     await persist(owner,{access:value});if(!current(owner,epoch))throw fail('Your account changed.','ACCOUNT_CHANGED');

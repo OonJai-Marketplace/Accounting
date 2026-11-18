@@ -11,7 +11,7 @@ function ready(){
  document.addEventListener('submit',e=>{const target=modalTargets[e.target.closest('.modal-backdrop')?.id];if(target&&!can(target,'edit')){e.preventDefault();e.stopImmediatePropagation();deny()}},true);
  const switchBefore=window.switchTab;window.switchTab=function(target,...args){if(!window.canAccessAppTarget(target)){deny();return false}return switchBefore.call(this,target,...args)};
  // Close editors and clear the visible protected panel when permission is revoked.
- let signature='';function refresh(){if(window.permissions1441?.reconnecting)return;const next=JSON.stringify([window.permissions1441?.verified,typeof liveProfile==='undefined'?null:liveProfile,typeof livePermission==='undefined'?null:livePermission]);if(next===signature)return;signature=next;
+ let signature='';function refresh(){if(window.permissions1441?.reconnecting)return;const next=JSON.stringify([window.permissions1441?.verified,typeof liveProfile==='undefined'?null:liveProfile,typeof livePermission==='undefined'?null:livePermission]);if(next===signature)return;signature=next;window.activity477?.accessChanged();
   for(const [id,target] of Object.entries(modalTargets)){const node=document.getElementById(id);if(node&&!can(target,'edit'))window.closeModal(id)}
   const active=document.querySelector('.tab-content.active'),target=window.access113.currentTarget();
   if(active&&!can(target)){active.classList.remove('active');const fallback=typeof firstPermittedAppTarget==='function'?firstPermittedAppTarget():'';if(fallback){if(fallback.startsWith('sec-'))scrollToAccountModule(fallback);else window.switchTab(fallback)}}
