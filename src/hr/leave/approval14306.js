@@ -33,12 +33,39 @@ function newLeave459(){
  box.innerHTML='<header><h3>Leave Request Form</h3><button type="button" aria-label="Close">×</button></header><div class="hr-dialog-body14306">'+leaveForm()+'</div>';
  document.body.append(box);box.querySelector('header button').onclick=()=>box.close();bindLeaveForm459(box.querySelector('form'));box.showModal();
 }
+let leaveView466=null,historyFilter466={actor:null,client:null,employee:'',month:'',view:'records',page:0};
+function leaveViewSignature466(){
+ return [liveProfile?.id,ojmDb,Work82.owner,Work82.loaded,Work82.loading,Work82.error,today82(),Work82.employees,Work82.leaves,Work82.runs,Work82.leaveCarry14334,Work82.payrollIndex14334,
+  ...[...Work82.employees,...Work82.leaves,...Work82.runs].flatMap(r=>[r.id,r.version,r.data]),
+  hrCalendar14306.state.settings,hrCalendar14306.state.rows,hrCalendar14306.state.ready,JSON.stringify(ApplicationSettings.payroll),ApplicationSettings.system?.dateFormat,ApplicationSettings.system?.numberFormat];
+}
+function bindLeaveHistory466(root){
+ const box=root.querySelector('.hr-history466');if(!box)return;
+ if(historyFilter466.actor!==liveProfile.id||historyFilter466.client!==ojmDb)historyFilter466={actor:liveProfile.id,client:ojmDb,employee:'',month:'',view:'records',page:0};
+ const controls={employee:box.querySelector('#leaveHistoryEmployee466'),month:box.querySelector('#leaveHistoryMonth466'),view:box.querySelector('#leaveHistoryView466')};
+ const paint=()=>{
+  const rows=leaveHistoryRows466(orderedEmployees82(),historyFilter466.view,historyFilter466.employee,historyFilter466.month),size=25,pages=Math.max(1,Math.ceil(rows.length/size));
+  historyFilter466.page=Math.min(historyFilter466.page,pages-1);const start=historyFilter466.page*size;
+  box.querySelector('[data-leave-history-table466]').innerHTML=leaveHistoryTable466(rows.slice(start,start+size),historyFilter466.view);
+  box.querySelector('[data-history-count466]').textContent=rows.length?(start+1)+'–'+Math.min(start+size,rows.length)+' of '+rows.length:'0 records';
+  box.querySelector('[data-history-prev466]').disabled=historyFilter466.page===0;box.querySelector('[data-history-next466]').disabled=historyFilter466.page===pages-1;
+  window.workspaceViews14364?.remember('hr-leave');
+ };
+ for(const [key,control] of Object.entries(controls)){control.value=historyFilter466[key];if(control.selectedIndex<0){historyFilter466[key]=key==='view'?'records':'';control.value=historyFilter466[key];}control.onchange=()=>{historyFilter466[key]=control.value;historyFilter466.page=0;paint();};}
+ box.querySelector('[data-history-prev466]').onclick=()=>{historyFilter466.page=Math.max(0,historyFilter466.page-1);paint();};box.querySelector('[data-history-next466]').onclick=()=>{historyFilter466.page++;paint();};paint();
+}
 function renderLeave(){
- if(!admin())return;
+ if(!admin()){leaveView466=null;return;}
+ const root=$('hr-leave');if(!root)return;
+ const signature=leaveViewSignature466();
+ if(leaveView466?.node===root.querySelector('.hr-leave-work466')&&signature.length===leaveView466.signature.length&&signature.every((v,i)=>v===leaveView466.signature[i])){hrCalendar14306.paintInbox();return;}
+ if(Work82.owner&&Work82.owner!==liveProfile.id){leaveView466=null;mount82('hr-leave','Leave','','<p>Loading employee records…</p>');return;}
  const rows=[...Work82.leaves].sort((a,b)=>String(b.data.from).localeCompare(String(a.data.from))||employeeOrder82(a,b)),active=orderedEmployees82().filter(e=>e.data.active!==false&&!e.data.archived);
- const balances=section82('Leave Balances',table82(['Employee','Vacation available','Vacation used','Sick used','Personal used','Bereavement used','Current period begins'],active.map(leaveSummary82))).replace('class="block82"','class="block82 hr-leave-balances459"');
- mount82('hr-leave','Leave','Requests, approvals and employee leave balances (days).',storageNotice82()+'<section class="block82" data-hub-inbox></section>'+balances+section82('Leave Records',table82(['Employee','Dates','Type','Working days','Status','Action'],rows.map(r=>[esc(employee(r.data.employeeId)?.data.name||'Employee'),esc(formatAppDate(r.data.from)+' – '+formatAppDate(r.data.to)),esc(r.data.type==='absent'?'Time without pay':r.data.type),money82(r.data.days),esc(r.data.rejected?'rejected':r.data.status),'<button type="button" data-leave-id="'+esc(r.id)+'">Details</button>'])))+historicalLeaveHistory200(),'<button type="button" data-hr-action="print">Print Leave Report</button><button type="button" data-hr-action="blank">Print Blank Leave Form</button><button type="button" class="primary82" data-hr-action="add">Add Leave Request</button>');
- const root=$('hr-leave');hrCalendar14306.paintInbox();bindActions(root,{add:newLeave459,print:()=>printLeave82(),blank:()=>printLeaveApplication97('')});root.querySelectorAll('[data-leave-id]').forEach(b=>b.onclick=()=>openLeave(b.dataset.leaveId));
+ const balances=section82('Leave Balances · days',leaveTable466(['Employee','Vacation available','Vacation used','Sick used','Personal used','Bereavement used','Current period begins'],active.map(leaveSummary82),[22,14,12,12,12,14,14],'hr-leave-balances466'));
+ const records=section82('Leave Records',leaveTable466(['Employee','Dates','Type','Working days','Status','Action'],rows.map(r=>[esc(employee(r.data.employeeId)?.data.name||'Employee'),esc(formatAppDate(r.data.from)+' – '+formatAppDate(r.data.to)),esc(r.data.type==='absent'?'Time without pay':r.data.type),leaveDayNumber466(r.data.days),esc(r.data.rejected?'rejected':r.data.status),'<button type="button" data-leave-id="'+esc(r.id)+'">Details</button>']),[22,26,16,12,14,10],'hr-leave-records466'));
+ mount82('hr-leave','Leave','Requests, approvals and employee leave balances (days).',storageNotice82()+'<section class="block82 hr-hub-inbox466" data-hub-inbox></section>'+balances+records+historicalLeaveHistory200('',true),'<button type="button" data-hr-action="print">Print Leave Report</button><button type="button" data-hr-action="blank">Print Blank Leave Form</button><button type="button" class="primary82" data-hr-action="add">Add Leave Request</button>');
+ root.querySelector('.work82').classList.add('hr-leave-work466');hrCalendar14306.paintInbox();bindActions(root,{add:newLeave459,print:()=>printLeave82(),blank:()=>printLeaveApplication97('')});root.querySelectorAll('[data-leave-id]').forEach(b=>b.onclick=()=>openLeave(b.dataset.leaveId));bindLeaveHistory466(root);
+ leaveView466={node:root.querySelector('.hr-leave-work466'),signature};
 }
 function openLeave(id){const row=Work82.leaves.find(r=>r.id===id);if(!row||!admin())return;const d=row.data;let review='';if(d.status==='pending'&&hrCalendar14306.state.ready){try{const updated=leaveApprovalData(row);if(Number(d.days)!==updated.days)review='<p class="hr-review-note14307">The calendar now counts <strong>'+updated.days+' working day(s)</strong>. Approval will use this updated total; the original '+esc(d.days)+' day(s) remains recorded.</p>'}catch(error){review='<p class="hr-review-note14307">'+esc(error.message)+'</p>'}}const box=dialog('Leave Request','<p><strong>'+esc(employee(d.employeeId)?.data.name||'Employee')+'</strong></p><dl class="hr-detail14306"><dt>Dates</dt><dd>'+esc(formatAppDate(d.from)+' – '+formatAppDate(d.to))+'</dd><dt>Type / status</dt><dd>'+esc(d.type+' · '+(d.rejected?'rejected':d.status))+'</dd><dt>Working days</dt><dd>'+esc(d.days)+'</dd><dt>Treatment</dt><dd>'+esc(d.paid==='yes'?'Paid':'Unpaid')+'</dd><dt>Reason</dt><dd>'+esc(d.notes)+'</dd><dt>Supervisor consulted / coverage</dt><dd>'+esc(d.coverage459||'Not recorded')+'</dd><dt>Enough leave time</dt><dd>'+esc(d.enoughTime459||'Not recorded')+'</dd><dt>Time off accrued / used</dt><dd>'+esc(d.timeOff459||'Not recorded')+'</dd><dt>Supervisor comments</dt><dd>'+esc(d.supervisorComments459||'—')+'</dd></dl>'+review+'<div class="hr-row-actions14306">'+buttons([['Print Form','print'],...(d.status==='pending'?[['Review notes','notes'],['Approve','approve']]:[]),...(d.status!=='cancelled'?[[d.hub&&d.status==='pending'?'Reject':'Cancel Leave','cancel']]:[]),['Open Leave Tab','tab']])+'</div>');bindActions(box,{notes:()=>{box.close();editLeaveNotes459(id)},print:()=>{box.close();printLeaveApplication97(id)},approve:()=>{box.close();leaveStatus82(id,'approved')},cancel:()=>{box.close();leaveStatus82(id,'cancelled')},tab:()=>{box.close();switchTab('hr-leave')}})}
 

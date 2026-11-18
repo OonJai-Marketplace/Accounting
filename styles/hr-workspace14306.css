@@ -236,3 +236,31 @@ body #hr-contracts .data-table82 table{width:100%!important;table-layout:fixed!i
 body #hr-contracts .data-table82 :is(th,td){white-space:normal!important;overflow-wrap:break-word;padding:8px 10px!important}
 body #hr-contracts .hr-employee-select14306{display:block;max-width:360px;margin:12px}
 @media(max-width:650px){body .hr-leave-request459 .fields82{grid-template-columns:1fr}}
+
+/* Leave owns its column proportions and compact spacing, before shared screen fitting. */
+@layer screenFit296 {
+ @media screen {
+  html body.shell113 #hr-leave .hr-leave-work466{width:100%!important;max-width:none!important;box-sizing:border-box!important}
+  html body.shell113 #hr-leave .hr-leave-work466>header{padding:6px 12px!important;min-height:44px!important;margin:0!important;justify-content:flex-end!important}
+  html body.shell113 #hr-leave .hr-leave-work466>header>div:first-child{display:none!important}
+  html body.shell113 #hr-leave .block82{margin:8px 12px!important;min-width:0!important;border-top-color:#008563!important}
+  html body.shell113 #hr-leave .block82>header{padding:8px 12px!important;min-height:40px!important;height:auto!important;gap:8px 12px!important;box-sizing:border-box!important;display:flex!important;align-items:center!important;flex-wrap:wrap!important}
+  html body.shell113 #hr-leave .block82>header h4{margin:0!important;padding:0!important;font-size:13px!important;line-height:1.4!important}
+  html body.shell113 #hr-leave .data-table82{width:100%!important;max-width:100%!important;margin:0!important;box-sizing:border-box!important;overflow-x:auto!important}
+  html body.shell113 #hr-leave table.hr-table466{display:table!important;width:100%!important;min-width:640px!important;max-width:none!important;table-layout:fixed!important;border-collapse:collapse!important;box-sizing:border-box!important}
+  html body.shell113 #hr-leave table.hr-table466 :is(th,td){height:auto!important;min-height:0!important;max-height:none!important;padding:7px 10px!important;line-height:1.4!important;font-size:12px!important;white-space:normal!important;overflow-wrap:break-word!important;vertical-align:middle!important;box-sizing:border-box!important;width:auto!important;min-width:0!important;max-width:none!important}
+  html body.shell113 #hr-leave table.hr-table466 th{padding:9px 10px!important;letter-spacing:0!important;text-transform:none!important}
+  html body.shell113 #hr-leave table.hr-table466 td:has(>.leave-days466){text-align:right!important;font-variant-numeric:tabular-nums}
+  html body.shell113 #hr-leave .hr-leave-balances466 th:not(:first-child):not(:last-child),html body.shell113 #hr-leave .hr-leave-records466 th:nth-child(4){text-align:right!important}
+  html body.shell113 #hr-leave .hr-leave-records466 :is(th,td):last-child{width:auto!important;text-align:right!important}
+  html body.shell113 #hr-leave .hr-history-filters466{display:flex!important;gap:12px!important;align-items:end!important;flex-wrap:wrap!important;padding:10px 12px!important;margin:0!important}
+  html body.shell113 #hr-leave .hr-history-filters466 label{display:grid!important;gap:4px!important;min-width:150px!important;max-width:100%!important;font-size:12px!important}
+  html body.shell113 #hr-leave .hr-history-filters466 select{min-height:32px!important;padding:5px 9px!important;width:100%!important;border:1px solid #b9cfc3!important;border-radius:4px!important;background:#fff!important;font:inherit!important}
+  html body.shell113 #hr-leave .hr-history-pages466{display:flex!important;justify-content:flex-end!important;align-items:center!important;gap:8px!important;margin:0!important;padding:8px 12px!important;font-size:12px!important}
+  html body.shell113 #hr-leave .hr-history-pages466>span{margin-right:auto!important}
+  html body.shell113 #hr-leave .hr-hub-inbox466>header{background:#f1f7f1!important}
+  html body.shell113 #hr-leave .hr-inbox-status466{font-size:12px!important;color:#52695c!important;margin-right:auto!important}
+  html body.shell113 #hr-leave .hr-hub-inbox466>article{padding:10px 12px!important;margin:0!important;border-top:1px solid #c6d6cb!important}
+  html body.shell113 #hr-leave .hr-empty466{padding:14px 12px!important;color:#617268!important}
+ }
+}
