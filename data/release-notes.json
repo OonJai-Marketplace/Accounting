@@ -1,6 +1,9 @@
 {
-  "version": "143.476",
+  "version": "143.477",
   "changes": [
+    "Owner support shows matched currency transfers separately from new receipts and spending.",
+    "Remaining follows received plus exchange in, less exchange out and used, separately for each currency.",
+    "Combined receipt references can verify one funding amount without creating another receipt. Unexplained journal differences still require review.",
     "A successful user-fund save or post checks each affected user once, after the complete transaction.",
     "The administrator bell shows one Budget needed alert per user, with each affected fund and its shortfall in the original currency.",
     "Unchanged negative balances do not repeat alerts. Updated shortfalls replace the same notice, and sufficient funding clears it.",

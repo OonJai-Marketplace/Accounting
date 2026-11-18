@@ -662,3 +662,10 @@ transaction completion; no timer, cron or balance polling. Reuse working-standin
 calculations including saved unsubmitted entries. One compact alert per user with
 separate fund/currency shortfalls; unchanged shortages produce no new events, and
 fund recovery clears the alert. Never add funds or alter journals automatically.
+
+Owner support evidence, 2026-11-18: matched original-currency FX bridge pairs
+transfer Remaining between currencies; they are neither new contributions nor
+Used. Keep currency amounts separate, verify each receipt reference, preserve
+unexplained mismatches and use targeted reads only when the report is opened.
+Journal preparation still requires review for existing native transfer allocations;
+never bypass its duplicate-payment or existing-allocation guards.
