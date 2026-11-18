@@ -1,0 +1,15 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const source=fs.readFileSync('src/bridges/subusers-bookkeeping/budget-workflow14316.js','utf8');
+const row=(id,month,mode='request',extra={})=>({id,updated_at:'2026-11-18',data:{kind:'finance',mode,budgetMonth290:month,date:'2026-11-18'},...extra});
+const records=[row('jan','2026-01'),row('apr-b','2026-04','utilization'),row('dec','2025-12'),row('oct','2026-10'),row('apr-a','2026-04'),row('jan-util','2026-01','utilization'),{id:'legacy',data:{kind:'finance',mode:'request',date:'2026-03-10'}}];
+const ctx=vm.createContext({Work82:{reports:records},confirmedFinals:new Map()});
+vm.runInContext(source.slice(source.indexOf('function budgetMonth('),source.indexOf('const isFinal=')),ctx);
+const ids=()=>Array.from(ctx.budgetRows(),r=>r.id);
+assert.deepEqual(ids(),['oct','apr-a','apr-b','legacy','jan','jan-util','dec']);
+const before=ids();records[0].updated_at='2030-12-31';ctx.Work82.reports=[records[1],records[5],...records.filter((_,i)=>i!==1&&i!==5)];
+assert.deepEqual(ids(),before,'Edit timestamps and cache reordering must not reshuffle records');
+assert.deepEqual(Array.from(ctx.budgetMonthRows(ctx.budgetRows(),'2026-04'),r=>r.id),['apr-a','apr-b']);
+assert.equal(ctx.budgetMonthRows(ctx.budgetRows(),'').length,7);
+assert.equal(ctx.budgetMonthRows(ctx.budgetRows(),'2026-11').length,0,'Filter uses budget month, not last edit or report date');
+assert.equal(ctx.budgetMonth(records[6]),'2026-03');
+console.log('PASS: descending reporting month across years, stable same-month ordering after edits, both report types and month filter.');

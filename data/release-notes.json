@@ -1,6 +1,8 @@
 {
-  "version": "143.460",
+  "version": "143.461",
   "changes": [
+    "Budget requests and utilization reports sort by reporting month, newest first, with a shared month filter and stable order after edits.",
+    "Negative utilization balances show a warning with Finalize anyway; draft saving remains available and currencies stay separate.",
     "Leave Request Form print and export follow the supplied A4 form, with structured answers and reusable letterhead.",
     "Full-width leave balances and readable history distinguish imported entitlement dates from the current period.",
     "Add Leave Request avoids rebuilding history; HR inbox reads are shared and cached until refresh.",
