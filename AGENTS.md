@@ -687,3 +687,13 @@ legacy partial uploads independently retryable. Use compact phone entry rows and
 visible Next ID / Jump ID controls. Integrate Google's native scanner into the
 existing Hub package with its retained signer; do not promise device speed from
 synthetic tests. The proposed year-folder change was cancelled.
+
+Owner support templates, 2026-11-18: Post Transaction prepares a manual, editable
+USD/LAK/THB draft from the saved utilization report. Preserve personal-account
+receipts, combined references and separately posted use. Never repost verified
+receipts or actual bank conversions. Native FX pairs use the original bridge and
+rates; mismatched or already allocated sources remain guarded. New receipt/use
+amounts may be adjusted as balanced pairs; verified reclassifications and FX
+amounts/rates remain fixed. Read source evidence only on explicit preparation,
+and recheck its fingerprint atomically at posting. Keep durable retry identity,
+report uniqueness, account isolation and no automatic posting or ID allocation.

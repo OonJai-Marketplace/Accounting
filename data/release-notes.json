@@ -1,6 +1,10 @@
 {
-  "version": "143.479",
+  "version": "143.480",
   "changes": [
+    "Fund Utilization → Post Transaction prepares an editable journal in USD, LAK and THB. You review and post it manually.",
+    "Verified receipts are not posted again. Existing owner allocations are deducted, and exchanges use their original FX bridge without repeating bank movements.",
+    "New receipt and use amounts remain editable as balanced pairs. Original receipt reclassifications and verified exchange amounts/rates stay protected.",
+    "Prepared drafts recover their report link. A changed report or source journal blocks stale posting; duplicate report journals remain prevented.",
     "Scans collected before one Save stay together in one bookmarked PDF, with each entry ID linked to its own pages.",
     "Next ID and Jump ID remain visible at the bottom of the phone scanner; entry rows use less space.",
     "Successful saves close the capture batch; failed uploads retain all scans and reuse the same reserved file ID.",

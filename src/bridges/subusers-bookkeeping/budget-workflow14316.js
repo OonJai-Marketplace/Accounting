@@ -825,7 +825,7 @@ function saveConversion(f){
  }catch(e){showCenterStatus(e.message,true)}
 }
 function postControl(record){
- return record&&!record._pending14333&&access113.can('journal','post')?'<button type="button" data-prepare-budget title="Open in Post Transaction">Journal</button>':'';
+ return record&&!record._pending14333&&access113.can('journal','post')?'<button type="button" data-prepare-budget title="Prepare an editable journal; posting remains a separate action">Post Transaction</button>':'';
 }
 function editorData(d){
  return JSON.stringify([d.date,d.budgetMonth290,d.receiptReference290||'',d.recipient||'',d.purpose||'',d.notes||'',d.movements||[],d.conversions||[],d.lines.map((l,i)=>report.lineFunding(d,l,i))]);
@@ -859,7 +859,7 @@ async function prepareSummary(record,host,post){
   if(link)throw Error('This report is already linked to journal '+journal.reference(link)+'.');
   if(journal.localJob(record.id))throw Error('The utilization posting is waiting for confirmation. Open Data Check to review it.');
   const groups=BudgetSupportEquity.groups(current.data);
-  const evidence=await BudgetSupportEquity.evidence(groups);
+  const evidence=await BudgetSupportEquity.evidence(current);
   check();if(!host.isConnected)return;
   saved();journal.open(current,groups,evidence);
   if(worksheet)clearFundPopup();else host.resolve108(false);

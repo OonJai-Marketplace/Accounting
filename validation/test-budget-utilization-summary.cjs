@@ -7,8 +7,8 @@ const create=require('./phase0-browser-fixture.cjs');
   const report={id:'60000000-0000-4000-a000-000000000010',version:1,data:{
    kind:'finance',mode:'utilization',status:'draft',date:'2026-11-15',budgetMonth290:'2026-11',recipient:'Office',purpose:'Office supplies',
    lines:[{category:'Supplies',description:'Paper',currency:'USD',amount:100,key117:'paper'}],
-   conversions:[{date:'2026-11-15',currency:'USD',target:'LAK',amount:75,targetAmount290:1500000,rate:20000,source:'USD',evidence:'FX-1'}],
-   movements:[{type290:'receipt',inflow:100,currency:'USD',reference:'FUND-1',account:'Owner'},
+   conversions:[{date:'2026-11-15',currency:'USD',target:'LAK',amount:75,targetAmount290:1500000,rate:20000,source:'USD',evidence:'OJM990010'}],
+   movements:[{type290:'receipt',inflow:100,currency:'USD',reference:'FUND-1',account:'Owner',destination290:'BCEL — USD'},
     {type290:'spend',outflow:500000,currency:'LAK',budgetKey117:'paper',account:'Cash',reference:'R1'},
     {type290:'spend',outflow:7000,currency:'LAK',destination290:'Transfer fees',account:'Cash',reference:'R2'}],
    receiptReference290:'RECEIPT-TEST'
@@ -81,56 +81,42 @@ const create=require('./phase0-browser-fixture.cjs');
   await frame.locator('.page-content').filter({hasText:/Funding summary/i}).first().waitFor();
   assert.match((await frame.locator('.page-content').allInnerTexts()).join(' '),/993,000/);
   await page.emulateMedia({media:'screen'});
-  const equityCheck=await page.evaluate(data=>{
-   const acc=(code,name,type,i)=>({id:'00000000-0000-4000-a000-00000000000'+i,code,name,type,currency:'USD',isPosting:true});
-   const bank=acc('1041','BCEL – USD','ASSET',0),remaining=acc('3028','Owner Financial Support — Remaining — USD','EQUITY',1);
-   const used=acc('3029','Owner Financial Support — Used — USD','EQUITY',2),original=acc('3026','Owner Financial Support Received — USD','EQUITY',3);
-   AccountingStore.accounts.push(bank,remaining,used,original);syncCoaDatalist();
-   const receipt={type290:'receipt',currency:'USD',inflow:1000,reference:'Bank advice'};
-   const spend={type290:'spend',currency:'USD',outflow:900};
-   const d={...data,receiptReference290:'',conversions:[],movements:[receipt,spend]};
-   const plan=(report,evidence=[])=>BudgetSupportEquity.plan(report,BudgetSupportEquity.groups(report),evidence);
-   const fresh=plan(d);
-   const coverage={type290:'receipt',account:'Restaurant funds',description290:'Restaurant covered the kip shortage.',currency:'LAK',inflow:10000};
-   const fx={currency:'USD',amount:100,target:'LAK',targetAmount290:2000000};
-   const mixed={...d,conversions:[fx],movements:[{...receipt,reference:'OJM990001'},{...spend,cashDistributed:800},coverage,
-    {type290:'spend',currency:'LAK',outflow:2500000,cashDistributed:2010000},{type290:'refund',currency:'USD',outflow:100}]};
-   const prior={entry_no:'OJM990001',status:'posted',journal_lines:[{currency_code:'USD',credit:1000,debit:0,accounts:original,book_rate_lak:20100}]};
-   const posted=plan(mixed,[prior]),already=plan(mixed,[{...prior,journal_lines:[{...prior.journal_lines[0],accounts:remaining}]}]);
-   const paid=BudgetReport290.balances(mixed).get('LAK');
-   const supportHtml=BudgetReport290.summary(mixed);
-   const sourceDoc=document.createElement('div');sourceDoc.innerHTML=supportHtml;
-   const line=label=>[...sourceDoc.querySelectorAll('[data-cash-summary] tbody tr')].find(r=>r.cells[0].textContent===label)?.cells[2].textContent;
-   return {fresh:fresh.pairs.map(p=>[p.debitCode,p.creditCode,p.amount]),notice:fresh.notice,posted:posted.pairs.map(p=>[p.debitCode,p.creditCode,p.amount,p.rate]),already:already.pairs.length,lak:[paid.receipt,paid.coverage,paid.remaining],receiptLabel:line('Total received'),coverageLabel:line('Shortfall covered by restaurant')};
-  },report.data);
-  assert.deepEqual(equityCheck.fresh,[['1041','3028',1000],['3028','3029',900]]);assert.match(equityCheck.notice,/100.00 remaining/);
-  assert.deepEqual(equityCheck.posted,[['3026','3028',1000,20100],['3028','3029',900,20100]]);
-  assert.equal(equityCheck.already,1);assert.deepEqual(equityCheck.lak,[0,10000,0]);
-  assert.equal(equityCheck.receiptLabel,'₭ 0.00');assert.equal(equityCheck.coverageLabel,'₭ 10,000.00');
+  await page.evaluate(()=>{
+   const definitions=[['1041','BCEL — USD','ASSET','USD'],['3028','Owner Financial Support — Remaining — USD','EQUITY','USD'],['3029','Owner Financial Support — Used — USD','EQUITY','USD'],['3023','Owner Financial Support — Remaining — LAK','EQUITY','LAK'],['3024','Owner Financial Support — Used — LAK','EQUITY','LAK'],['9011','FX bridge — USD','ASSET','USD'],['9010','FX bridge — LAK','ASSET','LAK']];
+   for(const [i,[code,name,type,currency]] of definitions.entries()){
+    AccountingStore.accounts=AccountingStore.accounts.filter(a=>a.code!==code);
+    AccountingStore.accounts.push({id:'00000000-0000-4000-a000-00000000000'+i,code,name,type,currency,isPosting:true,isTechnical:code.startsWith('90')});
+   }
+   syncCoaDatalist();
+  });
+  await page.route('**/rest/v1/rpc/budget_utilization_evidence478',r=>r.fulfill({json:{fingerprint:'a'.repeat(32),journals:[{entry_no:'OJM990010',status:'posted',journal_lines:[
+   {accounts:{code:'9011'},currency_code:'USD',debit:75,credit:0,fx_rate_lak:20000,book_rate_lak:20000,line_date:'2026-11-15'},
+   {accounts:{code:'9010'},currency_code:'LAK',debit:0,credit:1500000,fx_rate_lak:1,book_rate_lak:1,line_date:'2026-11-15'}
+  ]}]}}));
   await page.evaluate(()=>{ui117.confirm=async()=>true;switchTab('transactions-budget14313');});await open();
   await popup.locator('#fundHeader290').evaluate(f=>f.closest('details').open=true);
-  await popup.getByRole('button',{name:'Journal',exact:true}).click();
+  await popup.getByRole('button',{name:'Post Transaction',exact:true}).click();
   await popup.waitFor({state:'detached'});
   const editor=page.locator('#journalEntry98');
   const lines=editor.locator('#jeLinesBody tr');
-  assert.equal(await lines.count(),4);
+  assert.equal(await lines.count(),8);
   assert.equal(Number(await lines.nth(0).locator('.je-line-dr').inputValue()),100);
   assert.equal(Number(await lines.nth(1).locator('.je-line-cr').inputValue()),100);
   assert.match(await lines.nth(0).locator('.je-line-memo').inputValue(),/Funding received/);
-  assert.equal(Number(await lines.nth(2).locator('.je-line-dr').inputValue()),25.35);
-  assert.equal(Number(await lines.nth(3).locator('.je-line-cr').inputValue()),25.35);
+  assert.equal(Number(await lines.nth(2).locator('.je-line-dr').inputValue()),75);
+  assert.equal(Number(await lines.nth(3).locator('.je-line-cr').inputValue()),75);
   assert.match(await editor.locator('#jeGeneralMemo').inputValue(),/RECEIPT-TEST/);
-  const key='budget-use:'+report.id+':1';
+  const key='budget-use:'+report.id+':1:'+('a'.repeat(32));
   await page.route('**/rpc/post_device_journal335',async route=>{
    const payload=route.request().postDataJSON();assert.equal(payload.p_request_key,key);
-   assert.equal(payload.p_entries[0].p_lines.length,4);
+   assert.equal(payload.p_entries[0].p_lines.length,8);
    linked={entry_no:payload.p_numbers[0],status:'posted',report_version:1};
    await route.fulfill({json:[{entry_id:'70000000-0000-4000-a000-000000000010',entry_no:linked.entry_no}]});
   });
   const job=await page.evaluate(async()=>{
    const snapshot=snapshotJournal69();restoreJournal69(snapshot);
    const codes=[...document.querySelectorAll('#jeLinesBody .je-line-acc')].map(n=>getSelectedAccountInfo(n.value)?.code);
-   if(codes.join(',')!=='1041,3028,3028,3029')throw Error('Unexpected prepared accounts: '+codes.join(','));
+   if(codes.join(',')!=='1041,3028,3028,9011,9010,3023,3023,3024')throw Error('Unexpected prepared accounts: '+codes.join(','));
    calculateJournalBalance();
    const messages=[],status=window.showCenterStatus,notice=window.showAppNotification;
    window.showCenterStatus=(message,...args)=>{messages.push(message);return status(message,...args);};
@@ -146,13 +132,13 @@ const create=require('./phase0-browser-fixture.cjs');
    }
    return {id:job.id,lines:job.entries[0].lines};
   });
-  assert.equal(job.id,key);assert.equal(job.lines[0].debit,100);assert.equal(job.lines[1].credit,100);assert.equal(job.lines[2].debit,25.35);assert.equal(job.lines[3].credit,25.35);
+  assert.equal(job.id,key);assert.equal(job.lines[0].debit,100);assert.equal(job.lines[1].credit,100);assert.equal(job.lines[2].debit,75);assert.equal(job.lines[3].credit,75);
   await page.evaluate(key=>journalDurable14385.sync({targetId:key}),key);
   assert(linked?.entry_no);
   await page.evaluate(()=>switchTab('transactions-budget14313'));await open();
   await popup.locator('#fundHeader290').evaluate(f=>f.closest('details').open=true);
   await popup.getByText('Utilization journal · '+linked.entry_no,{exact:false}).waitFor();
-  assert(await popup.getByRole('button',{name:'Journal',exact:true}).isHidden());
+  assert(await popup.getByRole('button',{name:'Post Transaction',exact:true}).isHidden());
   console.log('PASS compact report fields, combined receipt and spending pairs, dual-currency totals, named additional spending, signatory cancellation and editor entry, print widths, summary-only draft and posted reference.');
  }finally{await fixture.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

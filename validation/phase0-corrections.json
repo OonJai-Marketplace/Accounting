@@ -5,12 +5,12 @@
   "runtime_sha256": {
     "styles/refinements-v93.css": "e060e980ecaf5b921f480cf9de77068cda78dcc38fa3f271add6dbd780b17880",
     "recovery.html": "9b0ddde9380903f9bfda370faaf4d97c3082b292034aa57135b78cb0345fe626",
-    "phone-sw.js": "d71139ba9a0d8ec664a09fac30eaecefbb9a12d9364e48a1db8e3f7c417af512",
+    "phone-sw.js": "9a4e020a4ca8540268ab66decaf14d913da0de296c511fe4ce6c972a231581e4",
     "phone-accounting.html": "b1242a5cd79644de75c24434b3da9843bc58bb199e5fa3bc5f064dd1cef3afc4",
-    "desktop-sw14242.js": "029a053715dd4eecf4d619cd5f3b1447248205e50524125d14562c5cbb8a1e56",
-    "phone.html": "1df852892cceb3712128af37c3d5f274927fb13d115034d0d3abb2405c232f72",
-    "desktop.html": "2381062173e3465ecbd6ea2ae3c6c84895a336a825a9b849012e293846e14c39",
-    "scripts/phone-runtime14242.js": "3c6638ef85c0f4045ba091882caac5ed382f52221ca974e45baacf12f96d27eb",
+    "desktop-sw14242.js": "b91bd2f53287374d1966d1c82cd9da6050f7267c072275c616fc2d9c8f6f27c4",
+    "phone.html": "efb3ada2ffd337cf3fa860d22b8711c927ae20923a3ea08b225dc18ac20fa172",
+    "desktop.html": "fd106125265cbd95d61aaff1f8dc03073cba4e1963270ea2d0ea0e63e10732a2",
+    "scripts/phone-runtime14242.js": "ab765648e5f1540b40c7553c730bc025a41ff28e1bd9bb9d3c2e8a781565750b",
     "scripts/device-vault14334.js": "e990ab64e5b60b83660f569ef5dbcbaa6f726941487a56b084d45d71c7bb7a1f",
     "scripts/script.js": "e38c5fc076293b371fd6ab7a63f8b07537e76702fa33ffab3e2e737dad34ea0c",
     "scripts/local-first14333.js": "2f6eb90e56fcad5f390c6e54fe9a5652aa82e029040125867cafff75f8c1d1cf",
@@ -18,7 +18,7 @@
     "scripts/payroll-polish-v97.js": "d1801d89617f2fd793a3c67869d838a1312d4589f58594a56b6a7a019f8d087f",
     "scripts/startup14257.js": "64774650c9aa80f22e1db60706487c20045fb56d7cc40296ac9e44909d635d71",
     "scripts/desktop14245-6.js": "95ea96d0300481a2aaa75d9d472edca6e122de2749eb0ad509a3adbcc56b7a3d",
-    "scripts/offline14239.js": "59ec1a153eb761e2b1ef9363b41ad32b51a42ba1ccad38289ed73ba795a3fe1a",
+    "scripts/offline14239.js": "499ff44f4d709ff366757ebc95c8b0854485040abeef06ff6aac4677ff43dc02",
     "scripts/desktop14245-3.js": "251b30abdc4dce9cb13dc7013cba9506605120bc342c3f3c43bb5d9b993098f1",
     "scripts/desktop14245-4.js": "32d617caf982dc65adddb2789c2811464f4448cf5489bbbfc804228a46c585d0",
     "scripts/drafts1427.js": "f87e5ae3aba767e23b1ed190473c9a0ab08fac4c8c1c1bded2cdbdadec7ff388",
@@ -61,7 +61,7 @@
     "styles/polish14325.css": "ffc54012fdb9d15c0cda8417b00fdac7939f6cfe8b122b41bec27159c71b915b",
     "styles/compact14327.css": "cb10c4af0fd5e01e4d20f65fcb016c645aa5fb38371d8a07f27a8ed9e872f23c",
     "scripts/access-v113.js": "540f98febec4c242a16dd419d2e079509753562fcfa24f85fb47f86c133c336f",
-    "scripts/budget-workflow14316.js": "b3212ee684edc3d7a33b7bf181090eef79b02326c0edb791f30aae37c0f33186",
+    "scripts/budget-workflow14316.js": "b3c0007590f9321b2ca366985f09b177cc3741e63a7682f89e08f9297607ac22",
     "scripts/desktop-layout-v82.js": "a6a05be65b28b288b854d5be360c489572fe0875796306721df01458492c9987",
     "scripts/editor-tables-v107.js": "f4f3c544d66daaf3d02aef13bcd478a4bca1370acac1194cb2780925240c06c9",
     "scripts/entry-actions14271.js": "b2def4576d5b2dfd08aabf1182366ddfed5303b05369e9f402913ea1aa0c62e0",
@@ -265,7 +265,7 @@
     "styles/editor-tables-v107.css": "0b0ff1cff19ef81093dce79c995122bcc9169d25b47227fd775a2dbab33e7a3b",
     "styles/polish1444.css": "fc55764b2a9b4f597a1fd408717f6d101630ee937f06485251153e5e6f9f871f",
     "styles/transactions-mobile-v72.css": "11b7fafa86437a6edeb18e295f92909bd4eecd6b2366208c06bd9886fa708556",
-    "sw14239.js": "c1bd081d0b3672614765d2b6943c59c304b03094212ec0896449571c73ebe130",
+    "sw14239.js": "354a6cba6e7d1f6edb6483309084ec27fec3e63cee9b3df132af907fc338b9d5",
     "styles/header-profile-v104.css": "e3f51d6513bea097f66fee9a4335ee0814e927fa734bdb4ba336b61e06c8ce39"
   },
   "retired_assets": {
@@ -583,5 +583,14 @@
     ],
     "limits": "Browser fixtures and synthetic remote responses; no production financial writes or physical-device timing tests."
   },
-  "owner_support_143477": "User requested continuation of owner support reconciliation. Verified currency transfers remain separate from receipts and use; existing posting and mismatch safeguards are retained."
+  "owner_support_143477": "User requested continuation of owner support reconciliation. Verified currency transfers remain separate from receipts and use; existing posting and mismatch safeguards are retained.",
+  "owner_support_templates_143480": {
+    "scope": "User-authorized phase two: editable native-currency utilization journals, preserving manual posting and source-journal identity.",
+    "verification": [
+      "Synthetic native-currency calculation and Post Transaction draft/recovery tests",
+      "Isolated PostgreSQL source/version, duplicate, permission and atomicity tests",
+      "Generated assets, structure and release cache integrity"
+    ],
+    "limits": "Local Chromium cannot start because this runtime denies its required socket operation; no physical-device or live editor UI test is claimed."
+  }
 }
