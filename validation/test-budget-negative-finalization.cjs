@@ -45,6 +45,7 @@ const april={date:'2026-04-30',lines:[],movements:[movement('receipt','USD',100)
  h=harness(april);await h.ctx.saveAllocation(false);
  assert.equal(h.calls.saved[0].status,'draft');assert.equal(h.calls.dialogs.length,0);
  assert.match(h.calls.statuses[0].message,/saved.*Warning: negative remaining balance.*USD \(20.00\)/);
+ const partial=structuredClone(april);partial.movements[1].cashDistributed=100;partial.movements[1].cashUnconfirmed=true;h=harness(partial);await h.ctx.saveAllocation(true);assert.match(h.calls.dialogs[0].html,/USD \(20.00\)/);
  const positive=structuredClone(april);positive.movements[0].inflow=200;
  h=harness(positive);await h.ctx.saveAllocation(true);
  assert.equal(h.calls.saved.length,1);assert.match(h.calls.dialogs[0].text,/Finalize the received funding/);

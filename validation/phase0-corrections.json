@@ -5,12 +5,12 @@
   "runtime_sha256": {
     "styles/refinements-v93.css": "e060e980ecaf5b921f480cf9de77068cda78dcc38fa3f271add6dbd780b17880",
     "recovery.html": "afcdd18604ff0d2acb696d8dd5d4ea51c123777d022c1154995c2799b8e07df9",
-    "phone-sw.js": "80750568cf5cc5c6870c080a00b7e35fc64ed94c800dd9b96d323015e33648ca",
+    "phone-sw.js": "bf2e2cabb73baa1c0b8e2fed0e132969e06659252d9bc858e571126cbf6d499b",
     "phone-accounting.html": "b1242a5cd79644de75c24434b3da9843bc58bb199e5fa3bc5f064dd1cef3afc4",
-    "desktop-sw14242.js": "13829b483de96eae13d27cfbb15e82395288ea616930059fa42c80ba589ca952",
-    "phone.html": "632ec4b51e06f388fc91dbab5b6789d85d8e574301ca8773f31c0348fc26e459",
-    "desktop.html": "fba5e84a62d3aacc66798aa87e9100e358970df080af3bb8fcbee9a482ae886e",
-    "scripts/phone-runtime14242.js": "638b18117831e1f3ff42cee7f9370ce9632a8ff50bd798666526b23cfbadaba0",
+    "desktop-sw14242.js": "07b65aad7fe54a3d3d8e24719ce0082220e868c355fb9a8f67039dca8ee0ba85",
+    "phone.html": "c9eb9dba1eb1aebe02d7531e4b10fcf4928ebdf911e298d805912623b723a166",
+    "desktop.html": "6f1fcaa13230a6f6a4dcbac7645353ebb236498a1b98b754a7a1c92ba1b1f7ee",
+    "scripts/phone-runtime14242.js": "ae03f5b91217d9badcb276674bf857e779c3c846da28fc3c7e05347a90e78a28",
     "scripts/device-vault14334.js": "e990ab64e5b60b83660f569ef5dbcbaa6f726941487a56b084d45d71c7bb7a1f",
     "scripts/script.js": "415683d566a396a52c3d9489f252cf27c3ebb62d7cb31a87fd135b583b9bc0b6",
     "scripts/local-first14333.js": "2f6eb90e56fcad5f390c6e54fe9a5652aa82e029040125867cafff75f8c1d1cf",
@@ -18,8 +18,8 @@
     "scripts/payroll-polish-v97.js": "d1801d89617f2fd793a3c67869d838a1312d4589f58594a56b6a7a019f8d087f",
     "scripts/startup14257.js": "64774650c9aa80f22e1db60706487c20045fb56d7cc40296ac9e44909d635d71",
     "scripts/desktop14245-6.js": "95ea96d0300481a2aaa75d9d472edca6e122de2749eb0ad509a3adbcc56b7a3d",
-    "scripts/offline14239.js": "5d6b6878649505373aa416f9056e9a9c937847c541e2441e7c2f59dff2986ed3",
-    "scripts/desktop14245-3.js": "8a931fb4f42d0d9998bab1c0e72902e527ceaa76198dcd3addcf574c5a52ba10",
+    "scripts/offline14239.js": "3d9ad4e5f208d6dcfe2c856440579eb952ed8c4e0ebe39a59b84179bd8299661",
+    "scripts/desktop14245-3.js": "027f618e069d5610c8ae2a93eb9a51e3b8784d6fa05fe0df9a88590012331df0",
     "scripts/desktop14245-4.js": "32d617caf982dc65adddb2789c2811464f4448cf5489bbbfc804228a46c585d0",
     "scripts/drafts1427.js": "f87e5ae3aba767e23b1ed190473c9a0ab08fac4c8c1c1bded2cdbdadec7ff388",
     "scripts/interface-v69.js": "44322eec99feaa0049dd1a526193d55576240c84717f0b4a8cb36946639cdb27",
@@ -51,7 +51,7 @@
     "scripts/document-editor-v105.js": "e2db945fe8c44a7ab5bfa8ed0cb198832b7e23bb6792df1d5e28b9d85d26b137",
     "scripts/editor-numbers1428.js": "40082610e997dd7b8cc1435ca73f086a5b31f4ed84a47bb7b15da000847e4613",
     "scripts/hr-calendar-model14306.js": "8d2138ad21d349bfd26e8eeb2dbc709456ae31915c1243bd7e293269352c37ac",
-    "scripts/workflow14253.js": "2ff69c1145247255dea8beb56eda9f404a7a5e10b1f1d0215f43793433c99586",
+    "scripts/workflow14253.js": "fe250cd756d42a6d6f1555ffbe61771c0c08db400aaf4d745ae772c210f1dccc",
     "scripts/workspace14337.js": "a9262726c8f9c825389c3607bd9a9665f4e521952efa204428a93134a218444b",
     "styles/workspace14337.css": "bffc14a49a762e18f595ac043a7ee20342f09b6add062802bc405c2e0d7e71e3",
     "styles/desktop14245.css": "967a951d893aa25f2e1a5e02ce6ebb4fa24f713eeb4c73eb1ca5a6afd5a73e8a",
@@ -61,7 +61,7 @@
     "styles/polish14325.css": "ffc54012fdb9d15c0cda8417b00fdac7939f6cfe8b122b41bec27159c71b915b",
     "styles/compact14327.css": "cb10c4af0fd5e01e4d20f65fcb016c645aa5fb38371d8a07f27a8ed9e872f23c",
     "scripts/access-v113.js": "540f98febec4c242a16dd419d2e079509753562fcfa24f85fb47f86c133c336f",
-    "scripts/budget-workflow14316.js": "112279b1a7dfbf3f8c52d801ae8493d69a18f683498086128279f48bf05e3250",
+    "scripts/budget-workflow14316.js": "ffe147f653daadf52dd07852e1bf5da7a47a1338922a929f6d3839951eb4cacd",
     "scripts/desktop-layout-v82.js": "a6a05be65b28b288b854d5be360c489572fe0875796306721df01458492c9987",
     "scripts/editor-tables-v107.js": "f4f3c544d66daaf3d02aef13bcd478a4bca1370acac1194cb2780925240c06c9",
     "scripts/entry-actions14271.js": "b2def4576d5b2dfd08aabf1182366ddfed5303b05369e9f402913ea1aa0c62e0",
@@ -94,7 +94,7 @@
     "scripts/desktop14245-1.js": "655cad5c2ad877a5c3f05934cbd538dd295515ed9e987c1e4b6adafe6df3e542",
     "scripts/device-mode132.js": "43de3ce6c7bf67f08a570c42d202cad0b9b88ea285b144a866b68bba73ff6371",
     "scripts/final-v118.js": "00c1316a163e6b6475e0ff24b68e99f5626325facaf47d9313b2d63a27254c52",
-    "scripts/payroll-groups-v96.js": "29bf96ea16f7d8c10f074b8274aa63f6c1927b8acb4770d90d33c680c44a9052",
+    "scripts/payroll-groups-v96.js": "9c0d1c7a78efb8bd50eef1385c1125d5ec544056270c1359218d65b1635dd1dc",
     "scripts/vouchers14299.js": "d9630969e3f2fefd966f359c7e0fbd428aad17d37931fe2a749749ea7e0870bb",
     "scripts/workspace-v117.js": "0f6bb2a5d8513aee708a7fd93ceecd68bbc6c87e7750d2ee68f9e533513fffb7",
     "styles/controls14317.css": "ababce506cf04e0a0f6fdb0dd13a210dafcb4519775c196de461e78afbd21343",
@@ -265,7 +265,7 @@
     "styles/editor-tables-v107.css": "0b0ff1cff19ef81093dce79c995122bcc9169d25b47227fd775a2dbab33e7a3b",
     "styles/polish1444.css": "fc55764b2a9b4f597a1fd408717f6d101630ee937f06485251153e5e6f9f871f",
     "styles/transactions-mobile-v72.css": "11b7fafa86437a6edeb18e295f92909bd4eecd6b2366208c06bd9886fa708556",
-    "sw14239.js": "f27f7235f2f4c12da6877fbb455d8bc3b99ead043ac07aec5ab8b569993f9510",
+    "sw14239.js": "44f8cb08a40b61db395fc4a20dadead8d6070d0b72076575e2c60368d7007f3a",
     "styles/header-profile-v104.css": "e3f51d6513bea097f66fee9a4335ee0814e927fa734bdb4ba336b61e06c8ce39"
   },
   "retired_assets": {
@@ -615,5 +615,6 @@
       "test-budget-print482.cjs"
     ],
     "limits": "Visual browser execution unavailable. Legacy test-journal-completion258 partial-settlement assertion also fails on unchanged HEAD; focused native and catalog tests pass."
-  }
+  },
+  "calculationHandoffs143485": "2026-11-18: Approved correction for overtime and leave, in-flight payroll saves, independent phone entries, journal draft protection, and per-currency funding warnings."
 }

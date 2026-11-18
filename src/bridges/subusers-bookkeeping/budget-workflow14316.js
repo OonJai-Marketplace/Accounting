@@ -994,14 +994,14 @@ function validateAllocation(d,finalize){
  if(totals.some(t=>Object.values(t).some(n=>n!==null&&(!Number.isFinite(n)||!Number.isSafeInteger(Math.round(n*100))))))throw Error('Funding totals exceed the supported amount range.');
 }
 function negativeAllocationBalances(d){
- return [...report.balances(d)].filter(([c,t])=>Math.round(t.remaining*100)<0&&!(d.movements||[]).some(m=>m.currency===c&&m.cashUnconfirmed))
-  .map(([currency,t])=>currency+' ('+Math.abs(t.remaining).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+')').join(', ');
+ return [...report.balances(d)].filter(([c,t])=>Math.round(t.fundRemaining*100)<0)
+  .map(([currency,t])=>currency+' ('+Math.abs(t.fundRemaining).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+')').join(', ');
 }
 async function confirmAllocationFinalization(d){
  const negative=negativeAllocationBalances(d);
  if(!negative)return ui117.confirm('Finalize the received funding and allocations? This saved version becomes read-only in History.');
  return ui108.modal('Negative remaining balance',
-  '<p><strong>'+esc(negative)+'</strong></p><p>You can finalize with this negative monthly balance, including when payments use funds from previous months. USD and LAK balances remain separate.</p><p>This saved report becomes read-only in History. Journal posting is a separate step.</p>',
+  '<p><strong>'+esc(negative)+'</strong></p><p>You can finalize with this negative remaining funding, including when payments use funds from previous months. USD and LAK balances remain separate.</p><p>This saved report becomes read-only in History. Journal posting is a separate step.</p>',
   [{label:'Cancel',value:false},{label:'Finalize anyway',value:true,primary:true}]);
 }
 async function saveAllocation(finalize){

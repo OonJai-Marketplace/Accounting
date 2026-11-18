@@ -1,6 +1,9 @@
 {
-  "version": "143.484",
+  "version": "143.485",
   "changes": [
+    "Overtime preserves approved unpaid leave. Payroll inputs are locked during finalization.",
+    "Phone sync continues with independent valid entries when a receipt needs correction.",
+    "Approved reports preserve unfinished journals. Budget finalization checks remaining funding per currency.",
     "Trial Balance filters are independent from the floating Account Balances shortcut, including account selections and column settings.",
     "Monthly Comparative Trial Balance displays readable account names and headings. Its Columns choice sits beside Report type.",
     "Edit accounts remains only in the floating Account Balances shortcut. Trial Balance includes all accounts matching its own currency filter.",

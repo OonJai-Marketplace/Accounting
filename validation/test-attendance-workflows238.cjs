@@ -29,7 +29,8 @@ vm.runInContext(grid.slice(grid.indexOf('function status('),grid.indexOf('functi
 const leave={employeeId:employee.id,from:'2026-10-23',to:'2026-10-26',month:run.month,type:'vacation',status:'approved',paid:'no',days:2};c.Work82.leaves=[{id:'leave',data:leave}];row.input.attendance=[{date,mark95:'0',overtime:0}];
 assert.equal(c.status(run,row,{date,weekday:1}).kind,'Leave / legend');assert(c.status(run,row,{date,weekday:1}).label.startsWith('Unpaid vacation leave'));assert.equal(c.remainingLeave105(run,row,leave),2);
 const weekend={date:'2026-10-25',weekday:0};row.input.attendance.push({date:weekend.date,mark95:'0'});assert.equal(c.status(run,row,weekend).kind,'Non-work day');
-for(const entry of [{mark95:'A'},{mark95:'0',overtime:2},{mark95:'0',override95:{amount:0,reason:'Explicit'}}]){row.input.attendance=[{date,...entry}];assert.equal(c.remainingLeave105(run,row,leave),1)}
+row.input.attendance=[{date,mark95:'0',overtime:2}];assert.equal(c.remainingLeave105(run,row,leave),2,'overtime alone preserves the approved unpaid leave allocation');
+for(const entry of [{mark95:'A'},{mark95:'0',override95:{amount:0,reason:'Explicit'}}]){row.input.attendance=[{date,...entry}];assert.equal(c.remainingLeave105(run,row,leave),1)}
 row.input.attendance=[{date,mark95:'0'}];assert.equal(c.status({...run,status:'finalized',leaveSnapshot:[leave],legendSnapshot95:c.legends()},row,{date,weekday:1}).kind,'Present');
 // Real Add Holiday form saves a calendar event, defaults to paid time off and retains the selected date.
 vm.runInContext(read('src/hr/calendar/hr-calendar14306.js'),c);const cal=c.hrCalendar14306;Object.assign(cal.state,{owner:'admin',ready:true,month:'2026-10',settings:{id:true,version:1,data:schedule},rows:[]});c.Work82.leaves=[];
