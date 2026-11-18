@@ -1,0 +1,11 @@
+# Supabase status and sidebar profile — 143.461
+
+The storage rail now distinguishes connection state from the retained storage snapshot. Paused, restarting and unreachable database states show a red exclamation tile. Explicit upstream pause/status evidence produces Paused or Restarting; generic gateway/network failures say Unavailable and explain that the cause may be a pause or connection problem. Offline, permission and rate-limit states are separate. Database and file readings show both used and remaining percentages.
+
+Open Supabase links to the configured project's dashboard with `target=_blank` and `noopener noreferrer`, preserving the Accounting tab. Check connection uses the existing read-only `desktop_dock_status` RPC. Supabase's dashboard returns `frame-ancestors 'none'` and `X-Frame-Options: DENY`; an iframe cannot provide this recovery flow. Resuming inside Accounting would require a separately hosted and authenticated management service. No management token is introduced or exposed.
+
+The connection observer sees existing native REST requests before offline cache fallback. Cached responses cannot clear an outage. It neither starts requests nor changes their results, credentials, saves or retry behavior. It excludes other origins, cancelled navigation and stale results. State is session memory only; error bodies are not saved. No idle polling, financial writes, database changes or automatic full synchronization are introduced.
+
+The compact sidebar profile uses the company tile's dimensions, position, frame and padding, with one uncropped image instead of a rectangular outer card and nested frame. The profile action is unchanged. Expanded tablet and phone navigation retain their existing layouts.
+
+Validation: Node regression checks cover explicit pause/pending evidence, generic outages, permissions, offline distinction, recovery, cache exclusion, response preservation, cancellation, request ordering and project isolation. Browser preview with synthetic responses confirmed the red tile, the project-specific new-tab link, Check connection recovery, and equal top/bottom tile geometry (32 × 32 in the full desktop layout). No live project was paused for testing; no physical-device claim is made. Module generation, JavaScript syntax, source ownership and release/cache integrity checks run before publication.

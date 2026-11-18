@@ -1,6 +1,81 @@
+/* Observe real database traffic only. No polling, credentials or account data. */
+(() => {
+  'use strict';
+  let state={kind:'unknown',at:null}, sequence=0, applied=0, origin='';
+  function configuredOrigin() {
+    try { return new URL(window.OJM_SUPABASE_URL).origin; } catch { return ''; }
+  }
+  function resetOrigin() {
+    const next=configuredOrigin();
+    if (next!==origin) {origin=next;state={kind:'unknown',at:null};applied=++sequence;}
+    return next;
+  }
+  function publish(kind,id,requestOrigin) {
+    if (requestOrigin!==configuredOrigin() || id<applied) return;
+    applied=id;state={kind,at:new Date().toISOString()};
+    window.dispatchEvent(new Event('supabase-health461'));
+  }
+  function classify(status,body='') {
+    // Only explicit upstream pause evidence earns a definitive Paused label.
+    if (/\b(?:project|database)\s+(?:is\s+|has been\s+)?(?:paused|inactive)\b|"status"\s*:\s*"(?:INACTIVE|PAUSED)"/i.test(body)) return 'paused';
+    if (/"status"\s*:\s*"(?:RESTORING|COMING_UP|GOING_DOWN|PAUSING)"/i.test(body)) return 'pending';
+    if (status>=500 || status===404) return 'unavailable';
+    if (status===401 || status===403) return 'access';
+    if (status===429) return 'limited';
+    return status>=200 && status<300?'healthy':null;
+  }
+  function observeFetch(fetcher) {
+    return async function(input,options) {
+      const target=resetOrigin();
+      let url;
+      try {url=new URL(typeof input==='string'?input:input.url);} catch {return fetcher(input,options);}
+      if (!target || url.origin!==target || !url.pathname.startsWith('/rest/v1/')) return fetcher(input,options);
+      const id=++sequence,started=Date.now();
+      try {
+        const response=await fetcher(input,options);
+        // Service-worker/device snapshots must never clear a cloud failure.
+        if (!response.headers.has('X-OJM-Cached')) {
+          const kind=classify(response.status);
+          if (kind) publish(kind,id,target);
+          if (!response.ok) {
+            // Read only a bounded error prefix; never retain response content.
+            void (async()=>{
+              const reader=response.clone().body?.getReader();
+              if (!reader) return;
+              const decoder=new TextDecoder();let body='';
+              try {while(body.length<16384){const {value,done}=await reader.read();if(done)break;body+=decoder.decode(value,{stream:true});}}
+              finally {void reader.cancel().catch(()=>{});}
+              const detail=classify(response.status,body.slice(0,16384));
+              if (detail && detail!==kind) publish(detail,id,target);
+            })().catch(()=>{});
+          }
+        }
+        return response;
+      } catch(error) {
+        // Short caller cancellations are navigation, not an outage. Existing
+        // database deadlines run for at least eight seconds.
+        if (error?.name!=='AbortError' || Date.now()-started>=7500) publish('unavailable',id,target);
+        throw error;
+      }
+    };
+  }
+  function current() {
+    resetOrigin();
+    return {...state,kind:navigator.onLine===false?'offline':state.kind};
+  }
+  function dashboardURL() {
+    try {
+      const host=new URL(window.OJM_SUPABASE_URL).hostname;
+      const ref=host.match(/^([a-z0-9]{20})\.supabase\.co$/)?.[1];
+      return ref?'https://supabase.com/dashboard/project/'+ref:'https://supabase.com/dashboard';
+    } catch {return 'https://supabase.com/dashboard';}
+  }
+  window.supabaseHealth461=Object.freeze({current,dashboardURL,observeFetch});
+})();
+
 /* Account-scoped response snapshots and saved-entry synchronization. */
 (()=>{'use strict';
-const nativeFetch=window.fetch.bind(window),readRPC=new Set(['workspace_standing379','workflow_capabilities14253','current_access14228','accounting_workspace_allowed123','is_admin','branch_home14229','review_directory14229','review_inbox14229','fund_balances136','team_funds113','staff_report1434','report_history14229','approved_report1443','book_sessions_list136','reminder_load14229','opening_status14234','workspace_context138','workspace_live_activity_v49','audit_month1434','employee_photo113','journal_window14333','payroll_window14334','journal_receipt14228','journal_change_receipt14385','password_change_status14257','preview_journal_number14257','installation_status14320','list_journal_plans280']);
+const nativeFetch=window.supabaseHealth461.observeFetch(window.fetch.bind(window)),readRPC=new Set(['workspace_standing379','workflow_capabilities14253','current_access14228','accounting_workspace_allowed123','is_admin','branch_home14229','review_directory14229','review_inbox14229','fund_balances136','team_funds113','staff_report1434','report_history14229','approved_report1443','book_sessions_list136','reminder_load14229','opening_status14234','workspace_context138','workspace_live_activity_v49','audit_month1434','employee_photo113','journal_window14333','payroll_window14334','journal_receipt14228','journal_change_receipt14385','password_change_status14257','preview_journal_number14257','installation_status14320','list_journal_plans280']);
 const actor=()=>typeof liveProfile!=='undefined'?liveProfile?.id||'':'',scope=()=>String(window.OJM_SUPABASE_URL||location.origin),prefix=id=>'ojm-offline14239:'+scope()+(window.accountingReset143108?.suffix()||'')+':'+id+':';
 let reachable=navigator.onLine,syncing=false,lastRead=null,storageError='',cacheDB,dialog,shellReady=false,visibleActor='',connectionError='',notificationPending=false,queueRevision=0,cacheRevision14333=0,lastNotification='',freshReadDepth14338=0,cacheReadDepth14359=0;
 const canonical=v=>JSON.stringify(v,(_,x)=>x&&typeof x==='object'&&!Array.isArray(x)?Object.fromEntries(Object.entries(x).sort(([a],[b])=>a.localeCompare(b))):x);
@@ -275,7 +350,7 @@ function renderDialog(){
 }
 
 function paint(doc=document,phone=false){if(visibleActor!==actor()){visibleActor=actor();dialog?.close();lastRead=null}const s=state(),label=s.online?'Online':navigator.onLine===false?'Offline':'Limited connection';const hosts=phone?[doc.querySelector('.top')]:[...doc.querySelectorAll('.area-banner113,.dash-hero112')];for(const host of hosts.filter(Boolean)){let b=host.querySelector('.connection14239');if(!b){b=doc.createElement('button');b.type='button';b.className='connection14239';b.onclick=open;if(phone)host.insertBefore(b,host.querySelector('.profile'));else host.append(b)}const text=label;if(b.textContent!==text)b.textContent=text;const state=s.online?'online':navigator.onLine===false?'offline':'limited',aria=text+(window.autoSync14256?'. Connection and manual sync':'. Connection and saved-entry status');if(b.dataset.state!==state)b.dataset.state=state;if(b.getAttribute('aria-label')!==aria)b.setAttribute('aria-label',aria);}}
-const SHELL_VERSION='143.460';let releaseNotes=null;try{const saved=JSON.parse(localStorage.getItem('ojm_release_notes143105')||'null');if(saved&&/^\d+\.\d+$/.test(saved.version)&&Array.isArray(saved.changes))releaseNotes=saved}catch{}let checkingUpdate=false,updateMessage='';let shellRegistration=null,waitingForLoad=false,shellFailures=0,shellRetry=null,availableShell='';
+const SHELL_VERSION='143.461';let releaseNotes=null;try{const saved=JSON.parse(localStorage.getItem('ojm_release_notes143105')||'null');if(saved&&/^\d+\.\d+$/.test(saved.version)&&Array.isArray(saved.changes))releaseNotes=saved}catch{}let checkingUpdate=false,updateMessage='';let shellRegistration=null,waitingForLoad=false,shellFailures=0,shellRetry=null,availableShell='';
 function shellStatus(data){shellReady=data.ready===true&&data.version===SHELL_VERSION;if(data.ready&&String(data.version).localeCompare(SHELL_VERSION,undefined,{numeric:true})>0&&availableShell!==data.version){availableShell=data.version;window.showCenterStatus?.('Website update '+data.version+' is ready. Open System to review and apply it.');}if(shellReady&&/^(Offline files|Offline reopening)/.test(storageError))storageError='';changed()}
 async function checkForUpdates(){
  if(checkingUpdate)return;

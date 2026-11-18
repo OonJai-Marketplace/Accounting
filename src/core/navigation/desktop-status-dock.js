@@ -26,6 +26,17 @@
     .db{height:var(--rail-button);width:var(--rail-button);padding:0;display:grid;place-items:center}
     .db strong{font:700 15px/1 Arial;font-variant-numeric:tabular-nums;letter-spacing:-.6px}
     .db[data-flag=orange] strong{color:#ffc078}.db[data-flag=red] strong{color:#ffabae}
+    .rail .db[data-health=red]{position:relative;background:#b4232e;color:white;box-shadow:0 0 0 2px #ffd4d7}
+    .db[data-health=red] strong{color:white}
+    .rail .db[data-health=amber]{background:#805b17}.db[data-health=amber] strong{color:white}
+    .service{margin:8px 0;padding:10px;border:1px solid #cbd8ce;border-radius:6px;background:#edf5ee}
+    .service[data-tone=red]{background:#fff0f1;border-color:#cb5861;color:#8d1d28}
+    .service[data-tone=amber]{background:#fff6e6;border-color:#c6a05a;color:#705013}
+    .service strong{display:block}.service p{margin:5px 0;font-size:12px;line-height:1.4}
+    .service-time{font-size:11px}.service-actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px}
+    .service-actions :is(a,button){display:inline-flex;align-items:center;justify-content:center;min-height:32px;padding:5px 9px;border:1px solid #aec1b3;border-radius:5px;background:white;color:#194c38;font:700 12px Arial;text-decoration:none}
+    .service-actions a{background:#194c38;color:white;border-color:#194c38}.service-actions a:focus-visible{outline:2px solid #c49342;outline-offset:2px}
+    .storage-caveat{font-size:11px;color:#705013;margin:5px 0}.summary{max-height:70dvh;overflow-y:auto}
     dialog{position:fixed;inset:max(8px,calc(100dvh - 648px)) 58px auto auto;margin:0;width:min(438px,calc(100vw - 76px));
       max-height:min(640px,calc(100dvh - 16px));overflow:hidden;border:1px solid #adbcae;border-radius:8px;padding:0;
       background:#fffdf7;color:var(--ink);box-shadow:0 6px 25px #102a222c;font:13px/1.35 Arial,sans-serif}
@@ -116,10 +127,16 @@
   <dialog aria-labelledby="dockTitle taskTitle">
     <header class="summary">
       <div class="heading"><h2 id="dockTitle">Supabase storage</h2><button class="close" aria-label="Close status window" type="button">×</button></div>
+      <section class="service" aria-label="Supabase connection">
+        <div role="status" aria-live="polite"><strong class="service-title"></strong><p class="service-detail"></p></div>
+        <div class="service-time"></div>
+        <div class="service-actions"><a class="open-supabase" target="_blank" rel="noopener noreferrer">Open Supabase</a><button type="button" class="check-connection">Check connection</button></div>
+      </section>
       <div class="checks"><div class="times"><div class="taskTime"></div><div class="storageTime"></div></div>
         <button type="button" class="refresh">Refresh all</button></div>
       <div class="row">Database <strong class="dbAmount"></strong></div>
       <div class="row">File storage <span class="fileAmount"></span></div>
+      <div class="storage-caveat"></div>
       <div class="flags"><span>60% · Start archiving</span><span>70% · Red flag</span></div>
       <div class="notice" role="status"></div>
     </header>
@@ -178,7 +195,40 @@
   }
   function storageText(bytes,limit) {
     return (bytes/1e6).toLocaleString(undefined,{maximumFractionDigits:2})+' / '+
-      (limit/1e6).toLocaleString()+' MB · '+(100*bytes/limit).toFixed(2)+'%';
+      (limit/1e6).toLocaleString()+' MB · '+(100*bytes/limit).toFixed(2)+'% used · '+Math.max(0,100-100*bytes/limit).toFixed(2)+'% remaining';
+  }
+  function paintConnection() {
+    const health=window.supabaseHealth461?.current() || {kind:'unknown'};
+    const local=window.deviceVault14334?.offline || window.sessionCache14333?.localMode;
+    const kind=health.kind==='offline'?'offline':local?'local':health.kind;
+    const copy={
+      unknown:['Connection not checked','Open Supabase to view project status, or check the database connection here.',''],
+      healthy:['Supabase connected','The database responded. If you have pending changes, use Sync Now when ready.',''],
+      paused:['Supabase project paused','Open Supabase, choose Resume project and confirm. Then return here and check the connection.','red'],
+      pending:['Supabase project restarting','The project is changing state. Check its progress in Supabase, then check the connection again.','red'],
+      unavailable:['Supabase unavailable','The database could not be reached. It may be paused, restarting, or affected by a connection problem. Open Supabase to check its status and resume it if paused.','red'],
+      offline:['You are offline','Reconnect to the internet, then check the connection. A project pause cannot be confirmed while offline.','amber'],
+      local:['Using the offline account','Sign in online to check the database connection. The storage figures below are the last saved reading.','amber'],
+      access:['Sign-in needs attention','Supabase responded but denied access. Sign in again; this does not confirm a paused project.','amber'],
+      limited:['Supabase requests limited','Supabase is limiting requests. Wait a moment, then check the connection again.','amber']
+    }[kind];
+    const s=snapshot?.storage,ratio=s?100*s.db_bytes/s.db_limit:null;
+    const flag=ratio>=70?'Red flag':ratio>=60?'Start archiving':'';
+    const rounded=ratio==null?null:Math.round(ratio);
+    const text=ratio==null?'—':((rounded===60||rounded===70)&&ratio<rounded?Math.floor(ratio):rounded)+'%';
+    const dbLabel=copy[0]+' · '+(s?'Last storage reading '+ratio.toFixed(2)+'% used'+(flag?' · '+flag:''):'Storage not yet checked');
+    $('.db').title=dbLabel;$('.db').setAttribute('aria-label',dbLabel);
+    $('.db strong').textContent=copy[2]==='red'?'!':text;
+    $('.db').dataset.flag=ratio>=70?'red':ratio>=60?'orange':'';
+    $('.db').dataset.health=copy[2];
+    $('.service').dataset.tone=copy[2];
+    $('.service-title').textContent=copy[0];$('.service-detail').textContent=copy[1];
+    $('.service-time').textContent=health.at?'Last connection response '+formatAppDate(health.at,true):'';
+    $('.open-supabase').href=window.supabaseHealth461?.dashboardURL() || 'https://supabase.com/dashboard';
+    $('.open-supabase').title='Open this project in a separate tab; Accounting stays open';
+    $('.check-connection').disabled=busy || kind==='offline' || kind==='local';
+    $('.check-connection').textContent=busy?'Checking…':'Check connection';
+    $('.storage-caveat').textContent=kind!=='healthy'?'Storage figures are the last saved reading, not a live availability check.':'';
   }
   function actionIcon(label,action,id) {
     const el=node('button','icon');el.type='button';el.title=label;el.setAttribute('aria-label',label);
@@ -222,14 +272,8 @@
       const open=node('button','empty','—');open.type='button';open.setAttribute('aria-label','Open sequential tasks');lanes.push(open);
     }
     $('.tasks').replaceChildren(...lanes);
-    const s=snapshot?.storage, ratio=s?100*s.db_bytes/s.db_limit:null;
-    const flag=ratio>=70?'Red flag':ratio>=60?'Start archiving':'';
-    const dbLabel=s?'Database storage · '+ratio.toFixed(2)+'%'+(flag?' · '+flag:''):'Database storage · Awaiting snapshot';
-    $('.db').title=dbLabel;$('.db').setAttribute('aria-label',dbLabel);
-    // Keep the displayed whole number below a warning threshold until it is reached.
-    const rounded=ratio==null?null:Math.round(ratio);
-    $('.db strong').textContent=ratio==null?'—':((rounded===60||rounded===70)&&ratio<rounded?Math.floor(ratio):rounded)+'%';
-    $('.db').dataset.flag=ratio>=70?'red':ratio>=60?'orange':'';
+    const s=snapshot?.storage;
+    paintConnection();
     if (!dialog.open) return;
     const focused=root.activeElement?.dataset;
     $('.quiet').textContent=snapshot?.tasks_at?tasks.length+' checklists · '+pins.length+' of 2 pinned':'Awaiting checklist snapshot';
@@ -334,6 +378,7 @@
     if (!dialog.open || !dialog.contains(event.target)) return;
     if (button?.matches('.close')) {dialog.close();return;}
     if (button?.matches('.refresh')) {request('refresh');return;}
+    if (button?.matches('.check-connection')) {request('read');return;}
     if (button?.dataset.action==='choose') {
       selected=selected===button.dataset.id?'':button.dataset.id;stepFocus=null;paint();if(selected)revealSteps();return;
     }
@@ -359,6 +404,7 @@
     request('step',{p_task:task.id,p_revision:task.revision,p_index:index,p_done:input.checked});
   });
   function start() {
+    for (const name of ['supabase-health461','online','offline']) window.addEventListener(name,()=>{if(owner && session()===owner)paintConnection();});
     const gate=document.getElementById('loginGate');
     if (gate) new MutationObserver(syncView).observe(gate,{attributes:true,attributeFilter:['class']});
     for (const name of ['page113','session-online14333','focus','tabletviewport132','online']) window.addEventListener(name,syncView);

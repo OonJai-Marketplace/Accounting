@@ -3479,6 +3479,10 @@
     ],
     "scripts/offline14239.js": [
       {
+        "source": "src/core/sync/supabase-health461.js",
+        "suffix": "\n"
+      },
+      {
         "source": "src/core/sync/offline14239.js"
       }
     ],
