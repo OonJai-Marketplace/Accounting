@@ -1,6 +1,10 @@
 {
-  "version": "143.471",
+  "version": "143.472",
   "changes": [
+    "Fund utilization Save and Finalize retain a durable device copy, then send in the background so you can continue working.",
+    "Each report has one notification showing Saving, Finalizing, confirmed completion or a retry-needed warning, with Open report / Retry.",
+    "Retries reuse the original report, version and contents; timeouts and conflicts preserve the saved copy without duplicating or overwriting records.",
+    "Finalization becomes complete only after database confirmation. Offline copies remain available for explicit Retry or Sync Now.",
     "Company Profile and View Profile use the same frame, size, padding and saved background on the navigation rail.",
     "Home and Overview keep their horizontal tabs above the banner.",
     "Each graph has independent settings for line, smooth line, area, vertical bars or horizontal bars and daily, weekly or monthly grouping.",
@@ -10,7 +14,6 @@
     "Active-book audit changes are orange and reviewable. Closed-book amount changes, reclassifications and deletions are red; description, memo, reason and date changes remain orange.",
     "Clearing orange logs records a compact deletion receipt and never deletes journals or changes their numbering.",
     "Budget utilization saves and finalization confirm in one database request, preserving record versions and linked-request checks.",
-    "Budget utilization draft saves stay in the foreground; offline drafts remain available for manual Sync Now.",
     "A reopened report clears an older finalized copy when its current database draft is opened.",
     "Funding summaries include USD exchanged out and exact LAK proceeds with each saved exchange reference.",
     "Used and remaining are calculated in each transaction\u2019s native currency; LAK costs are no longer converted back into USD.",

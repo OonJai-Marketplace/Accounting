@@ -608,12 +608,14 @@ administrator-only, version/fingerprint-checked payroll amendment with audit his
 Preserve all unrelated report edits, cash payments, approval statuses, source payroll
 and posted journals. Missing payment evidence must be visibly unconfirmed.
 
-Budget saves, 2026-11-18: utilization Save and Finalize stay in the foreground.
-Use one atomic, idempotent save with version and linked-request validation on the
-server; retain the durable local request and exact receipt verification. Do not
-start background budget delivery or full-workspace refresh after Save. Offline
-budget drafts wait for explicit Sync Now. A newer server draft supersedes an
-older finalized copy retained in the current tab.
+Budget saves, 2026-11-18 (latest user instruction): utilization Save and Finalize
+persist locally, then send in the background for that explicit action. Show a
+report-specific bell notification with progress, failure and Open report / Retry.
+Only an exact server receipt confirms saved/finalized status. Keep atomic saves,
+version and linked-request validation, original retry identity, account isolation
+and durable recovery. Do not add polling, full-workspace refresh or automatic
+budget retry loops. Offline copies wait for the user to retry or Sync Now.
+A newer server draft supersedes an older finalized copy retained in the tab.
 Audit policy, 2026-11-18: all changes in an active open book (amount, details,
 reclassification, date and deletion) are orange and reviewable. Red is reserved
 for amount changes, reclassification and deletion in a closed or reopened closed
