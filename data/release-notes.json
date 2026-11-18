@@ -1,6 +1,8 @@
 {
-  "version": "143.456",
+  "version": "143.457",
   "changes": [
-    "HR can review Hub leave requests, retain compact rejection decisions and set vacation grace months for each employee."
+    "Edit funding from one section, with compact spending and exchange details.",
+    "References have their own disbursement column; report buttons and saved budget tables use consistent sizing.",
+    "Show unused funding as Remaining without the after-handover line."
   ]
 }

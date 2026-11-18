@@ -208,15 +208,14 @@ window.BudgetReport290 = (() => {
   return '<div class="data-table82"><table '+marker+' style="width:100%;border-collapse:collapse"><thead><tr>'+heading+'</tr></thead><tbody>'+
    rows.map(r=>tr(r,false)).join('')+'</tbody>'+(totals.length?'<tfoot>'+totals.map(r=>tr(r,true)).join('')+'</tfoot>':'')+'</table></div>';
  }
- function cashSummary(d,editable=false){
+ function cashSummary(d){
   const totals=balances(d),codes=cashCodes(d),rows=[];
   const cols=(name,value)=>[name,...codes.map(c=>value(c)==null?'—':amountHtml(c,value(c)))];
   const key=(name,k)=>cols(name,c=>totals.get(c)?.[k]||0);
-  const edit=(kind,i)=>editable?' <button type="button" data-edit-'+kind+'="'+i+'">Edit</button>':'';
   const ref=s=>s?'<br><small>'+esc(s)+'</small>':'';
   for(const [i,m] of d.movements.entries()){
    if(kind(m)!=='receipt')continue;
-   rows.push(cols(esc(m.account||'Receipt')+edit('movement',i)+ref(m.reference),c=>c===m.currency?Number(m.inflow):null));
+   rows.push(cols(esc(m.account||'Receipt')+ref(m.reference),c=>c===m.currency?Number(m.inflow):null));
   }
   rows.push(key('Total received','receipt'));
   for(const [i,f] of (d.conversions||[]).entries()){
@@ -224,21 +223,16 @@ window.BudgetReport290 = (() => {
    const base=f.target==='USD'?f.target:f.currency;
    const quote=base===f.currency?f.target:f.currency;
    const rate=base===f.currency?received/f.amount:f.amount/received;
-   rows.push(cols('Exchange'+edit('exchange',i)+ref(formatAppRate(rate)+' '+quote+' / '+base+(f.evidence||f.reference?' · '+(f.evidence||f.reference):'')),
+   rows.push(cols('Exchange'+ref(formatAppRate(rate)+' '+quote+' / '+base+(f.evidence||f.reference?' · '+(f.evidence||f.reference):'')),
     c=>c===f.currency?-Number(f.amount):c===f.target?received:null));
   }
   for(const [i,m] of d.movements.entries()){
    const type=kind(m);
-   if(['borrow','repay','coverage'].includes(type))rows.push(cols(esc(labels[type])+edit('movement',i)+ref(m.reference),c=>c===m.currency?Number(m.inflow||0)-Number(m.outflow||0):null));
+   if(['borrow','repay','coverage'].includes(type))rows.push(cols(esc(labels[type])+ref(m.reference),c=>c===m.currency?Number(m.inflow||0)-Number(m.outflow||0):null));
   }
   rows.push(cols('Available to distribute',c=>{const t=totals.get(c);return t?t.receipt+t.coverage+t.borrow-t.repay+t.convertedIn-t.convertedOut:0;}));
   rows.push(key('Total distributed','cashSpent'));
-  const handover=d.movements.some(m=>kind(m)==='refund');
-  const closing=[key(handover?'Remaining before handover':'Remaining','beforeReturn')];
-  if(handover){
-   for(const [i,m] of d.movements.entries())if(kind(m)==='refund')closing.push(cols('Handed over'+edit('movement',i)+ref(m.reference),c=>c===m.currency?-Number(m.outflow):null));
-   closing.push(key('Cash after handover','remaining'));
-  }
+  const closing=[key('Remaining','beforeReturn')];
   return summaryTable(['Source / activity',...codes],rows,closing,'data-cash-summary');
  }
  function requestSummary(d,editable=false){
@@ -263,18 +257,18 @@ window.BudgetReport290 = (() => {
     const category=line?.category||m?.category290||'Additional spending';
     const identity=' data-payment="'+i+'" data-line="'+(index??-1)+'"';
     const reference=editable?'<input data-payment-reference'+identity+' aria-label="Reference for '+esc(item)+'" placeholder="Reference" value="'+esc(m?.reference||'')+'">':esc(m?.reference||'—');
-    const itemCell='<strong>'+esc(item)+'</strong> · '+esc(category)+(line?'':' · Outside request')+'<br><small>Reference &nbsp;'+reference+'</small>';
+    const itemCell='<strong>'+esc(item)+'</strong> · '+esc(category)+(line?'':' · Outside request');
     const amounts=codes.map(c=>{
      if(m&&m.currency!==c)return '—';
      const n=m?cashPaid(m):null;
      return editable?'<input type="number" min="0" step="0.01" data-paid-in="'+esc(c)+'" data-currency="'+esc(c)+'"'+identity+' aria-label="'+esc(c)+' paid for '+esc(item)+'" value="'+(n==null?'':Number(n))+'" placeholder="0.00">':
       n==null?(c===line.currency?amountHtml(c,0):'—'):amountHtml(c,n);
     });
-    rows.push([itemCell,...amounts,...(editable?['<button type="button" data-pay-detail'+identity+'>Details</button>']:[])]);
+    rows.push([itemCell,...amounts,reference,...(editable?['<button type="button" data-pay-detail'+identity+'>Details</button>']:[])]);
    }
   }
-  const total=['Total distributed',...codes.map(c=>amountHtml(c,sums.get(c)?.cashSpent||0)),...(editable?['']:[])];
-  return summaryTable(['Item / category',...codes,...(editable?['']:[])],rows,[total],'data-disbursements');
+  const total=['Total distributed',...codes.map(c=>amountHtml(c,sums.get(c)?.cashSpent||0)),'',...(editable?['']:[])];
+  return summaryTable(['Item / category',...codes,'Reference',...(editable?['Action']:[])],rows,[total],'data-disbursements');
  }
  function summary(d){
   return section82('Funding summary',cashSummary(d))+section82('Budget request summary',requestSummary(d))+section82('Disbursement breakdown',disbursements(d));

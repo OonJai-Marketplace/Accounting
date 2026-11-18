@@ -46,7 +46,7 @@ const create=require('./phase0-browser-fixture.cjs');
   assert.deepEqual(await popup.locator('.block82 h4').allTextContents(),['Funding Summary','Budget Request Summary','Disbursement Breakdown']);
   const remaining=cash.locator('tfoot tr').last();
   assert.deepEqual(await remaining.locator('td').allTextContents(),['Remaining','$ 25.00','₭ 993,000.00']);
-  assert.deepEqual(await paid.locator('thead th').allTextContents(),['Item / Category','USD','LAK','']);
+  assert.deepEqual(await paid.locator('thead th').allTextContents(),['Item / Category','USD','LAK','Reference','Action']);
   assert.equal(await requests.getByText('Transfer fees').count(),0);
   assert.equal(await paid.getByText('Transfer fees').count(),1);
   assert.match(await cash.innerText(),/20,000.*LAK \/ USD/);
@@ -64,7 +64,7 @@ const create=require('./phase0-browser-fixture.cjs');
    const host=document.createElement('div');host.innerHTML=BudgetReport290.summary(d);
    return [...host.querySelectorAll('[data-cash-summary] tfoot tr')].map(r=>[...r.cells].map(c=>c.textContent));
   },report.data);
-  assert.deepEqual(cashCheck,[['Remaining before handover','$ 25.00','₭ 1,093,000.00'],['Handed over','($ 4.00)','—'],['Cash after handover','$ 21.00','₭ 1,093,000.00']]);
+  assert.deepEqual(cashCheck,[['Remaining','$ 25.00','₭ 1,093,000.00']]);
   for(const width of [1280,1024,768]){
    await page.setViewportSize({width,height:672});
    assert(await popup.evaluate(dialog=>{const body=dialog.querySelector('.ui-body108');return body.scrollWidth<=body.clientWidth+1;}));

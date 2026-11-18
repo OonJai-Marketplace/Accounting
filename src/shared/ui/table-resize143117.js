@@ -32,7 +32,8 @@ function distribute(s,available){
    !table.matches('.valuation-columns,.ledger-columns143108,.staff-journal-table,.clustered-journal-table,.chart-long-list,.rec-ledger71')&&
    !table.closest('#journalEntry98,#chartMain143180,.report-grid143195')&&
    !table.querySelector(':scope > colgroup,tbody input,tbody select,tbody textarea,tbody [contenteditable=true]');
-  s.budgets=standard?s.heads.map(h=>columnBudget(h.textContent)):null;
+  const defaults=table.id==='savedBudgetRequests'?[[112,0],[140,1],[180,4],[130,0],[190,0]]:table.id==='savedFundReports'?[[112,0],[150,4],[80,0],[120,0],[120,0],[130,0],[130,0],[84,0]]:null;
+  s.budgets=defaults?.length===s.count?defaults:standard?s.heads.map(h=>columnBudget(h.textContent)):null;
   if(!s.budgets?.some(([,weight])=>weight>=2))s.budgets=null;
  }
  if(!s.budgets)return false;

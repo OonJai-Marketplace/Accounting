@@ -140,3 +140,60 @@ body .budget-report-preview .ui-body108 table{max-width:100%}
 #budgetFunds290 .block82>header .actions82 button{margin:0;min-width:0}
 .fund-activity .spend-more{grid-column:1/-1}
 .fund-activity .spend-more>div{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin:8px 0}
+
+/* Budget workspace: stable defaults, with manual column resizing retained. */
+body #transactions-budget14313 .budget-saved-table{table-layout:fixed;width:100%;min-width:0}
+body #transactions-budget14313 .budget-saved-table :is(th,td){height:auto!important;padding:6px 8px!important;vertical-align:middle!important;line-height:1.35!important;white-space:normal!important;overflow-wrap:anywhere}
+body #transactions-budget14313 .budget-saved-table:not(.table-resized143117) th{width:var(--workspace-column376,auto)!important}
+body #transactions-budget14313 .budget-row-actions{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
+body #transactions-budget14313 .budget-saved-table td:last-child{overflow:visible!important;text-overflow:clip!important}
+body #transactions-budget14313 .budget-saved-table :is(button,.row-menu99>summary){height:32px!important;min-height:32px!important;line-height:20px!important;padding:5px 10px!important;white-space:nowrap!important;box-sizing:border-box}
+/* All report actions share one explicit control style. */
+body.shell113 .fund-report-layout .ui-dialog108>header .fund-report-toolbar button{
+ display:inline-flex!important;align-items:center!important;justify-content:center!important;
+ height:32px!important;min-height:32px!important;max-height:32px!important;min-width:64px!important;
+ padding:5px 12px!important;margin:0!important;border:1px solid #b6ccbc!important;border-radius:5px!important;
+ background:#fffdf7!important;color:#174c38!important;font:600 12px/20px Arial,sans-serif!important;box-shadow:none!important;
+}
+#budgetFunds290 [data-disbursements] th:last-child{width:84px}
+#budgetFunds290 [data-disbursements] :is(td,th):nth-last-child(2){text-align:left!important}
+#budgetFunds290 [data-payment-reference]{width:100%;min-width:100px}
+/* Compact entry editors. Currency, amount and reference stay on one row. */
+body .fund-activity form.finance-controls117{display:flex!important;flex-direction:column;align-items:stretch;gap:12px;margin:0}
+.fund-activity .fund-field-row{display:grid;gap:10px;align-items:end;min-width:0}
+.fund-activity .fund-field-row>label,.fund-activity .funding-entry-picker>label{display:grid;gap:4px;min-width:0;margin:0}
+.fund-activity .fund-field-row :is(input,select,.oj-date-shell104,.oj-date-button104){width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box}
+.fund-activity .fund-field-row label:has([name=description290]){grid-column:auto!important}
+.fund-activity .fund-date-row{grid-template-columns:9rem minmax(0,1fr)}
+.fund-activity .fund-source-row{grid-template-columns:9rem minmax(0,1fr) minmax(0,1fr)}
+.fund-activity :is(.fund-source-pair,.fund-item-row,.fund-cash-row){grid-template-columns:repeat(2,minmax(0,1fr))}
+.fund-activity .fund-payment-row{grid-template-columns:6rem 10rem minmax(0,1fr)}
+.fund-activity .fund-exchange-row{grid-template-columns:6rem minmax(8rem,1fr) 6rem minmax(8rem,1fr)}
+.fund-activity .fund-rate-row{grid-template-columns:10rem minmax(0,1fr)}
+.fund-activity .fund-owner-row{grid-template-columns:6rem 10rem 10rem minmax(8rem,1fr)}
+.fund-activity .fund-description-row{grid-template-columns:minmax(0,1fr)}
+.fund-activity .spend-more{border-top:1px solid #d6e2da;padding-top:10px}
+.fund-activity .spend-more>div{display:flex;flex-direction:column;gap:10px;margin:10px 0}
+.fund-activity .spend-more>summary{font-weight:600;cursor:pointer}
+.fund-activity .funding-entry-picker{padding:0 0 14px;margin-bottom:14px;border-bottom:1px solid #d6e2da}
+.fund-activity .funding-entry-picker select{width:100%;min-width:0;box-sizing:border-box}
+.fund-activity .fund-form-actions{display:flex;justify-content:flex-end;border-top:1px solid #d6e2da;padding-top:12px}
+.fund-activity .funding-delete{margin-top:10px;text-align:left}
+.fund-activity .fund-field-row:has(>label[hidden]):not(:has(>label:not([hidden]))){display:none}
+@media(max-width:600px){
+ .fund-activity .fund-payment-row{grid-template-columns:5rem 7rem minmax(7rem,1fr)}
+ .fund-activity .fund-field-row{gap:6px}
+ .fund-activity .fund-source-row{grid-template-columns:8rem minmax(0,1fr)}
+ .fund-activity .fund-source-row>label:last-child{grid-column:1/-1}
+ .fund-activity .fund-exchange-row{grid-template-columns:5rem minmax(0,1fr)}
+}
+
+@media(max-width:800px){.fund-activity .fund-owner-row{grid-template-columns:6rem minmax(8rem,1fr)}.fund-activity .fund-owner-row>label:nth-child(3){grid-column:1/-1;max-width:18rem}}
+body #transactions-budget14313 table.budget-saved-table tbody td :is(button,.row-menu99>summary){height:32px!important;min-height:32px!important;max-height:32px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;padding:5px 10px!important;vertical-align:middle!important}
+body #transactions-budget14313 .data-table82:has(>.budget-saved-table){overflow-x:auto!important}
+@layer compact14327{
+ body #transactions-budget14313 table.budget-saved-table :is(th,td){padding-top:6px!important;padding-bottom:6px!important;line-height:1.35!important}
+}
+@layer compact14327{
+ body #transactions-budget14313 table.budget-saved-table tbody td :is(button,.row-menu99>summary){height:32px!important;min-height:32px!important;max-height:32px!important;line-height:20px!important;padding:5px 10px!important}
+}

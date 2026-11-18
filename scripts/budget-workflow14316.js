@@ -279,15 +279,14 @@ window.BudgetReport290 = (() => {
   return '<div class="data-table82"><table '+marker+' style="width:100%;border-collapse:collapse"><thead><tr>'+heading+'</tr></thead><tbody>'+
    rows.map(r=>tr(r,false)).join('')+'</tbody>'+(totals.length?'<tfoot>'+totals.map(r=>tr(r,true)).join('')+'</tfoot>':'')+'</table></div>';
  }
- function cashSummary(d,editable=false){
+ function cashSummary(d){
   const totals=balances(d),codes=cashCodes(d),rows=[];
   const cols=(name,value)=>[name,...codes.map(c=>value(c)==null?'—':amountHtml(c,value(c)))];
   const key=(name,k)=>cols(name,c=>totals.get(c)?.[k]||0);
-  const edit=(kind,i)=>editable?' <button type="button" data-edit-'+kind+'="'+i+'">Edit</button>':'';
   const ref=s=>s?'<br><small>'+esc(s)+'</small>':'';
   for(const [i,m] of d.movements.entries()){
    if(kind(m)!=='receipt')continue;
-   rows.push(cols(esc(m.account||'Receipt')+edit('movement',i)+ref(m.reference),c=>c===m.currency?Number(m.inflow):null));
+   rows.push(cols(esc(m.account||'Receipt')+ref(m.reference),c=>c===m.currency?Number(m.inflow):null));
   }
   rows.push(key('Total received','receipt'));
   for(const [i,f] of (d.conversions||[]).entries()){
@@ -295,21 +294,16 @@ window.BudgetReport290 = (() => {
    const base=f.target==='USD'?f.target:f.currency;
    const quote=base===f.currency?f.target:f.currency;
    const rate=base===f.currency?received/f.amount:f.amount/received;
-   rows.push(cols('Exchange'+edit('exchange',i)+ref(formatAppRate(rate)+' '+quote+' / '+base+(f.evidence||f.reference?' · '+(f.evidence||f.reference):'')),
+   rows.push(cols('Exchange'+ref(formatAppRate(rate)+' '+quote+' / '+base+(f.evidence||f.reference?' · '+(f.evidence||f.reference):'')),
     c=>c===f.currency?-Number(f.amount):c===f.target?received:null));
   }
   for(const [i,m] of d.movements.entries()){
    const type=kind(m);
-   if(['borrow','repay','coverage'].includes(type))rows.push(cols(esc(labels[type])+edit('movement',i)+ref(m.reference),c=>c===m.currency?Number(m.inflow||0)-Number(m.outflow||0):null));
+   if(['borrow','repay','coverage'].includes(type))rows.push(cols(esc(labels[type])+ref(m.reference),c=>c===m.currency?Number(m.inflow||0)-Number(m.outflow||0):null));
   }
   rows.push(cols('Available to distribute',c=>{const t=totals.get(c);return t?t.receipt+t.coverage+t.borrow-t.repay+t.convertedIn-t.convertedOut:0;}));
   rows.push(key('Total distributed','cashSpent'));
-  const handover=d.movements.some(m=>kind(m)==='refund');
-  const closing=[key(handover?'Remaining before handover':'Remaining','beforeReturn')];
-  if(handover){
-   for(const [i,m] of d.movements.entries())if(kind(m)==='refund')closing.push(cols('Handed over'+edit('movement',i)+ref(m.reference),c=>c===m.currency?-Number(m.outflow):null));
-   closing.push(key('Cash after handover','remaining'));
-  }
+  const closing=[key('Remaining','beforeReturn')];
   return summaryTable(['Source / activity',...codes],rows,closing,'data-cash-summary');
  }
  function requestSummary(d,editable=false){
@@ -334,18 +328,18 @@ window.BudgetReport290 = (() => {
     const category=line?.category||m?.category290||'Additional spending';
     const identity=' data-payment="'+i+'" data-line="'+(index??-1)+'"';
     const reference=editable?'<input data-payment-reference'+identity+' aria-label="Reference for '+esc(item)+'" placeholder="Reference" value="'+esc(m?.reference||'')+'">':esc(m?.reference||'—');
-    const itemCell='<strong>'+esc(item)+'</strong> · '+esc(category)+(line?'':' · Outside request')+'<br><small>Reference &nbsp;'+reference+'</small>';
+    const itemCell='<strong>'+esc(item)+'</strong> · '+esc(category)+(line?'':' · Outside request');
     const amounts=codes.map(c=>{
      if(m&&m.currency!==c)return '—';
      const n=m?cashPaid(m):null;
      return editable?'<input type="number" min="0" step="0.01" data-paid-in="'+esc(c)+'" data-currency="'+esc(c)+'"'+identity+' aria-label="'+esc(c)+' paid for '+esc(item)+'" value="'+(n==null?'':Number(n))+'" placeholder="0.00">':
       n==null?(c===line.currency?amountHtml(c,0):'—'):amountHtml(c,n);
     });
-    rows.push([itemCell,...amounts,...(editable?['<button type="button" data-pay-detail'+identity+'>Details</button>']:[])]);
+    rows.push([itemCell,...amounts,reference,...(editable?['<button type="button" data-pay-detail'+identity+'>Details</button>']:[])]);
    }
   }
-  const total=['Total distributed',...codes.map(c=>amountHtml(c,sums.get(c)?.cashSpent||0)),...(editable?['']:[])];
-  return summaryTable(['Item / category',...codes,...(editable?['']:[])],rows,[total],'data-disbursements');
+  const total=['Total distributed',...codes.map(c=>amountHtml(c,sums.get(c)?.cashSpent||0)),'',...(editable?['']:[])];
+  return summaryTable(['Item / category',...codes,'Reference',...(editable?['Action']:[])],rows,[total],'data-disbursements');
  }
  function summary(d){
   return section82('Funding summary',cashSummary(d))+section82('Budget request summary',requestSummary(d))+section82('Disbursement breakdown',disbursements(d));
@@ -884,18 +878,17 @@ function renderRequest(notice=''){
  guard();
  const rows=budgetRows();
  checkListedDrafts(rows,notice);
- const requestRows=rows.filter(r=>r.data.mode!=='utilization').map(r=>[esc(report.period(r.data)),esc(r.data.recipient),esc(r.data.purpose),totals327(r.data,true),button('Open',`editRequest(${JSON.stringify(r.id)})`)+button('Utilization',`startAllocation(${JSON.stringify(r.id)})`)]);
+ const requestRows=rows.filter(r=>r.data.mode!=='utilization').map(r=>[esc(report.period(r.data)),esc(r.data.recipient),esc(r.data.purpose),totals327(r.data,true),'<div class="budget-row-actions">'+button('Open',`editRequest(${JSON.stringify(r.id)})`)+button('Utilization',`startAllocation(${JSON.stringify(r.id)})`)+'</div>']);
  const reports=rows.filter(r=>r.data.mode==='utilization').map(record=>({record,balances:report.balances({...record.data,lines:record.data.lines||[]})}));
  const utilization=reports.map(({record:r,balances})=>{
   const codes=report.orderedUnits(balances.keys());
   const amounts=key=>report.amountLines(codes,c=>balances.get(c)[key]);
-  const handover=codes.some(c=>balances.get(c).refund);
-  const remaining=amounts('beforeReturn')+(handover?'<br><small>After handover<br>'+amounts('remaining')+'</small>':'');
+  const remaining=amounts('beforeReturn');
   return [esc(report.period(r.data)),esc(r.data.purpose),esc(r.data.status||'Draft'),amounts('requested'),amounts('receipt'),amounts('cashSpent'),remaining,
    button(isFinal(r)?'View':'Edit',`openAllocation(${JSON.stringify(r.id)})`)];
  });
- const content=section82('Saved budget requests',table82(['Month','Recipient','Purpose','Requested',''],requestRows))+
-  section82('Fund utilization reports',table82(['Month','Purpose','Status','Requested','Received','Cash paid','Remaining',''],utilization));
+ const content=section82('Saved budget requests',table82(['Month','Recipient','Purpose','Requested','Action'],requestRows).replace('<table>','<table id="savedBudgetRequests" class="budget-saved-table">'))+
+  section82('Fund utilization reports',table82(['Month','Purpose','Status','Requested','Received','Cash paid','Remaining','Action'],utilization).replace('<table>','<table id="savedFundReports" class="budget-saved-table">'));
  mount82('transactions-budget14313','Budget Requests','',notice+content+historyImportButton(),button('Fund utilization','showFunds()')+button('New Report','newRequest()')+button('Print / PDF','printPicker()')+(access113.can('transactions-all')?'<button type="button" data-book-history="budget">History</button>':''));
 }
 function printPicker(){
@@ -1218,7 +1211,7 @@ function renderAllocation(){
  const actions=button('Reports','chooseRequest()')+button('Print','previewAllocation()')+
   button('Save','saveAllocation(false)')+button('Finalize','saveAllocation(true)');
  reportToolbar(fundPopup,actions).querySelector('[onclick*="saveAllocation(false)"]').classList.add('fund-save-draft');
- const cashActions='<button type="button" data-activity="receipt">Receipt</button><button type="button" data-activity="conversion">Exchange</button><button type="button" data-activity="other">Other</button>';
+ const cashActions='<button type="button" data-edit-funding>Edit funding</button>';
  const rowHeader=d.requestId14316?[report.period(d),d.recipient].filter(Boolean).map(esc).join(' · '):'';
  const header='<form id="fundHeader290" data-parent="'+esc(d.requestId14316||'')+'" data-record="'+esc(allocationRecord?.id||'')+'"><div class="fund-report-fields">'+
   field82('Report date','date',d.date,'date','required')+field82('Reference','receiptReference290',d.receiptReference290||'')+
@@ -1244,22 +1237,18 @@ function renderAllocation(){
  });
  host.applySpending=()=>sheet.read(true);host.worksheetChanged=sheet.dirty;
  host.querySelectorAll('[data-activity]').forEach(b=>b.onclick=()=>openActivity(b.dataset.activity));
+ host.querySelector('[data-edit-funding]').onclick=()=>openFundingEditor();
  const summary=host.querySelector('[data-fund-summary]');
  function refresh(){
   try{
    const current=sheet.read(),balances=report.balances(current);
-   summary.innerHTML=report.cashSummary(current,true);
+   summary.innerHTML=report.cashSummary(current);
    const totals=host.querySelector('[data-disbursements] tfoot tr');
    for(const [i,th] of [...host.querySelector('[data-disbursements] thead tr').cells].entries()){
-    const c=th.textContent;if(i&&c)totals.cells[i].innerHTML=report.amountHtml(c,balances.get(c)?.cashSpent||0);
+    const c=th.textContent;if(i&&CurrencyStore.currencies.some(unit=>unit.code===c))totals.cells[i].innerHTML=report.amountHtml(c,balances.get(c)?.cashSpent||0);
    }
   }catch(error){summary.textContent=error.message;}
  }
- summary.onclick=e=>{
-  const button=e.target.closest('button');if(!button)return;
-  if(button.hasAttribute('data-edit-movement'))editMovement(Number(button.dataset.editMovement));
-  if(button.hasAttribute('data-edit-exchange'))editConversion(Number(button.dataset.editExchange));
- };
  host.oninput=host.onchange=e=>{if(e.target.closest('[data-request-summary],[data-disbursements]'))refresh();};
  refresh();
 }
@@ -1270,6 +1259,21 @@ function applySpending(){
 function closeActivity(){
  if(fundPopup)fundPopup.querySelector('.ui-dialog108').inert=false;
  if(activityPopup){activityPopup.resolve108(false);activityPopup=null;}
+}
+function openFundingEditor(value){
+ const d=allocation;if(!d)return;
+ if(!value){const i=d.movements.findIndex(m=>report.kind(m)!=='spend');value=i>=0?'m:'+i:d.conversions.length?'f:0':'new:receipt';}
+ const [type,key]=value.split(':');
+ if(type==='f')return openActivity('conversion',Number(key),{funding:true});
+ if(type==='new')return openActivity(key,null,{funding:true});
+ const i=Number(key),kind=report.kind(d.movements[i]);
+ return openActivity(['receipt','coverage','spend'].includes(kind)?kind:'other',i,{funding:true});
+}
+function fundingChoices(d,index,isFx){
+ const rows=d.movements.flatMap((m,i)=>[['m:'+i,report.labels[report.kind(m)]+' · '+(m.account||m.reference)+' · '+report.currencyAmount(m.currency,m.inflow||m.outflow)]]);
+ rows.push(...d.conversions.map((f,i)=>['f:'+i,'Exchange · '+f.currency+' → '+f.target+' · '+report.currencyAmount(f.currency,f.amount)]));
+ rows.push(['new:receipt','+ Add receipt'],['new:conversion','+ Add exchange'],['new:other','+ Add other movement'],['new:spend','+ Add spending']);
+ return select82('Funding entry','fundingEntry',index===null?'new:'+(isFx?'conversion':'receipt'):(isFx?'f:':'m:')+index,rows);
 }
 function openActivity(group,index=null,preset={}){
  try{
@@ -1287,7 +1291,7 @@ function openActivity(group,index=null,preset={}){
   const options=rows=>rows.map(([v,name])=>`<option value="${esc(v)}">${esc(name)}</option>`).join('');
   const amountInput=(label,name)=>field82(label,name,'','number','min="0.01" step="0.01" required');
   const actions=(kind,i)=>button('Edit',`edit${kind}(${i})`)+button('Delete',`remove${kind}(${i})`);
-  const title={receipt:'Amount received',coverage:'Restaurant coverage',conversion:'Currency conversion',spend:index===null?'Add spending row':'Spending row',other:'Other fund movements'}[group];
+  const title=preset.funding?'Edit funding':{receipt:'Amount received',coverage:'Restaurant coverage',conversion:'Currency conversion',spend:index===null?'Add spending row':'Spending row',other:'Other fund movements'}[group];
  const movement=`<form id="financeMove82" class="finance-controls117">${types.length>1?select82('Activity','type290',type,types):'<input type="hidden" name="type290" value="'+esc(type)+'">'}${field82('Date','date290',d.date,'date','required')}
   <label data-loan-field hidden>Advance to repay<select name="loanId290"><option value="">Choose an advance</option>${options(loans.map(l=>[l.id290,l.account+' · '+l.reference+' · '+report.currencyAmount(l.currency,report.outstanding(d,l))+' outstanding']))}</select>${loans.length?'':'<small>Record the original advance with its borrowing date first.</small>'}</label>
   <label><span data-source-label>Funding from</span><input name="account" required></label><label><span data-dest-label>Received into</span><input name="destination290"></label>
@@ -1297,21 +1301,23 @@ function openActivity(group,index=null,preset={}){
   <label data-cash-field hidden>Cash distributed<input placeholder="Same as expense amount" name="cashDistributed" type="number" min="0" step="0.01"></label>
   <label data-equivalent-field hidden><span></span><input name="equivalent" type="number" min="0.01" step="0.01"></label>
   ${group==='receipt'?select82('Funding source','ownerSource','',[['','Match to journal'],['owner','Owner support'],['other','Other source']]):''}
-  ${group==='spend'?'<label>Amount paid from owner support<input name="ownerAmount" type="number" min="0" step="0.01" placeholder="Unconfirmed"></label>'+select82('Original funding currency','ownerCurrency',d.lines[0]?.currency||'LAK',cs):''}
-  ${field82('Description / use of money','description290','','text')}${field82('Reference','reference','','text','required')}<button type="submit">Add movement</button><button type="button" data-cancel hidden>Cancel edit</button></form>`;
+  ${group==='spend'?'<label>Owner amount<input name="ownerAmount" type="number" min="0" step="0.01" placeholder="Unconfirmed"></label>'+select82('Owner currency','ownerCurrency',d.lines[0]?.currency||'LAK',cs):''}
+  ${field82('Description','description290','','text')}${field82('Reference','reference','','text','required')}<button type="submit">Add movement</button><button type="button" data-cancel hidden>Cancel edit</button></form>`;
  const fx=`<form id="financeFx117" class="finance-controls117">${field82('Date','date',d.date,'date','required')}${field82('From account','source','','text','required')}${select82('From currency','currency','USD',cs)}${amountInput('Amount exchanged','amount')}
-  ${field82('Received into','destination290','','text','required')}${select82('To currency','target','LAK',cs)}${amountInput('Amount received','targetAmount290')}${field82('Evidence / reference','evidence','','text','required')}<output aria-live="polite"></output><button type="submit">Add conversion</button><button type="button" data-cancel hidden>Cancel edit</button></form>`;
+  ${field82('Received into','destination290','','text','required')}${select82('To currency','target','LAK',cs)}${amountInput('Amount received','targetAmount290')}${field82('Reference','evidence','','text','required')}${field82('Rate','rate','','number','min="0.00000001" step="any" required')}<output aria-live="polite"></output><button type="submit">Add conversion</button><button type="button" data-cancel hidden>Cancel edit</button></form>`;
  const fxTable=table82(['Date','From account','Amount exchanged','Received into','Amount received','Rate','Reference','Action'],d.conversions.map((f,i)=>[esc(formatAppDate(f.date)),esc(f.source),report.amountHtml(f.currency,f.amount),esc(f.destination290||'—'),report.amountHtml(f.target,report.conversionAmount(f)),esc(formatAppRate(f.rate)),esc(f.evidence||f.reference),actions('Conversion',i)]));
  const movementRows=report.movementRows(d).flatMap((row,i)=>types.some(([k])=>k===report.kind(d.movements[i]))?[[...row,actions('Movement',i)]]:[]);
  const listing=group==='spend'?(index===null?'':button('Delete row',`removeMovement(${index})`)):table82([...report.movementHeaders,'Action'],movementRows);
- const {root,pending}=budgetDialog(title,isFx?fx+fxTable:movement+listing);
+ const selection=preset.funding?'<div class="funding-entry-picker">'+fundingChoices(d,index,isFx)+'</div>':'';
+ const remove=preset.funding&&index!==null?button('Delete entry',`remove${isFx?'Conversion':'Movement'}(${index})`):'';
+ const {root,pending}=budgetDialog(title,selection+(isFx?fx:movement)+(preset.funding?'<div class="funding-delete">'+remove+'</div>':isFx?fxTable:listing));
  activityPopup=root;root.classList.add('fund-activity');fundPopup.querySelector('.ui-dialog108').inert=true;
  pending.then(()=>{if(activityPopup===root){activityPopup=null;if(fundPopup){fundPopup.querySelector('.ui-dialog108').inert=false;fundPopup.querySelector('[data-activity="'+group+'"]')?.focus()}}});
  const f=root.querySelector('form');
  if(isFx){
   editFx=index;const prior=d.conversions[index];
   if(prior)for(const [k,v] of Object.entries({...prior,targetAmount290:report.conversionAmount(prior),evidence:prior.evidence||prior.reference||''}))if(f.elements[k])f.elements[k].value=v;
-  f.oninput=f.onchange=()=>{const a=movementAmount(f.elements.amount),b=movementAmount(f.elements.targetAmount290);f.querySelector('output').textContent=a>0&&b>0?'Rate: '+formatAppRate(b/a)+' '+f.elements.target.value+' / '+f.elements.currency.value:'';f.elements.targetAmount290.dataset.currency=f.elements.target.value;window.financialNumbers14231?.scan(f)};
+  f.oninput=f.onchange=e=>{const a=movementAmount(f.elements.amount);if(e?.target===f.elements.rate&&a>0&&movementAmount(f.elements.rate)>0)f.elements.targetAmount290.value=Math.round(a*movementAmount(f.elements.rate)*100)/100;const b=movementAmount(f.elements.targetAmount290);if(e?.target!==f.elements.rate)f.elements.rate.value=a>0&&b>0?b/a:'';f.querySelector('output').textContent=a>0&&b>0?'Rate: '+formatAppRate(b/a)+' '+f.elements.target.value+' / '+f.elements.currency.value:'';f.elements.targetAmount290.dataset.currency=f.elements.target.value;window.financialNumbers14231?.scan(f)};
   f.oninput();f.onsubmit=e=>{e.preventDefault();saveConversion(f)};
  }else{
   editMove=index;const prior=d.movements[index];
@@ -1333,7 +1339,7 @@ function openActivity(group,index=null,preset={}){
   if(group==='spend'&&(!prior||prior.worksheetSpend)){f.elements.account.required=false;f.elements.reference.required=false;}
   if(group==='spend'){
    const more=document.createElement('details');more.className='spend-more';more.innerHTML='<summary>More details</summary><div></div>';
-   for(const key of ['account','destination290','cashDistributed','equivalent','ownerAmount','ownerCurrency','description290']){
+   for(const key of ['account','destination290','cashDistributed','equivalent','ownerAmount','ownerCurrency']){
     more.lastElementChild.append(f.elements[key].closest('label'));
    }
    f.querySelector('[type=submit]').before(more);
@@ -1351,6 +1357,39 @@ function openActivity(group,index=null,preset={}){
   f.onchange=()=>movementFields(f);movementFields(f);
   f.onsubmit=e=>{e.preventDefault();saveMovement(f)};
  }
+ // Keep concise, related fields together, independent of optional detail visibility.
+ for(const label of f.querySelectorAll('label')){
+  const field=label.querySelector('input,select,textarea');if(field)label.dataset.field=field.name;
+ }
+ const row=(className,names)=>{
+  const labels=names.map(name=>f.elements[name]?.closest('label')).filter(Boolean);
+  if(!labels.length)return;
+  const wrap=document.createElement('div');wrap.className='fund-field-row '+className;
+  labels[0].before(wrap);for(const label of labels)wrap.append(label);
+ };
+ if(isFx){
+  row('fund-source-row',['date','source','destination290']);
+  row('fund-exchange-row',['currency','amount','target','targetAmount290']);
+  row('fund-rate-row',['rate','evidence']);
+ }else{
+  row('fund-date-row',['date290',group==='spend'?'budgetKey117':'ownerSource']);
+  row('fund-source-pair',['account','destination290']);
+  row('fund-item-row',['item290','category290']);
+  row('fund-payment-row',['currency','amount','reference']);
+  row('fund-description-row',['description290']);
+  row('fund-owner-row',['ownerCurrency','ownerAmount','cashDistributed','equivalent']);
+ }
+ const submit=f.querySelector('[type=submit]');
+ const footer=document.createElement('div');footer.className='fund-form-actions';submit.before(footer);footer.append(submit);
+ if(preset.funding){
+  const choice=root.querySelector('[name=fundingEntry]');
+  choice.value=index===null?'new:'+group:(isFx?'f:':'m:')+index;
+  const initial=JSON.stringify([...new FormData(f)]);
+  choice.onchange=async()=>{const value=choice.value;
+   if(JSON.stringify([...new FormData(f)])!==initial&&!await ui117.confirm('Discard the unsaved changes to this funding entry?')){choice.value=index===null?'new:'+group:(isFx?'f:':'m:')+index;return;}
+   openFundingEditor(value);
+  };
+ }
  f.querySelector('[type=submit]').textContent=index!==null?'Update':isFx?'Add conversion':group==='receipt'?'Add receipt':group==='coverage'?'Add coverage':group==='spend'?'Add spending':'Add movement';
  f.querySelector('[data-cancel]').remove();
  f.querySelector('input:not([type=hidden]),select')?.focus();
@@ -1367,12 +1406,12 @@ function movementFields(f){
  f.querySelector('[data-item-field]').hidden=!spend;f.querySelector('[data-cash-field]').hidden=!spend;
  f.querySelectorAll('[data-extra-item]').forEach(label=>{label.hidden=!!item;});
  if(f.elements.item290)f.elements.item290.required=spend&&!item;
- const labels={receipt:['Funding from','Received into'],coverage:['Covered by','Applied to'],borrow:['Lender / company fund','Received into'],repay:['Paid from','Repaid to'],spend:['Paid from','Paid to / destination'],refund:['Returned from','Returned to'],transfer:['Transferred from','Transferred to']};
+ const labels={receipt:['Funding from','Received into'],coverage:['Covered by','Applied to'],borrow:['Lender / company fund','Received into'],repay:['Paid from','Repaid to'],spend:['Paid from','Paid to'],refund:['Returned from','Returned to'],transfer:['Transferred from','Transferred to']};
  f.querySelector('[data-source-label]').textContent=labels[type][0];f.querySelector('[data-dest-label]').textContent=labels[type][1];
  f.elements.destination290.required=transfer;
  const target=repay?loan:spend?item:null,cross=target&&target.currency!==f.elements.currency.value;
  const field=f.querySelector('[data-equivalent-field]');field.hidden=!cross;f.elements.equivalent.required=!!cross&&repay;
- if(cross){field.querySelector('span').textContent=repay?'Debt settled in '+target.currency:'Budget equivalent in '+target.currency+' (optional)';}
+ if(cross){field.querySelector('span').textContent=repay?'Debt settled in '+target.currency:'Budget equivalent ('+target.currency+')';}
 }
 function editMovement(i,currency){
  const m=allocation?.movements[i];if(!m)return;
@@ -1419,7 +1458,7 @@ function editConversion(i){if(allocation?.conversions[i])openActivity('conversio
 function saveConversion(f){
  try{guard();if(!activityPopup?.contains(f)||!f.reportValidity())return;captureFund();
   const fields=Object.fromEntries(new FormData(f)),amount=movementAmount(f.elements.amount),target=movementAmount(f.elements.targetAmount290);
-  const next={...fields,amount,targetAmount290:target,rate:target/amount,source:fields.source.trim(),destination290:fields.destination290.trim(),evidence:fields.evidence.trim()};
+  const next={...(editFx===null?{}:allocation.conversions[editFx]),...fields,amount,targetAmount290:target,rate:target/amount,source:fields.source.trim(),destination290:fields.destination290.trim(),evidence:fields.evidence.trim()};
   const rows=[...allocation.conversions];if(editFx===null)rows.push(next);else rows[editFx]=next;
   validateAllocation({...allocation,conversions:rows},false);allocation.conversions=rows;closeActivity();renderAllocation();
  }catch(e){showCenterStatus(e.message,true)}
@@ -1658,7 +1697,7 @@ const switchBefore=window.switchTab;window.switchTab=function(id,...args){if(id=
 const renderBefore=window.renderWork82;window.renderWork82=function(...args){const out=renderBefore.apply(this,args);if(document.querySelector('#user-entry-review.active'))renderFinalization();if(document.querySelector('#transactions-all.active'))renderHistory();return out};
 const deleteBefore=window.deleteWork108;window.deleteWork108=function(kind,id){return kind==='reports'&&Work82.reports.find(r=>r.id===id)?.data.kind==='finance'?remove(id):deleteBefore(kind,id)};
 const openBefore=window.openOperational82;window.openOperational82=function(id){const r=Work82.reports.find(r=>r.id===id);return r?.data.kind==='finance'?(r.data.mode==='utilization'?openAllocation(id):openRequest(id)):openBefore(id)};
-window.budgetWorkflow14316={get finalTab(){return finalTab},get historyTab(){return historyTab},prepareHistory:renderHistory,prepareFinalization:renderFinalization,renderRequest,newRequest,editRequest,requestData,refreshCategories,templateApplied,printPicker,requestHTML,showFunds,combineRequests,saveDocument,requireSaved,decorateEditor,openRequest,startAllocation,openAllocation,chooseRequest,linkRequest,importHistory,saveAllocation,previewAllocation,newUnlinked,removeMovement,removeConversion,finalization,history,view,printRecord,remove,parseDocument,recalculate,validDate14317,editMovement,editConversion};
+window.budgetWorkflow14316={get finalTab(){return finalTab},get historyTab(){return historyTab},prepareHistory:renderHistory,prepareFinalization:renderFinalization,renderRequest,newRequest,editRequest,requestData,refreshCategories,templateApplied,printPicker,requestHTML,showFunds,combineRequests,saveDocument,requireSaved,decorateEditor,openRequest,startAllocation,openAllocation,chooseRequest,linkRequest,importHistory,saveAllocation,previewAllocation,newUnlinked,removeMovement,removeConversion,finalization,history,view,printRecord,remove,parseDocument,recalculate,validDate14317,editMovement,editConversion,openFundingEditor};
 window.addEventListener('transactions-reset14316',e=>{if(e.detail.scopes.includes('reports')){confirmedFinals.clear();checkedOnVisit=new Set();selectedParent='';if(requestEditor){requestEditor.root.resolve108(false);requestEditor=null;}allocation=null;allocationRecord=null;clearFundPopup();Work82.reports=[];Work82.report=null;Work82.reportRecord=null;Object.assign(Finance82,{mode:'request',date:today82(),recipient:'',purpose:'',notes:'',lines:[],movements:[],conversions:[]});renderHistory()}});
 function checkPopupAccess(){
  if(requestEditor&&(liveProfile?.id!==actor||ojmDb!==actorClient||liveProfile?.role!=='admin'||!access113.can('transactions-budget14313')||!document.getElementById('loginGate')?.classList.contains('is-authenticated'))){requestEditor.root.resolve108(false);requestEditor=null;}
