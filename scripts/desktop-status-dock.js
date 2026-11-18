@@ -1,14 +1,15 @@
-// The rail and report filter share display preferences within the signed-in company account.
-function monthlyTrialPreferenceKey(){
- return 'monthly-trial:'+JSON.stringify([window.OJM_SUPABASE_URL||location.origin,liveProfile.id,window.workspaceRequest138?.target||'']);
+// Shortcut and report preferences are independent within the signed-in company account.
+function monthlyTrialPreferenceKey(scope='shortcut'){
+ return (scope==='report'?'monthly-trial-report:':'monthly-trial:')+JSON.stringify([window.OJM_SUPABASE_URL||location.origin,liveProfile.id,window.workspaceRequest138?.target||'']);
 }
-function monthlyTrialPreferences(){
+function monthlyTrialPreferences(scope='shortcut'){
  let saved;
- try{saved=JSON.parse(localStorage.getItem(monthlyTrialPreferenceKey()))}catch{}
+ try{saved=JSON.parse(localStorage.getItem(monthlyTrialPreferenceKey(scope)))}catch{}
+ if(scope==='report')return {columns:saved?.columns==='balance'?'balance':'full'};
  return {basis:saved?.basis==='reporting'?'reporting':'original',columns:saved?.columns==='balance'?'balance':'full',accounts:Array.isArray(saved?.accounts)?saved.accounts:null};
 }
-function saveMonthlyTrialPreferences(prefs){
- try{localStorage.setItem(monthlyTrialPreferenceKey(),JSON.stringify(prefs))}catch{showCenterStatus('Could not save the comparison settings on this device.',true)}
+function saveMonthlyTrialPreferences(prefs,scope='shortcut'){
+ try{localStorage.setItem(monthlyTrialPreferenceKey(scope),JSON.stringify(prefs))}catch{showCenterStatus('Could not save the comparison settings on this device.',true)}
 }
 function monthlyTrialColumnControl(value,compact=false){
  return (compact?'':'<label>Columns')+'<select aria-label="Columns" data-plain14285 name="trialColumns"><option value="full">Debit, Credit, Balance</option><option value="balance"'+(value==='balance'?' selected':'')+'>Balance only</option></select>'+(compact?'':'</label>');
@@ -165,7 +166,7 @@ function monthlyTrialReportModel(){
  const s=Reports79,months=summaryPeriod14331.monthRange([s.from.slice(0,7),s.to.slice(0,7)]);
  const entries=reportWindow143195.cachedLedger();
  if(!entries)throw Error('The posted journal for this comparison has not finished loading.');
- return monthlyTrialModel(entries,months,{...monthlyTrialPreferences(),from:s.from,to:s.to,currency:s.currency,basis:s.basis,direction:reportSort143153('tb').direction});
+ return monthlyTrialModel(entries,months,{...monthlyTrialPreferences('report'),accounts:null,from:s.from,to:s.to,currency:s.currency,basis:s.basis,direction:reportSort143153('tb').direction});
 }
 function monthlyTrialTable(model,print=false,groupCategories=false){
  const {months,subheads,values,totalCount}=model,width=subheads.length,span=print?(width===1?5:2):months.length,tables=[];

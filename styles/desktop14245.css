@@ -3747,8 +3747,6 @@ dialog.monthly-trial-dialog:has(.monthly-trial-filter[open]){min-height:min(350p
 .trial-account-picker input[type=checkbox]{width:15px;height:15px;min-height:0;flex:none}
 .trial-account-picker label[hidden],.trial-filter-options[hidden]{display:none!important}
 .trial-account-list{max-height:32vh;overflow-y:auto}
-.trial-filter-options{display:grid;gap:8px;grid-column:1/-1}
-.trial-filter-options>label{display:grid;gap:4px}
 .monthly-trial-scroll{max-width:100%;min-height:0;overflow:auto;overscroll-behavior:contain}
 .r79-content .monthly-trial-scroll{max-height:72vh}
 html body .monthly-trial-scroll .monthly-trial-table{width:max-content;min-width:0;max-width:none;table-layout:auto;border-collapse:separate;border-spacing:0;font:12px/1.15 Arial,sans-serif;font-variant-numeric:tabular-nums;margin:0}
@@ -3802,6 +3800,11 @@ html body .monthly-trial-filter-panel>label :is(select,button){width:100%!import
 html body .monthly-trial-filter .trial-account-picker[open]>div{position:static;width:100%;box-sizing:border-box;border:0;box-shadow:none;padding:7px 0}
 .monthly-trial-filter .trial-account-picker>summary{width:100%;text-align:left}
 .monthly-trial-filter .trial-account-list{max-height:28vh}
+/* Comparative row headers need their own ink color, independent of standard green report headers. */
+:is(body,#printableDocArea) :is(#report-tb,#report-open-tb) .monthly-trial-table th{color:#173b32!important;text-transform:none!important;letter-spacing:normal!important}
+:is(body,#printableDocArea) :is(#report-tb,#report-open-tb) .monthly-trial-table :is(th[scope=row],th[rowspan]){text-align:left!important}
+:is(body,#printableDocArea) :is(#report-tb,#report-open-tb) .monthly-trial-table td{text-align:right!important}
+:is(body,#printableDocArea) :is(#report-tb,#report-open-tb) .monthly-trial-table thead th{background:#e7f0e9!important}
 
 /* styles/desktop-corrections-v80.css */
 .ledger-side80{display:none}
