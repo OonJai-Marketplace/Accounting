@@ -598,8 +598,11 @@ Journal numbering, 2026-11-11: Show the assigned manual journal number immediate
 Fund utilization protocol, 2026-11-18: salary cost is earned gross after attendance
 deductions, before employee PIT/SSO and advance recovery, in USD and LAK. Show
 PIT as employer 50% only and SSO as employer 6% only. Approved requests remain
-separate from recorded committed costs. Funding remaining uses committed expense
-cost in its funding currency, not net cash paid; conversion is not a second expense.
+separate from recorded committed costs. Funding remaining uses receipts + coverage + advances - repayments + exchanges
+in - exchanges out - committed expense cost in each native transaction currency.
+Never convert LAK spending back to USD based on the linked request currency.
+Exchanges are not expenses. Keep saved exchange amounts and references; remaining
+is before cash handover. Register totals include approved and exchange in/out.
 Keep physical cash details separately. Finalized payroll corrections use the
 administrator-only, version/fingerprint-checked payroll amendment with audit history.
 Preserve all unrelated report edits, cash payments, approval statuses, source payroll

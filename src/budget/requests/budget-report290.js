@@ -111,20 +111,18 @@ window.BudgetReport290 = (() => {
    t.beforeReturn=round(available);
    t.remaining=round(available-t.refund);
   }
-  for(const t of sums.values())t.allocated=0;
-  // The committed cost is the expense (including earned gross), never the net
-  // cash payment or the entire approved request. Keep its funding currency.
-  for(const m of d.movements||[]){
-   if(kind(m)!=='spend')continue;
-   const line=d.lines.find((line,i)=>forLine(m,line,i));
-   const c=m.ownerAmount!=null?(m.ownerCurrency||m.currency):(line?.currency||m.currency);
-   const amount=m.ownerAmount!=null?Number(m.ownerAmount):valueIn(d,expenseAmount(m),m.currency,c,line,m);
-   const t=currency(c);
-   t.allocated=amount==null||t.allocated===null?null:round((t.allocated||0)+amount);
-  }
-  for(const t of sums.values()){
-   t.fundAvailable=round(t.receipt+t.coverage+t.borrow-t.repay);
-   t.fundRemaining=t.allocated===null?null:round(t.fundAvailable-(t.allocated||0));
+  // Preserve the actual currency of every expense. An exchange moves funding
+  // between currencies; it never converts the same LAK spending back to USD.
+  for(const [c,t] of sums){
+   t.approved=0;
+   for(const [i,line] of d.lines.entries())if(line.currency===c){
+    const amount=lineFunding(d,line,i).amount;
+    t.approved=amount==null||t.approved===null?null:t.approved+Number(amount);
+   }
+   if(t.approved!==null)t.approved=round(t.approved);
+   t.allocated=round(t.spend);
+   t.fundAvailable=round(t.receipt+t.coverage+t.borrow-t.repay+t.convertedIn-t.convertedOut);
+   t.fundRemaining=round(t.fundAvailable-t.allocated);
   }
   return sums;
  }
@@ -197,7 +195,7 @@ window.BudgetReport290 = (() => {
   return orderedUnits(codes).map(c=>amountHtml(c,value(c))).join('<br>');
  }
  function fundingAmountLines(codes,value){
-  return orderedUnits(codes).map(c=>value(c)===null?esc(c)+' equivalent needed':amountHtml(c,value(c))).join('<br>');
+  return orderedUnits(codes).map(c=>value(c)===null?esc(c)+' unconfirmed':amountHtml(c,value(c))).join('<br>');
  }
  function spendingRows(d){
   const spent=(d.movements||[]).filter(m=>kind(m)==='spend');
@@ -263,12 +261,23 @@ window.BudgetReport290 = (() => {
  }
  function cashSummary(d){
   const totals=balances(d),codes=cashCodes(d),rows=[];
-  const cols=(label,key)=>[label,...codes.map(c=>{const t=totals.get(c);return t?.[key]===null?'Equivalent needed':amountHtml(c,t?.[key]||0);})];
-  for(const m of d.movements||[])if(kind(m)==='receipt')rows.push([esc(m.account||'Receipt')+(m.reference?'<br><small>'+esc(m.reference)+'</small>':''),...codes.map(c=>c===m.currency?amountHtml(c,m.inflow):'—')]);
-  rows.push(cols('Total received','receipt'));
-  for(const [key,label] of [['coverage','Additional coverage'],['borrow','Temporary funding'],['repay','Funding repaid']])if([...totals.values()].some(t=>t[key]))rows.push(cols(label,key));
-  rows.push(cols('Allocated / committed','allocated'));
-  return summaryTable(['Funding source',...codes],rows,[cols('Remaining funding','fundRemaining')],'data-cash-summary')+
+  const cols=(label,value)=>[label,...codes.map(c=>value(c)==null?'—':amountHtml(c,value(c)))];
+  const key=(label,k)=>cols(label,c=>totals.get(c)?.[k]||0);
+  const ref=s=>s?'<br><small>'+esc(s)+'</small>':'';
+  for(const m of d.movements||[])if(kind(m)==='receipt')rows.push(cols(esc(m.account||'Receipt')+ref(m.reference),c=>c===m.currency?Number(m.inflow):null));
+  rows.push(key('Total received','receipt'));
+  for(const f of d.conversions||[]){
+   const received=conversionAmount(f),rate=received/Number(f.amount);
+   rows.push(cols('Exchange · '+esc(f.currency)+' → '+esc(f.target)+ref(formatAppRate(rate)+' '+f.target+' / '+f.currency)+ref(f.evidence||f.reference),
+    c=>c===f.currency?-Number(f.amount):c===f.target?received:null));
+  }
+  for(const m of d.movements||[]){
+   const type=kind(m);
+   if(['borrow','repay','coverage'].includes(type))rows.push(cols(esc(labels[type])+ref(m.reference),c=>c===m.currency?Number(m.inflow||0)-Number(m.outflow||0):null));
+  }
+  rows.push(key('Available after exchange','fundAvailable'));
+  rows.push(key('Total used','allocated'));
+  return summaryTable(['Funding source / activity',...codes],rows,[key('Remaining funding','fundRemaining')],'data-cash-summary')+
    '<details class="worksheet-details"><summary>Cash movements</summary>'+physicalCashSummary(d)+'</details>';
  }
  function requestSummary(d,editable=false){
@@ -307,7 +316,7 @@ window.BudgetReport290 = (() => {
   return summaryTable(['Category','Item',...codes,'Reference',...(editable?['Action']:[])],rows,[total],'data-disbursements');
  }
  function summary(d){
-  return section82('Funding summary',cashSummary(d))+section82('Budget request summary',requestSummary(d))+section82('Disbursement breakdown',disbursements(d))+'<p class="fund-payroll-protocol">Salary: earned gross after absence and late deductions, before employee deductions and advance recovery. PIT: employer 50%. SSO: employer 6%. Remaining funding deducts committed costs in their funding currency; exchanges are not a second expense.</p>';
+  return section82('Funding summary',cashSummary(d))+section82('Budget request summary',requestSummary(d))+section82('Disbursement breakdown',disbursements(d))+'<p class="fund-payroll-protocol">Salary: earned gross after absence and late deductions, before employee deductions and advance recovery. PIT: employer 50%. SSO: employer 6%. USD exchanged out and LAK received are shown separately. Used and remaining stay in each transaction’s currency; exchanges are not expenses. Remaining is before cash handover.</p>';
  }
  function movementRows(d){
   return d.movements.map(m=>{

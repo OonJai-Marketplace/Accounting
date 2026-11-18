@@ -2,12 +2,15 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('nod
 const source=fs.readFileSync('src/bridges/subusers-bookkeeping/budget-workflow14316.js','utf8');
 const ctx=vm.createContext({num:n=>Number(n)||0,report:{orderedUnits:codes=>[...codes].sort(),fundingAmountLines:(codes,value)=>codes.map(c=>c+' '+value(c).toFixed(2)).join('<br>')},table82:(labels)=>'<table><thead><tr>'+labels.map(label=>'<th>'+label+'</th>').join('')+'</tr></thead></table>'});
 vm.runInContext(source.slice(source.indexOf('function utilizationHeaderTotals('),source.indexOf("function renderRequest(notice=")),ctx);
-const a={balances:new Map([['USD',{requested:10.10,receipt:20,allocated:22,fundRemaining:-2,remaining:-7}],['LAK',{requested:1000,receipt:1500,allocated:1100,fundRemaining:400}]])};
-const b={balances:new Map([['USD',{requested:20.20,receipt:30,allocated:15,fundRemaining:15}],['LAK',{requested:2000,receipt:3000,allocated:2500,fundRemaining:500}]])};
+const a={balances:new Map([['USD',{requested:10.10,approved:8,convertedOut:2,convertedIn:1,receipt:20,allocated:22,fundRemaining:-2,remaining:-7}],['LAK',{requested:1000,receipt:1500,allocated:1100,fundRemaining:400}]])};
+const b={balances:new Map([['USD',{requested:20.20,approved:12,convertedOut:3,convertedIn:2,receipt:30,allocated:15,fundRemaining:15}],['LAK',{requested:2000,receipt:3000,allocated:2500,fundRemaining:500}]])};
 const snapshot=JSON.stringify([a,b],(_,v)=>v instanceof Map?[...v]:v);
 const totals=ctx.utilizationHeaderTotals([a,b]);
 assert.equal(totals.get('USD').requested,30.30);
 assert.equal(totals.get('USD').receipt,50);
+assert.equal(totals.get('USD').approved,20);
+assert.equal(totals.get('USD').convertedOut,5);
+assert.equal(totals.get('USD').convertedIn,3);
 assert.equal(totals.get('USD').allocated,37);
 assert.equal(totals.get('USD').fundRemaining,13,'Uses remaining funding, like register rows');
 assert.equal(totals.get('LAK').fundRemaining,900);
@@ -15,8 +18,8 @@ assert.equal(ctx.utilizationHeaderTotals([a]).get('USD').fundRemaining,-2,'Filte
 assert.equal(ctx.utilizationHeaderTotals([]).size,0);
 assert.equal(JSON.stringify([a,b],(_,v)=>v instanceof Map?[...v]:v),snapshot,'Totals never mutate financial records');
 const html=ctx.utilizationRegister([a,b],[]);
-assert.equal((html.match(/<th /g)||[]).length,8,'One ordinary header row retains column resizing');
-assert.equal((html.match(/data-resize-label=/g)||[]).length,8,'Stable labels preserve widths when totals change');
+assert.equal((html.match(/<th /g)||[]).length,11,'One ordinary header row retains column resizing');
+assert.equal((html.match(/data-resize-label=/g)||[]).length,11,'Stable labels preserve widths when totals change');
 assert.match(html,/aria-label="Total requested">LAK 3000.00<br>USD 30.30/);
 assert.match(html,/Total · 2 reports/);
 assert.match(ctx.utilizationRegister([],[]),/Total · 0 reports/);

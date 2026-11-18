@@ -121,7 +121,7 @@ function totals327(d,asLines=false){
  return (asLines?report.amountLines(codes,value):codes.map(c=>report.currencyAmount(c,value(c))).join(' · '))||'—';
 }
 function utilizationHeaderTotals(reports){
- const totals=new Map(),keys=['requested','receipt','allocated','fundRemaining'];
+ const totals=new Map(),keys=['requested','approved','receipt','convertedOut','convertedIn','allocated','fundRemaining'];
  for(const {balances} of reports)for(const [currency,values] of balances){
   if(!totals.has(currency))totals.set(currency,Object.fromEntries(keys.map(key=>[key,0])));
   for(const key of keys)totals.get(currency)[key]=totals.get(currency)[key]===null||values[key]===null?null:totals.get(currency)[key]+Math.round(num(values[key])*100);
@@ -130,7 +130,7 @@ function utilizationHeaderTotals(reports){
 }
 function utilizationRegister(reports,rows){
  const totals=utilizationHeaderTotals(reports),codes=report.orderedUnits(totals.keys());
- const columns=[['Month'],['Purpose'],['Status'],['Requested','requested'],['Received','receipt'],['Allocated','allocated'],['Remaining','fundRemaining'],['Action']];
+ const columns=[['Month'],['Purpose'],['Status'],['Requested','requested'],['Approved','approved'],['Received','receipt'],['Exchanged out','convertedOut'],['Exchanged in','convertedIn'],['Used','allocated'],['Remaining','fundRemaining'],['Action']];
  let table=table82(columns.map(([label])=>label),rows).replace('<table>','<table id="savedFundReports" class="budget-saved-table">');
  for(const [label,key] of columns){
   const summary=key?(report.fundingAmountLines(codes,c=>totals.get(c)[key])||'—'):label==='Purpose'?'Total · '+reports.length+' '+(reports.length===1?'report':'reports'):'';
@@ -154,7 +154,7 @@ function renderRequest(notice=''){
   const codes=report.orderedUnits(balances.keys());
   const amounts=key=>report.fundingAmountLines(codes,c=>balances.get(c)[key]);
   const remaining=amounts('fundRemaining');
-  return [esc(report.period(r.data)),esc(r.data.purpose),esc(r.data.status||'Draft'),amounts('requested'),amounts('receipt'),amounts('allocated'),remaining,
+  return [esc(report.period(r.data)),'<span class="fund-register-purpose" title="'+esc(r.data.purpose)+'">'+esc(r.data.purpose)+'</span>',esc(r.data.status||'Draft'),amounts('requested'),amounts('approved'),amounts('receipt'),amounts('convertedOut'),amounts('convertedIn'),amounts('allocated'),remaining,
    button(isFinal(r)?'View':'Edit',`openAllocation(${JSON.stringify(r.id)})`)];
  });
  const content=section82('Saved budget requests',table82(['Month','Recipient','Purpose','Requested','Action'],requestRows).replace('<table>','<table id="savedBudgetRequests" class="budget-saved-table">'))+
@@ -494,7 +494,7 @@ function renderAllocation(){
   section82('Funding summary','<div data-fund-summary></div>',cashActions)+
   section82('Budget request summary',report.requestSummary(d,true))+
   section82('Disbursement breakdown',report.disbursements(d,true),'<button type="button" data-activity="spend">Add row</button>')+
-  '<p class="fund-payroll-protocol">Salary: earned gross after absence and late deductions. PIT: employer 50%. SSO: employer 6%. Remaining funding excludes committed allocations.</p>'+
+  '<p class="fund-payroll-protocol">Salary: earned gross after absence and late deductions. PIT: employer 50%. SSO: employer 6%. Used and remaining stay in each transaction’s currency. Exchange out reduces its source currency; exact proceeds add to the received currency. Remaining is before cash handover.</p>'+
   '<details class="worksheet-details" '+(d.requestId14316?'':'open')+'><summary>Report details</summary>'+header+'<div data-journal-ref></div>'+postControl(allocationRecord)+
   (supplements(allocationRecord).length?button('Combine requests','combineRequests()'):'')+'</details>';
  showJournalReference(host,allocationRecord);
