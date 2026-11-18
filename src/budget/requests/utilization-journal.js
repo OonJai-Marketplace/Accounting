@@ -16,6 +16,18 @@ window.BudgetUtilizationJournal=(()=>{
  }
  function localJob(id){return window.journalDurable14385?.pending().find(j=>j.id.startsWith('budget-use:'+id+':'));}
  function reference(link){return link?link.entry_no+(link.status==='posted'?'':' ('+link.status+')'):'';}
+ async function view(id){
+  const actor=liveProfile?.id,db=ojmDb;
+  const check=()=>{if(!actor||liveProfile?.id!==actor||ojmDb!==db||!access113.can('journal','view')||window.workspaceRequest138?.target||window.personalJournal1437?.active)throw Error('Open your company journal with View permission.');};
+  check();const link=await lookup(id);check();
+  if(!link)throw Error('This report has no recorded utilization journal.');
+  const {data:e,error}=await db.from('journal_entries').select('id,entry_no,transaction_date,memo,cash_slip_ref,status,journal_lines(line_no,line_date,description,currency_code,debit,credit,fx_rate_lak,book_rate_lak,accounts(id,name,code))').eq('entry_no',link.entry_no).maybeSingle();
+  check();if(error)throw error;if(!e?.journal_lines?.length)throw Error('The linked journal could not be loaded.');
+  const lines=[...e.journal_lines].sort((a,b)=>a.line_no-b.line_no).map(l=>({id:e.entry_no,dbEntryId:e.id,date:l.line_date||e.transaction_date,account:[l.accounts?.code,l.accounts?.name].filter(Boolean).join(' — '),currency:l.currency_code,memo:l.description||'',generalMemo:e.memo,cashSlipRef:e.cash_slip_ref,fx_rate_lak:l.fx_rate_lak,book_rate_lak:l.book_rate_lak,debit:Number(l.debit),credit:Number(l.credit),archived:(PeriodReview.periods[e.transaction_date.slice(0,7)]?.status||'open')!=='open'}));
+  showJournalSource69(encodeURIComponent(e.entry_no),lines);
+  document.getElementById('source69').style.zIndex='16000';
+  if(e.status!=='posted')document.querySelector('#source69 h3').textContent='Journal Entry '+e.entry_no+' · '+e.status;
+ }
  function amounts(data){
   const totals=[...BudgetReport290.balances(data)];
   if(totals.some(([,t])=>t.allocated===null))throw Error('Enter the missing funding equivalent before preparing the utilization journal.');
@@ -73,5 +85,5 @@ window.BudgetUtilizationJournal=(()=>{
   if(source.templateVersion===2&&!/^[a-f0-9]{32}$/.test(source.fingerprint||''))throw Error('Reopen the saved report to verify its source journals before posting.');
   return 'budget-use:'+source.id+':'+source.version+(source.fingerprint?':'+source.fingerprint:'');
  }
- return {open,amounts,lookup,localJob,reference,snapshot,restore,postingKey};
+ return {open,view,amounts,lookup,localJob,reference,snapshot,restore,postingKey};
 })();

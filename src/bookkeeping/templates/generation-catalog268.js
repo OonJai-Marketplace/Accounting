@@ -77,8 +77,9 @@ function templates(chart){
    continue;
   }
   if(m.actualCode==='3024'){
-   const remaining=[...reg.maps].find(([key,v])=>v.actualCode==='3023'&&g.currency(reg.all.find(item=>item.id===key))===c);
-   if(remaining)add('mapping-'+a.code+'-'+c,name+' · '+c,[row(reg.all.find(item=>item.id===remaining[0]),'debit','Release remaining support at its original rate'),row(a,'credit','Support used at the same original rate')],false);
+   const legacyRemaining=[...reg.maps].find(([key,v])=>v.actualCode==='3023'&&g.currency(reg.all.find(item=>item.id===key))===c);
+   const remaining=reg.replacement.get(c==='USD'?'9311':'9312')||reg.all.find(item=>item.id===legacyRemaining?.[0]);
+   if(remaining)add('mapping-'+legacy+'-'+c,name+' · '+c,[row(remaining,'debit','Release remaining support at its original rate'),row(a,'credit','Support used at the same original rate')],false);
    continue;
   }
   add('mapping-'+legacy+'-'+c,name+' · '+c,expense||asset||legacy==='9361'?[row(a,'debit'),slot('fund',c,'credit','Cash / bank payment')]:[slot('fund',c,'debit','Cash / bank receipt'),row(a,'credit')]);
@@ -115,6 +116,9 @@ function templates(chart){
  }
  for(const receipt of out.filter(t=>/^gen268-mapping-931[12]-/.test(t.id))){
   const c=receipt.lines[0].currency;
+  // Native support conversions need verified bridge offsets from utilization;
+  // the older bank-only combination cannot transfer Remaining between currencies.
+  if(receipt.lines.some(l=>reg.direct.get(reg.byCode(l.code,l.currency)?.id)?.actualCode==='3023'))continue;
   for(const to of currencies.filter(x=>x!==c)){
    const exchange=out.find(t=>t.id==='gen268-exchange-'+c+'-'+to);
    out.push({id:'gen268-support-exchange-'+c+'-'+to,name:'Receive financial support and exchange part or all · '+c+' to '+to,builtin:true,autoMatch:false,

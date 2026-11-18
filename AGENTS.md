@@ -726,3 +726,10 @@ protocol paragraphs and historical reconstruction notes from printing. Only expl
 optional Additional information is printed; original record notes remain saved.
 Preserve financial values, cash evidence, finalized status and journal IDs. Phase
 four account retirement is being handled separately.
+
+Owner support access, 2026-11-18: linked utilization reports retain View journal,
+a read-only view of the original saved entry. Keep the editable posting form and
+its drafts untouched by review. Journal Templates exposes the saved-utilization
+report picker and selects regular Remaining/Used equity in each currency for
+receipt, usage and staff-deposit starters. Preserve template numbers, same-rate
+support allocations, manual amounts and bank/staff selections, and posting guards.

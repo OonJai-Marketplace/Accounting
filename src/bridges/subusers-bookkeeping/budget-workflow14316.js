@@ -838,7 +838,7 @@ function showJournalReference(host,record){
  journal.lookup(record.id).then(link=>{
   check();if(!field.isConnected)return;
   const label=journal.reference(link);
-  if(label){field.textContent='Utilization journal · '+label+' · report version '+link.report_version;if(post)post.hidden=true;}
+  if(label){field.textContent='Utilization journal · '+label+' · report version '+link.report_version;if(post){post.textContent='View journal';post.title='Review the recorded journal';post.onclick=async()=>{if(post.disabled)return;post.disabled=true;try{check();await journal.view(record.id);}catch(e){showCenterStatus(e.message,true)}finally{post.disabled=false}};}}
   else{
    const job=journal.localJob(record.id);
    if(job){field.textContent='Utilization journal · '+(job.message||'Awaiting posting confirmation');if(post)post.hidden=true;}
@@ -856,7 +856,7 @@ async function prepareSummary(record,host,post){
   saved();
   const current=await live(record.id,record.version);check();
   const link=await journal.lookup(record.id);check();if(!host.isConnected)return;
-  if(link)throw Error('This report is already linked to journal '+journal.reference(link)+'.');
+  if(link){await journal.view(record.id);return;}
   if(journal.localJob(record.id))throw Error('The utilization posting is waiting for confirmation. Open Data Check to review it.');
   const groups=BudgetSupportEquity.groups(current.data);
   const evidence=await BudgetSupportEquity.evidence(current);

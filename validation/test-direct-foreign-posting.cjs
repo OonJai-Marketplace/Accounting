@@ -5,7 +5,7 @@ function add(currency,type,codes,technical=false){
  for(const code of codes.split(' '))chart.push({id:code,code,name:code,currency,baseType:type,isTechnical:technical,isPosting:true,active:true});
 }
 add('USD','ASSET','1041 1220 1314');add('USD','EXPENSE','5121 5316 5422 5424');
-add('USD','EQUITY','3026');add('USD','SYSTEM','9011 9042 9211 9231 9241 9311 9321',true);
+add('USD','EQUITY','3028 3029');add('USD','SYSTEM','9011 9042 9211 9231 9241 9311 9321',true);
 add('LAK','ASSET','1040');add('LAK','EXPENSE','5111 5311 5414 5419 5420 5421 5211 5212');
 add('LAK','EQUITY','3023 3024');add('LAK','LIABILITY','2111 2112');
 add('LAK','SYSTEM','9010 9041 9290 9390',true);add('THB','ASSET','1312');add('THB','EXPENSE','5123');
@@ -19,8 +19,8 @@ require('../src/bridges/payroll-bookkeeping/payroll-template1431.js');
 const G=JournalCompletion258,C=JournalTemplateCatalog268,templates=C.templates(chart);
 const layout=id=>templates.find(t=>t.id==='gen268-'+id).lines;
 assert.deepEqual(layout('mapping-9211-USD').map(x=>x.code||x.role),['5121','fund']);
-assert.deepEqual(layout('mapping-9321-USD').map(x=>x.code).slice(0,2),['9311','9321']);
-assert.deepEqual(layout('support-deposit-USD').map(x=>x.code||x.role),['staff','3026','fund','staff']);
+assert.deepEqual(layout('mapping-9321-USD').map(x=>x.code).slice(0,2),['3028','3029']);
+assert.deepEqual(layout('support-deposit-USD').map(x=>x.code||x.role),['staff','3028','fund','staff']);
 assert.equal(layout('payroll-USD')[0].code,'5316');
 const line=(account_id,debit,credit,book_rate_lak,role)=>({account_id,debit,credit,book_rate_lak,role});
 function complete(rows,rate=22000){
@@ -48,15 +48,16 @@ result=payrollTemplate1431.buildLines(payroll,template);
 assert.deepEqual(result.map(x=>x.account.code),['5316','1220','9042','9041','2111']);
 assert.equal(result[0].amount,1000);
 const receiptAndUse=[
- line('1220',50,0,22000),line('3026',0,50,22000),line('1041',50,0,22000),line('1220',0,50,22000),
- line('9311',70,0,21000),line('9321',0,70,21000)
+ line('1220',50,0,22000),line('3028',0,50,22000),line('1041',50,0,22000),line('1220',0,50,22000),
+ line('3028',70,0,21000),line('3029',0,70,21000)
 ];
 result=complete(receiptAndUse);
-assert.deepEqual(result.map(l=>[l.account_id,l.debit,l.credit]).slice(-2),[['3023',1470000,0],['3024',0,1470000]]);
+assert.deepEqual(result.map(l=>[l.account_id,l.debit,l.credit]).slice(-2),[['3028',70,0],['3029',0,70]]);
+assert.equal(result.length,6);
 assert.deepEqual(complete(result),result);
 const combinedLayout=layout('support-deposit-allocation-USD');
 assert.deepEqual(combinedLayout.filter(l=>!l.calculated).map(l=>l.stage),['Receipt','Receipt','Receipt','Receipt','Allocation','Allocation']);
-assert(G.complete({chart,rows:receiptAndUse.map(l=>l.account_id==='3026'?{...l,account_id:'9311'}:l),rates:{USD:22000}}).errors.length);
+assert(G.complete({chart,rows:receiptAndUse.map(l=>l.account_id==='3028'?{...l,account_id:'9311'}:l),rates:{USD:22000}}).errors.length);
 const local={...payroll,rows:['a','b'].map(employeeId=>({employeeId,employee:{name:employeeId,currency:'LAK',payrollAccountId:'1040'}})),
  results:['a','b'].map(employeeId=>({employeeId,currency:'LAK',gross:100.006,adjusted:100.006}))};
 const lt=payrollTemplate1431.defaultTemplate(local),snapshot=JSON.stringify(local);

@@ -1,6 +1,10 @@
 {
-  "version": "143.482",
+  "version": "143.483",
   "changes": [
+    "Linked utilization reports show View journal to review their original recorded entry without creating a new transaction.",
+    "Journal Templates includes Owner support from fund utilization with a saved-report picker.",
+    "Owner-support receipt, usage and staff-deposit templates select the regular Remaining and Used equity accounts in USD, LAK and THB; bank and staff choices remain editable.",
+    "Support allocations retain equal original contribution rates and existing template numbers.",
     "Utilization reports keep one funding summary. A single receipt no longer repeats Total received; multiple receipts retain their currency totals.",
     "Removed the Cash movements section and automatic explanatory paragraphs. Available after exchange, Total used, Remaining funding and references remain.",
     "Only optional Additional information is printed. Historical record notes remain saved, with financial amounts and journal IDs unchanged.",

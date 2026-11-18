@@ -2404,7 +2404,8 @@ function directTransactionTemplate(template,reg){
   const allocation=resolved.some(a=>a?.code==='9321'||a?.code==='9322');
   for(const [i,old] of resolved.entries()){
     const target=reg.replacement.get(old?.code);
-    if(!target||(old.code==='9311'&&(allocation||lines[i].side!=='credit')))continue;
+    if(!target)continue;
+    if(allocation&&['9311','9312','9321','9322'].includes(old.code)&&resolved.some(a=>['3023','3024','9390'].includes(a?.code)))return {...template,reviewDirectAccounts:true};
     const info=reg.direct.get(target.id),side=lines[i].side;
     const matches=(code,expected)=>resolved.map((a,n)=>a?.code===code&&!removed.has(n)&&lines[n].side===expected?n:-1).filter(n=>n>=0);
     const offsets=matches(info.offsetCode,side==='debit'?'credit':'debit'),actual=matches(info.actualCode,side);
@@ -2447,11 +2448,15 @@ function templateEditorFields14399(t){
   (t.lines||[]).forEach(add);
   const button=document.createElement('button');button.type='button';button.className='je-btn je-btn-secondary';button.textContent='Add line';button.onclick=()=>add();host.append(button);
 }
+function openUtilizationTemplates(){
+  if(liveProfile?.role!=='admin'||!access113.can('transactions-budget14313')||!access113.can('journal','post'))return;
+  closeModal('modalTemplateManager');switchTab('transactions-budget14313');budgetWorkflow14316.chooseRequest();
+}
 async function renderTemplateManager(){
   const host=document.getElementById('templateManagerList'); if(!host)return;
   const owner=liveProfile?.id;let numbers;try{numbers=await ensureTemplateNumbers143125()}catch(error){if(window.TemplateCloud275){TemplateCloud275.renderFailure(host,error);return true;}showAppNotification('Template Numbers Unavailable',error.message,true);return}if(liveProfile?.id!==owner)return;
   const templates=availableTransactionTemplates();
-  host.innerHTML = '<p class="je-subtitle">'+TemplateStore.templates.filter(t=>!t.deleted).length+' saved custom templates · '+templates.filter(t=>t.builtin).length+' built-in templates. Saved templates belong to this signed-in account.</p>'+ (templates.length ? templates.map(t=>`
+  host.innerHTML = (window.budgetWorkflow14316&&liveProfile?.role==='admin'&&access113.can('transactions-budget14313')&&access113.can('journal','post')?'<div class="template-item"><div><strong>Owner support from fund utilization</strong><div class="je-subtitle">Choose a saved report to prepare its journal or review the recorded entry.</div></div><div class="template-item-actions"><button class="je-btn je-btn-emerald" onclick="openUtilizationTemplates()">Choose report</button></div></div>':'')+'<p class="je-subtitle">'+TemplateStore.templates.filter(t=>!t.deleted).length+' saved custom templates · '+templates.filter(t=>t.builtin).length+' built-in templates. Saved templates belong to this signed-in account.</p>'+ (templates.length ? templates.map(t=>`
     <div class="template-item">
       <div><strong><span class="template-number143125">${numbers[t.id]}.</span> ${escapeHtml(templateDisplayName143125(t))}</strong><div class="je-subtitle">${t.lines.length+' saved lines • amounts always load as zero'}</div></div>
       <div class="template-item-actions">

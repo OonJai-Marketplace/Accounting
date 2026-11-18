@@ -31,7 +31,7 @@ function updateFundMemo(line,account,side,fx=0){
 }
 const known={9101:['4010','9190','THB'],9102:['4010','9190','USD'],9111:['4110','9190','USD'],9112:['4110','9190','THB'],9121:['4120','9190','USD'],9131:['4130','9190','USD'],9132:['4130','9190','THB'],9201:['5010','9290','THB'],9202:['5010','9290','USD'],9211:['5111','9290','USD'],9212:['5111','9290','THB'],9222:['5119','9290','THB'],9231:['5311','9290','USD'],9232:['5311','9290','THB'],9233:['5315','9290','USD'],9234:['5315','9290','THB'],9241:['5414','9290','USD'],9242:['5414','9290','THB'],9251:['5120','9290','USD'],9311:['3023','9390','USD'],9312:['3023','9390','THB'],9321:['3024','9390','USD'],9322:['3024','9390','THB'],9331:['3031','9390','USD'],9332:['3031','9390','THB'],9411:['1310','9490','USD']};
 // Permanent legacy codes also identify the built-in templates on older devices.
-const replacements={9101:'4021',9102:'4020',9111:'4111',9112:'4112',9121:'4121',9131:'4131',9132:'4132',9201:'5012',9202:'5011',9211:'5121',9212:'5122',9222:'5123',9231:'5316',9232:'5317',9233:'5320',9234:'5321',9241:'5422',9242:'5423',9251:'5124',9311:'3026',9331:'3032',9332:'3033',9341:'3111',9342:'3112',9361:'3043',9411:'1314'};
+const replacements={9101:'4021',9102:'4020',9111:'4111',9112:'4112',9121:'4121',9131:'4131',9132:'4132',9201:'5012',9202:'5011',9211:'5121',9212:'5122',9222:'5123',9231:'5316',9232:'5317',9233:'5320',9234:'5321',9241:'5422',9242:'5423',9251:'5124',9311:'3028',9312:'3020-02',9321:'3029',9322:'3020-03',9331:'3032',9332:'3033',9341:'3111',9342:'3112',9361:'3043',9411:'1314'};
 function registry(chart){
  const all=chart.filter(available),byCode=(code,c='LAK')=>all.find(a=>String(a.code)===code&&currency(a)===c),maps=new Map(),unknown=new Set();
  const codes=[...new Set(all.map(currency))];
@@ -290,6 +290,12 @@ function completePart(input){
     add(m.actual,round(signed(l)*l.rt),l.a.name+' · '+displayRate(Math.abs(signed(l)))+' '+c+' × '+displayRate(l.rt));
     if(!allocation.includes(l))add(m.offset,-round(signed(l)*l.book),l.a.name+' · recorded foreign value');
    }
+  }
+  const nativeAllocation=active.filter(l=>reg.direct.has(l.a.id)&&['3023','3024'].includes(reg.category(l.a).actualCode)&& (l.debit&&reg.category(l.a).actualCode==='3023'||l.credit&&reg.category(l.a).actualCode==='3024'));
+  if(nativeAllocation.length===2){
+   if(nativeAllocation.some(l=>!l.specified))error('Enter the original contribution book rate for both support allocation lines.',nativeAllocation[0].index,true);
+   else if(nativeAllocation[0].book!==nativeAllocation[1].book)error('Use the same original contribution rate on both sides of the support allocation.');
+   else for(const l of nativeAllocation)l.rt=l.book;
   }
   const reclass=allocation.length?allocation:maps.filter(l=>reg.maps.get(l.a.id).offsetCode==='9390');
   if(reclass.length===2&&reclass.some(l=>reg.maps.get(l.a.id).actualCode==='3024')&&reclass[0].book!==reclass[1].book)
