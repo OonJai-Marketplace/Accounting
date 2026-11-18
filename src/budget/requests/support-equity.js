@@ -34,32 +34,11 @@ window.BudgetSupportEquity=(()=>{
   return data||[];
  }
  function usage(d,received){
-  const balances=BudgetReport290.balances(d),usd=balances.get('USD');
-  let used=0;
-  const fxRows=d.conversions||[];
-  for(const [currency,b] of balances){
-   if(currency==='USD')continue;
-   const sales=fxRows.filter(f=>f.currency==='USD'&&f.target===currency);
-   const proceeds=sales.reduce((n,f)=>n+BudgetReport290.conversionAmount(f),0);
-   const sold=sales.reduce((n,f)=>n+Number(f.amount),0);
-   const boughtBack=fxRows.filter(f=>f.currency===currency&&f.target==='USD').reduce((n,f)=>n+Number(f.amount),0);
-   if((sales.length||b.cashSpent)&&fxRows.some(f=>f.currency!=='USD'&&f.target!=='USD'&&(f.currency===currency||f.target===currency)))
-    throw Error('Review the cross-currency conversion before allocating USD support to '+currency+' spending.');
-   // Local top-ups cover shortfalls. Other funds, returns and unspent proceeds are not owner spending.
-   const available=Math.max(0,proceeds-boughtBack);
-   if(round(b.cashSpent+b.repay+b.refund+boughtBack-proceeds-b.receipt-b.coverage-b.borrow)>0)
-    throw Error('Record the exchange or separate funding that covered the '+currency+' payments before preparing USD support.');
-   const ownerPaid=Math.max(0,b.cashSpent-b.coverage);
-   if(available>0&&ownerPaid>0)used+=Math.min(available,ownerPaid)*sold/proceeds;
-  }
-  const otherUsd=Math.max(0,usd.receipt-received)+usd.borrow+usd.coverage;
-  if(round(usd.cashSpent+usd.convertedOut+usd.refund+usd.repay-usd.convertedIn-received-otherUsd)>0)
-   throw Error('The USD payments exceed the recorded cash available. Review receipts and exchanges.');
-  if(otherUsd>0&&usd.convertedOut>0&&usd.convertedOut>received)
-   throw Error('Separate the USD exchange funded by other sources before preparing owner support.');
-  used=round(used+Math.max(0,usd.cashSpent-usd.coverage));
-  if(used>received&&otherUsd<=0)throw Error('USD used exceeds owner funding. Review payments, receipts and conversions.');
-  return Math.min(used,received);
+  const usd=BudgetReport290.balances(d).get('USD');
+  if(usd?.allocated===null)throw Error('Enter the missing USD funding equivalent before preparing owner support.');
+  const other=(d.movements||[]).filter(m=>BudgetReport290.kind(m)==='receipt'&&m.currency==='USD'&&m.ownerSource==='other').reduce((n,m)=>n+Number(m.inflow),0);
+  if(other>0)throw Error('Enter the owner-funded share of each expense when USD funding has more than one source.');
+  return round(Math.max(0,(usd?.allocated||0)-(usd?.coverage||0)));
  }
  function receivingAccount(destination){
   const accounts=AccountingStore.accounts.filter(a=>regular(a,'ASSET'));
@@ -81,7 +60,7 @@ window.BudgetSupportEquity=(()=>{
     entry_no:j.entry_no,currency:'USD',received:j.journal_lines.filter(l=>l.currency_code==='USD'&&(l.accounts?.id===remaining?.id||l.accounts?.code==='3026')).reduce((n,l)=>n+Number(l.credit),0),debited:0,used:0
    }))});
    const usd=review.rows.get('USD');
-   if(usd?.basis!=='Report entries'||usd.received!==Math.round(received*100)||usd.used>usd.received)
+   if(usd?.basis!=='Report entries'||usd.received!==Math.round(received*100))
     throw Error('Review the owner-funded receipts and spending before preparing their equity allocation.');
    used=usd.used/100;
   }else used=usage(d,received);

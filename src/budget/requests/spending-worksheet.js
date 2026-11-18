@@ -1,4 +1,4 @@
-/* Funding decisions and cash disbursements belong to the utilization draft. */
+/* Funding commitments and expense amounts belong to the utilization draft. */
 window.BudgetSpendingWorksheet=(()=>{
  function mount(host,draft,openPayment){
   const report=BudgetReport290,request=host.querySelector('[data-request-summary]'),payments=host.querySelector('[data-disbursements]');
@@ -13,7 +13,7 @@ window.BudgetSpendingWorksheet=(()=>{
    const prior=report.lineFunding(draft,line,i);
    return prior.status!==select.value||(select.value==='deduction'&&prior.amount!==input.valueAsNumber);
   })||rows.some(({inputs,ref})=>ref.value.trim()!==(draft.movements[Number(ref.dataset.payment)]?.reference||'')||
-   inputs.some(input=>{const m=draft.movements[Number(input.dataset.payment)];return input.validity.badInput||(m?input.valueAsNumber!==report.cashPaid(m):!!input.value);}));
+   inputs.some(input=>{const m=draft.movements[Number(input.dataset.payment)];return input.validity.badInput||(m?input.valueAsNumber!==report.expenseAmount(m):!!input.value);}));
   function read(commit=false){
    const movements=draft.movements.slice(),funding={...draft.fundingByItem},funded=new Map();
    function invalid(field,message){if(commit)field.focus();throw Error(message);}
@@ -33,18 +33,17 @@ window.BudgetSpendingWorksheet=(()=>{
     for(const input of inputs){
      const index=Number(input.dataset.payment),prior=draft.movements[index],lineIndex=Number(input.dataset.line);
      const amount=input.valueAsNumber,currency=input.dataset.paidIn;
-     if(prior&&amount===report.cashPaid(prior)&&reference===(prior.reference||''))continue;
+     if(prior&&amount===report.expenseAmount(prior)&&reference===(prior.reference||''))continue;
      if(!input.value&&!input.validity.badInput&&!prior)continue;
-     if(!Number.isFinite(amount)||!Number.isSafeInteger(Math.round(amount*100))||!input.validity.valid||(amount===0&&prior&&prior.cashDistributed==null))
-      invalid(input,'Enter a valid amount paid in '+currency+'. Use Details to remove an existing payment.');
+     if(!Number.isFinite(amount)||!Number.isSafeInteger(Math.round(amount*100))||!input.validity.valid||(amount===0&&prior))
+      invalid(input,'Enter a valid expense amount in '+currency+'. Use Details to remove an existing payment.');
      if(!prior&&amount===0)continue;
      if(prior){
       if(!reference&&prior.reference&&!prior.worksheetSpend)invalid(ref,'Enter the payment reference.');
-      if(reference===prior.reference&&amount===report.cashPaid(prior))continue;
+      if(reference===prior.reference&&amount===report.expenseAmount(prior))continue;
       const next={...prior,reference};
-      if(amount!==report.cashPaid(prior)){
-       if(prior.cashDistributed!=null){next.cashDistributed=amount;delete next.cashBudgetAmount;}
-       else{next.outflow=amount;delete next.ownerAmount;delete next.ownerCurrency;delete next.budgetAmount290;}
+      if(amount!==report.expenseAmount(prior)){
+       next.outflow=amount;delete next.ownerAmount;delete next.ownerCurrency;delete next.budgetAmount290;
       }
       movements[index]=next;
      }else{
