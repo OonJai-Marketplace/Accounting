@@ -647,3 +647,10 @@ posting/child account labels and amounts stay regular. Classify mapping-purpose
 accounts with the shared chart classifier, including nontechnical parent 9400,
 under System at the bottom. In Debit, Credit, Balance view, highlight each Balance
 column with a light green fill; Balance-only view has no extra highlight.
+
+Negative user funds, 2026-11-18: notify the administrator in the existing bell after
+a successful save/post leaves a user short. Check only once per affected owner at
+transaction completion; no timer, cron or balance polling. Reuse working-standing
+calculations including saved unsubmitted entries. One compact alert per user with
+separate fund/currency shortfalls; unchanged shortages produce no new events, and
+fund recovery clears the alert. Never add funds or alter journals automatically.

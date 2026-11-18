@@ -1,0 +1,25 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const source=fs.readFileSync('src/subusers/accounts/negative-funds475.js','utf8');
+assert(!/setInterval|setTimeout|requestAnimationFrame|MutationObserver|\.rpc\(/.test(source),'alerts never poll or calculate balances');
+const listeners={},channels=[],reads=[],events=[];
+let refreshes=0,removed=0,queryResult={data:[],error:null};
+const client={removeChannel(){removed++;return Promise.resolve()},channel(){const c={on(type,filter,fn){this.event=fn;return this},subscribe(fn){this.status=fn;return this}};channels.push(c);return c;},from(table){assert.equal(table,'negative_fund_notices475');return{select(){reads.push(table);return Promise.resolve(queryResult)}}}};
+const context={liveProfile:{id:'admin',role:'admin'},ojmDb:client,navigator:{onLine:true},document:{hidden:false,addEventListener(n,f){listeners[n]=f},getElementById(){return{dataset:{owner:'cook'},classList:{contains:()=>true}}}},window:{access113:{can:()=>true},refreshNotices1443(){refreshes++},addEventListener(n,f){listeners[n]=f},Organization14229:{mayOpen:()=>true},openWorkspaceUser(id){events.push(['open',id]);this.personalJournal1437.owner=id},personalJournal1437:{show(...args){events.push(args)}}}};
+vm.runInNewContext(source,context);const api=context.window.negativeFunds475;
+const tick=()=>new Promise(setImmediate),notice=(revision,remaining=-120)=>({owner_id:'cook',owner_name:'Head Cook',revision,deficits:remaining<0?[{id:'cash',name:'Petty Cash',currency:'LAK',remaining}]:[]});
+(async()=>{
+ api.start();assert.equal(channels.length,1);channels[0].status('SUBSCRIBED');await tick();assert.equal(reads.length,1);
+ for(let i=0;i<20;i++)api.start();assert.equal(reads.length,1);assert.equal(channels.length,1);
+ channels[0].event({new:notice(1)});assert.equal(api.notices().length,1);assert.match(api.notices()[0].detail,/₭120/);
+ const before=refreshes;channels[0].event({new:notice(1)});assert.equal(refreshes,before,'duplicate delivery does not redraw');
+ channels[0].event({new:{...notice(2),deficits:[...notice(2).deficits,{id:'usd',name:'USD fund',currency:'USD',remaining:-5.25}]}});
+ assert.equal(api.notices().length,1);assert.match(api.notices()[0].detail,/\$5.25/);assert.equal(reads.length,1,'push does not fetch');
+ assert(api.open('cook'));assert.equal(events[1][1],'home');
+ channels[0].event({new:notice(3,0)});channels[0].event({new:notice(2)});assert.equal(api.notices().length,0,'late event cannot restore cleared alert');
+ channels[0].event({new:notice(4)});assert.equal(api.notices().length,1);
+ context.document.hidden=true;listeners.visibilitychange();assert.equal(removed,1);
+ context.document.hidden=false;listeners.visibilitychange();assert.equal(channels.length,2);channels[0].status('CLOSED');assert.equal(removed,1,'old channel cannot close its replacement');queryResult={data:[notice(4)],error:null};channels[1].status('SUBSCRIBED');await tick();assert.equal(reads.length,2);
+ channels[1].status('CHANNEL_ERROR');assert.equal(removed,2);await tick();assert.equal(channels.length,2,'no automatic retry loop');
+ context.liveProfile={id:'ordinary',role:'sub_user'};api.start();assert.equal(api.notices().length,0);channels[0].event({new:notice(10)});assert.equal(api.notices().length,0);
+ console.log('PASS: one stored-notice catch-up, event-only delivery, deduplication, separate currencies, recovery, navigation, stale delivery/session guards, no polling/retry loops');
+})().catch(e=>{console.error(e);process.exitCode=1});

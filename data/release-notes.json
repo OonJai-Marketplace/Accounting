@@ -1,6 +1,11 @@
 {
-  "version": "143.475",
+  "version": "143.476",
   "changes": [
+    "A successful user-fund save or post checks each affected user once, after the complete transaction.",
+    "The administrator bell shows one Budget needed alert per user, with each affected fund and its shortfall in the original currency.",
+    "Unchanged negative balances do not repeat alerts. Updated shortfalls replace the same notice, and sufficient funding clears it.",
+    "No balance polling, scheduled jobs or repeated background scans. Saved alert events update the bell without reloading journals.",
+    "Open user funds in the notification opens that user’s remaining funds. Offline saves trigger the server check only when successfully sent.",
     "Account balances keeps only parent account rows bold; posting and child account names and amounts use regular weight.",
     "Mapping-purpose accounts, including parent 9400 Foreign Currency Asset Mapping - System, appear in the System section at the bottom.",
     "In Debit, Credit, Balance view, each Balance column has a light green highlight. Balance-only view keeps its normal background.",

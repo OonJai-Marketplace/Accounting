@@ -2301,6 +2301,11 @@
         "source": "src/accounts/opening-balances/opening-balances14234.js",
         "prefix": "/* scripts/opening-balances14234.js */\n",
         "suffix": ";\n\n;\n"
+      },
+      {
+        "source": "src/subusers/accounts/negative-funds475.js",
+        "prefix": "/* Negative fund notifications */\n",
+        "suffix": ";\n"
       }
     ],
     "styles/offline14239.css": [

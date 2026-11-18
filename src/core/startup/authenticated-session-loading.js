@@ -15,13 +15,13 @@ async function hydrateSupabaseSession(session) {
     checkSession();
     if(liveProfile.role==='admin'){try{await payrollTaxSettings.load();if(/^payroll-/.test(document.querySelector('.tab-content.active')?.id||''))renderWork82();}catch(error){showAppNotification('Payroll Settings',error.message,true);}checkSession();}
     // Session location is restored once by interface-v69.js.
-    freshLoginRequested=false;
+    freshLoginRequested=false;window.negativeFunds475?.start();
   } catch(error) { if(epoch!==sessionEpoch1430||client!==ojmDb||error.code==='STALE_PROFILE143100')return;liveProfile=null;livePermission=null;DemoAccess.currentUser=null;document.getElementById('loginGate')?.classList.remove('is-authenticated');const box=loginMessageTarget14293();if(box&&epoch===sessionEpoch1430)box.textContent=error.message; }
 }
 
 // One complete hydration per authenticated identity, including extension wrappers.
 let sessionLoad1430=null, sessionReady1430='', sessionEpoch1430=0;
-function resetSessionLoad1430(){sessionEpoch1430++;sessionReady1430='';}
+function resetSessionLoad1430(){window.negativeFunds475?.stop();sessionEpoch1430++;sessionReady1430='';}
 function startSessionLoad1430(session){
  const id=session?.user?.id;if(window.deviceVault14334?.pending)return Promise.resolve();if(!id||passwordRecoveryMode)return Promise.resolve();
  if(sessionLoad1430){
