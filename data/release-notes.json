@@ -1,5 +1,5 @@
 {
-  "version": "143.469",
+  "version": "143.471",
   "changes": [
     "Company Profile and View Profile use the same frame, size, padding and saved background on the navigation rail.",
     "Home and Overview keep their horizontal tabs above the banner.",
@@ -9,6 +9,9 @@
     "The utilization instruction notice no longer appears above Post double entry transaction; prepared journal links remain intact.",
     "Active-book audit changes are orange and reviewable. Closed-book amount changes, reclassifications and deletions are red; description, memo, reason and date changes remain orange.",
     "Clearing orange logs records a compact deletion receipt and never deletes journals or changes their numbering.",
+    "Budget utilization saves and finalization confirm in one database request, preserving record versions and linked-request checks.",
+    "Budget utilization draft saves stay in the foreground; offline drafts remain available for manual Sync Now.",
+    "A reopened report clears an older finalized copy when its current database draft is opened.",
     "Funding summaries include USD exchanged out and exact LAK proceeds with each saved exchange reference.",
     "Used and remaining are calculated in each transaction\u2019s native currency; LAK costs are no longer converted back into USD.",
     "Utilization register headers total Requested, Approved, Received, Exchanged out, Exchanged in, Used and Remaining by currency.",

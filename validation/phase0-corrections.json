@@ -5,20 +5,20 @@
   "runtime_sha256": {
     "styles/refinements-v93.css": "e060e980ecaf5b921f480cf9de77068cda78dcc38fa3f271add6dbd780b17880",
     "recovery.html": "dc598c7fc9d8d9a8265dd53a736e4894c393f9e15291dcf8acc389e981adf7cd",
-    "phone-sw.js": "1f7f5f25e7e1b318eac000bf19d8556e5afa1559dd5a14fd4b4a5c049e6680bb",
+    "phone-sw.js": "08974b6a6a7d6180e23ce9b19c8f5a94eb281c6ff2f6a140956d9d7181ad7ef9",
     "phone-accounting.html": "b1242a5cd79644de75c24434b3da9843bc58bb199e5fa3bc5f064dd1cef3afc4",
-    "desktop-sw14242.js": "b288f791e904ed1123d1176298c0eeb7454261f794f5db7abfe6c867fc670365",
-    "phone.html": "507a46bf734f3a19475147dca3e99857c3b00afe7ddef2c1e9d67e35df80d68e",
-    "desktop.html": "f728d5c6d4e5deb22894928035b23c2c1d02e5319c76e0b47b4537da63ed4c70",
-    "scripts/phone-runtime14242.js": "ba5b434d3dbf7acad6ad4231e681c710303e60d5a715861e9957b519b7758468",
+    "desktop-sw14242.js": "b29a61d066ebe11f81f64a37250b6667417fbafd421ac9c379387f5c37f5bcf0",
+    "phone.html": "ece2f338eace56e855029b36322b427b3d7867c12f6a6a8d7eed72674c36102b",
+    "desktop.html": "71bb3b09376b3946e9fdab10055a5496758abd14817cde2eeb86af0737adbb8f",
+    "scripts/phone-runtime14242.js": "807ad919fc862b5297f1c1124eedb88b75e3ba3a16bca7c6e46c61d7e8598b7f",
     "scripts/device-vault14334.js": "77e0302e391ae4810ff6c1b4440d0efa7f3632793a9d73d2ecd79ac06407b0a8",
     "scripts/script.js": "ecc67b9d7b68847ad5085fbc170a8574541b33646d5592a935e913b753036740",
-    "scripts/local-first14333.js": "5b09b5bc128ec4e93afb60c6ce7954a0466a7217bf2cfe59962b0f126adcf411",
+    "scripts/local-first14333.js": "edfcdcde1faaea4bec330f6f5cf5e708cb4be648ae60bcdb3ad9f2237f3dabe0",
     "scripts/corrections14231.js": "e1ed44058bcf8f434dfdbc423e7675fa8c77f8fc83e9687e9c078a4176fd7ee6",
     "scripts/payroll-polish-v97.js": "d1801d89617f2fd793a3c67869d838a1312d4589f58594a56b6a7a019f8d087f",
     "scripts/startup14257.js": "64774650c9aa80f22e1db60706487c20045fb56d7cc40296ac9e44909d635d71",
     "scripts/desktop14245-6.js": "4366df4e42e35c193b39054903b5392253c8461fb8566bafa31cb8434b76366e",
-    "scripts/offline14239.js": "9169d31d9245994a25812d6442650842770f0c8ba4273f9af09b3d52118fa4d5",
+    "scripts/offline14239.js": "b5c19d7c493dfbe062dd0705d416c651e64a9f4b42798ea7200a7e7438676e7d",
     "scripts/desktop14245-3.js": "2a03fcd5d61876cd06d1ce6114477a18fcb09e477c5d8c110ebaeceb59f0e794",
     "scripts/desktop14245-4.js": "87e3255cdf55e2c53233ef59f1c1d2a28afe1fd925cf4ce7cefd1840f2b4d33e",
     "scripts/drafts1427.js": "f87e5ae3aba767e23b1ed190473c9a0ab08fac4c8c1c1bded2cdbdadec7ff388",
@@ -61,7 +61,7 @@
     "styles/polish14325.css": "ffc54012fdb9d15c0cda8417b00fdac7939f6cfe8b122b41bec27159c71b915b",
     "styles/compact14327.css": "cb10c4af0fd5e01e4d20f65fcb016c645aa5fb38371d8a07f27a8ed9e872f23c",
     "scripts/access-v113.js": "540f98febec4c242a16dd419d2e079509753562fcfa24f85fb47f86c133c336f",
-    "scripts/budget-workflow14316.js": "bbcdada7abc1a3cceb15d4907dc451803fcd159b82f71fc9742a352727ce75c3",
+    "scripts/budget-workflow14316.js": "48fe969e68fcfded2b024e53eedcbb385eb730a22b33e1103c74de7cddcfe818",
     "scripts/desktop-layout-v82.js": "a6a05be65b28b288b854d5be360c489572fe0875796306721df01458492c9987",
     "scripts/editor-tables-v107.js": "f4f3c544d66daaf3d02aef13bcd478a4bca1370acac1194cb2780925240c06c9",
     "scripts/entry-actions14271.js": "b2def4576d5b2dfd08aabf1182366ddfed5303b05369e9f402913ea1aa0c62e0",
@@ -121,7 +121,7 @@
     "scripts/session-inputs-v88.js": "ceb3b64a1db4431314417fe6044da707443432b562a422e6498b8c78bd8dc529",
     "scripts/startup1443.js": "fa6b40668048314f490c18bdd46e39477903bf35021a27af771c7fd07a59c342",
     "offline-assets14239.js": "1ba8066bf448b3d9f1349f60d3e19c63ed71e17b27b6a65b4e68ff476f21cf42",
-    "index.html": "5a5a085e4df4995ab39649d806a28640e6f31a619b4107c71da3ea8e831a195a",
+    "index.html": "38bf837441e9b31f1f347d626826b8d5b16d28166803082fe07de5c8df906e88",
     "archive.html": "851dcbbbf41b069bc3d36c919c317b3757f6ad0774af8a8e7fe940a81f7c0736",
     "styles/polish-v101.css": "d43af6b1dbcbd59f02670116d74907a2c89bacd5e748f97ba4a0ec535c673dc3",
     "scripts/maintenance-engine14324.js": "3e10dfd4c82726fcfff0c2908f1d584710be3e3181a20e8cf9320f384a07f37c",
@@ -265,7 +265,7 @@
     "styles/editor-tables-v107.css": "0b0ff1cff19ef81093dce79c995122bcc9169d25b47227fd775a2dbab33e7a3b",
     "styles/polish1444.css": "fc55764b2a9b4f597a1fd408717f6d101630ee937f06485251153e5e6f9f871f",
     "styles/transactions-mobile-v72.css": "11b7fafa86437a6edeb18e295f92909bd4eecd6b2366208c06bd9886fa708556",
-    "sw14239.js": "469f5e14678fb5d6fd432372e1bf6437a044e8d62998fb49ba88dee64f4d1030"
+    "sw14239.js": "26de9395b9b215319b00409e9aa4ec8b833f69de60bda606d601d9ccd006cc39"
   },
   "retired_assets": {
     "tools/desktop-source14245.html": "User-authorized obsolete-code cleanup, 2026-10-13. Input to retired full-desktop builder only; not loaded by any app entry point, manifest or service worker.",
@@ -552,6 +552,16 @@
     ],
     "preserved": "Historical records, stored source metadata, payroll calculations, leave approvals and the A4 request template."
   },
+  "budgetSave470": {
+    "scope": "User requested June/August editable drafts and faster foreground budget saves. One atomic save retains version, parent, permission and finalization guards. Reopened drafts supersede stale tab finals.",
+    "checks": [
+      "test-budget-foreground-save.cjs",
+      "test-budget-atomic-save.sql",
+      "test-budget-negative-finalization.cjs",
+      "test-save-verification464.cjs"
+    ],
+    "preserved": "Original financial data, manual sync, exact saved receipts and durable offline recovery."
+  },
   "accounting469": {
     "scope": "User-requested matching profile tiles; Home tabs above retained banner; independent chart type and daily/weekly/monthly grouping; Budget month placeholder; remove prepared-journal instruction notice; event-time open/closed audit policy.",
     "checks": [
@@ -559,6 +569,7 @@
       "test-graph-periods469.cjs: day/week/month boundaries, balances, currencies, five renderers and inspection",
       "test-audit-policy469.cjs: active/closed/reopened matrix, account amount reassignment, details, red retention, orange deletion receipt, stale preview and journal preservation"
     ],
-    "limits": "Browser checks use synthetic records. No physical-device validation or live journal posting/deletion."
+    "limits": "Browser checks use synthetic records. No physical-device validation or live journal posting/deletion.",
+    "integration": "Published as 143.471 on top of the foreground budget-save release 143.470."
   }
 }
