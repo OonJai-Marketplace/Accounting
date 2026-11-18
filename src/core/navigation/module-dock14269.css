@@ -167,3 +167,14 @@ html[data-device132="tablet"] body.shell113 .tab-content{
    & #topHeaderProfile104 #headerAccountTrigger:hover,& #topHeaderProfile104 #headerAccountTrigger:focus-visible{box-shadow:0 0 0 3px #e2b45c!important}
  }
 }}
+
+@layer action-finalization14317 { @media screen {
+ html[data-device132=desktop] body #workspaceTools108 #upcomingBell101.supabase-alert461{background:#b4232e!important;color:#fff!important;border-color:#b4232e!important;animation:supabaseReminder461 3600s ease-in-out infinite!important}
+ /* Three seconds of gentle emphasis per hour; no timers, requests or new notices. */
+ @keyframes supabaseReminder461{
+  0%,.04%,.08%{filter:drop-shadow(0 0 0 transparent)}
+  .02%,.06%{filter:brightness(1.15) drop-shadow(0 0 5px #dc262699)}
+  .1%,100%{filter:none}
+ }
+ @media(prefers-reduced-motion:reduce){html[data-device132=desktop] body #workspaceTools108 #upcomingBell101.supabase-alert461{animation:none!important}}
+}}

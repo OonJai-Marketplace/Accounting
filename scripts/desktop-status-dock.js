@@ -742,7 +742,7 @@ window.AccountWatch378=(()=>{
  return {install};
 })();
 
-// The desktop rail displays snapshots. Only an explicit Refresh all samples live data.
+// Login reads status once. Further database checks and snapshot refreshes are explicit.
 (() => {
   'use strict';
   const host = document.createElement('div');
@@ -898,7 +898,7 @@ window.AccountWatch378=(()=>{
   // Retain keyboard focus when rebuilding the checklist after a confirmed save.
   let stepFocus = null;
   const pinIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M7.5 3h10L16 5l-1 6 3.5 3h-13L9 11l-.5-6zM12 14v7"/></svg>';
-  let owner = '', client = null, snapshot = null, busy = false, slotRead = '', retryAt = 0, generation = 0, message = '';
+  let owner = '', client = null, snapshot = null, busy = false, generation = 0, message = '';
   const percent = t => t.total ? Math.min(100,100*t.done/t.total) : 0;
   const key = () => 'ojm_desktop_status_'+owner;
   function session() {
@@ -907,12 +907,6 @@ window.AccountWatch378=(()=>{
         typeof liveProfile === 'undefined' || liveProfile?.role !== 'admin' || liveProfile.status !== 'active' ||
         (window.deviceVault14334 && !window.deviceVault14334.unlocked)) return '';
     return liveProfile.id;
-  }
-  function slot() {
-    // Two minutes of margin let cron commit before a foreground read at the boundary.
-    const local = new Date(Date.now() + 7*3600000 - 120000);
-    if (local.getUTCHours()<6) {local.setUTCDate(local.getUTCDate()-1);return local.toISOString().slice(0,10)+' PM';}
-    return local.toISOString().slice(0,10)+(local.getUTCHours()<12?' AM':' PM');
   }
   function valid(value) {
     return value && Array.isArray(value.tasks) && value.tasks.every(t => typeof t.id==='string' && typeof t.title==='string' &&
@@ -943,19 +937,9 @@ window.AccountWatch378=(()=>{
   }
   function paintConnection() {
     const health=window.supabaseHealth461?.current() || {kind:'unknown'};
-    const local=window.deviceVault14334?.offline || window.sessionCache14333?.localMode;
-    const kind=health.kind==='offline'?'offline':local?'local':health.kind;
-    const copy={
-      unknown:['Connection not checked','Open Supabase to view project status, or check the database connection here.',''],
-      healthy:['Supabase connected','The database responded. If you have pending changes, use Sync Now when ready.',''],
-      paused:['Supabase project paused','Open Supabase, choose Resume project and confirm. Then return here and check the connection.','red'],
-      pending:['Supabase project restarting','The project is changing state. Check its progress in Supabase, then check the connection again.','red'],
-      unavailable:['Supabase unavailable','The database could not be reached. It may be paused, restarting, or affected by a connection problem. Open Supabase to check its status and resume it if paused.','red'],
-      offline:['You are offline','Reconnect to the internet, then check the connection. A project pause cannot be confirmed while offline.','amber'],
-      local:['Using the offline account','Sign in online to check the database connection. The storage figures below are the last saved reading.','amber'],
-      access:['Sign-in needs attention','Supabase responded but denied access. Sign in again; this does not confirm a paused project.','amber'],
-      limited:['Supabase requests limited','Supabase is limiting requests. Wait a moment, then check the connection again.','amber']
-    }[kind];
+    const kind=health.kind;
+    const p=window.supabaseHealth461.presentation();
+    const copy=[p.title,p.detail,p.tone];
     const s=snapshot?.storage,ratio=s?100*s.db_bytes/s.db_limit:null;
     const flag=ratio>=70?'Red flag':ratio>=60?'Start archiving':'';
     const rounded=ratio==null?null:Math.round(ratio);
@@ -967,12 +951,13 @@ window.AccountWatch378=(()=>{
     $('.db').dataset.health=copy[2];
     $('.service').dataset.tone=copy[2];
     $('.service-title').textContent=copy[0];$('.service-detail').textContent=copy[1];
-    $('.service-time').textContent=health.at?'Last connection response '+formatAppDate(health.at,true):'';
+    $('.service-time').textContent=health.at?'Last checked '+formatAppDate(health.at,true):'';
     $('.open-supabase').href=window.supabaseHealth461?.dashboardURL() || 'https://supabase.com/dashboard';
+    $('.open-supabase').textContent=kind==='paused'?'Open project to resume':'Open Supabase project';
     $('.open-supabase').title='Open this project in a separate tab; Accounting stays open';
-    $('.check-connection').disabled=busy || kind==='offline' || kind==='local';
+    $('.check-connection').disabled=busy;
     $('.check-connection').textContent=busy?'Checking…':'Check connection';
-    $('.storage-caveat').textContent=kind!=='healthy'?'Storage figures are the last saved reading, not a live availability check.':'';
+    $('.storage-caveat').textContent=kind!=='healthy'?'Storage figures below are the last saved reading.':'';
   }
   function actionIcon(label,action,id) {
     const el=node('button','icon');el.type='button';el.title=label;el.setAttribute('aria-label',label);
@@ -1048,8 +1033,10 @@ window.AccountWatch378=(()=>{
   }
   async function request(action,params) {
     if (busy || !owner || session()!==owner || !client) return;
-    const active=generation, requestedSlot=slot();
-    if (!navigator.onLine || window.deviceVault14334?.offline) {
+    const active=generation, checkConnection=action==='read';
+    let statusRecorded=false;
+    if (!navigator.onLine || !checkConnection && (window.deviceVault14334?.offline || window.sessionCache14333?.localMode)) {
+      if(checkConnection)window.supabaseHealth461.record(owner,{offline:!navigator.onLine,status:navigator.onLine?401:0});
       message='Offline · Showing the last saved status.';paint();return;
     }
     busy=true;message=action==='step'?'Saving step…':action==='refresh'?'Refreshing tasks and storage…':'';
@@ -1059,12 +1046,14 @@ window.AccountWatch378=(()=>{
       $('.notice').textContent=message;
     } else if (dialog.open) paint();
     try {
-      const {data,error}=action==='step'
+      const result=action==='step'
         ? await client.rpc('set_desktop_dock_step',params)
         : await client.rpc('desktop_dock_status',{p_action:action,p_pins:params??null});
       if (active!==generation || session()!==owner || client!==ojmDb) return;
+      const {data,error}=result;
+      if(checkConnection){window.supabaseHealth461.record(owner,result);statusRecorded=true;}
       if (error || !valid(data)) throw Error(error?.message||'Invalid status response');
-      snapshot=data;slotRead=requestedSlot;retryAt=0;
+      snapshot=data;
       if (window.deviceVault14334?.unlocked && window.deviceVault14334.actor===owner) {
         try { localStorage.setItem(key(),JSON.stringify(data)); } catch { /* Current session can still display the result. */ }
       }
@@ -1078,9 +1067,9 @@ window.AccountWatch378=(()=>{
         }
         message=data.outcome==='saved'?'Step saved.':data.outcome==='order'?'Complete the earlier steps first.':'This checklist changed. Review its latest steps before editing.';
       } else message=action==='refresh'?'Tasks and storage refreshed.':'';
-    } catch {
+    } catch(error) {
       if (active!==generation) return;
-      retryAt=Date.now()+60000;
+      if(checkConnection && !statusRecorded)window.supabaseHealth461.record(owner,{error,status:0});
       message=action==='step'?'Could not confirm this step. Refresh all to check its saved status.':action==='pins'?'Pins could not be saved. Try again.':'Status unavailable · Showing the last saved status.';
     } finally {
       if (active===generation) {busy=false;if(session()===owner)paint();}
@@ -1089,10 +1078,11 @@ window.AccountWatch378=(()=>{
   const closeWatch=AccountWatch378.install(root,session);
   const closeRailTools=RailTools379.install(root,session);
   function syncView() {
+    if (!document.querySelector('#loginGate.is-authenticated') || typeof liveProfile==='undefined' || !liveProfile) window.supabaseHealth461.endLogin();
     const id=session(), db=id?ojmDb:null;
     if(window.workspaceRequest138?.target){closeWatch();closeRailTools();}
     if (id!==owner || client!==db) {
-      closeWatch();closeRailTools();generation++;selected='';stepFocus=null;if(dialog.open)dialog.close();host.remove();owner=id;client=db;snapshot=null;busy=false;message='';slotRead='';retryAt=0;
+      closeWatch();closeRailTools();generation++;selected='';stepFocus=null;if(dialog.open)dialog.close();host.remove();owner=id;client=db;snapshot=null;busy=false;message='';
       if (!id) return;
       try {
         const cached=JSON.parse(localStorage.getItem(key()));
@@ -1104,7 +1094,7 @@ window.AccountWatch378=(()=>{
     const dock=document.getElementById('workspaceTools108');
     if (!dock) return;
     if (host.parentNode!==dock) dock.prepend(host);
-    if (!document.hidden && !busy && slotRead!==slot() && Date.now()>=retryAt && navigator.onLine && !window.deviceVault14334?.offline) request('read');
+    if (window.supabaseHealth461.beginLogin(id)) request('read');
   }
   function revealSteps() {
     const list=$('.checklists'),steps=$('.steps');
@@ -1132,6 +1122,11 @@ window.AccountWatch378=(()=>{
     if (button.dataset.action==='pin') {if(index>=0)ids.splice(index,1);else if(ids.length<2)ids.push(id);}
     request('pins',ids);
   });
+  window.supabaseHealth461.setOpen(()=>{
+    if(!owner || session()!==owner)return false;
+    selected='';openedFrom='db';stepFocus=null;
+    if(!dialog.open)dialog.showModal();paint();revealSteps();return true;
+  });
   RailTools379.outside(dialog,()=>dialog.close());
   dialog.addEventListener('close',()=>{
     if (!host.isConnected || session()!==owner) return;
@@ -1148,13 +1143,11 @@ window.AccountWatch378=(()=>{
     request('step',{p_task:task.id,p_revision:task.revision,p_index:index,p_done:input.checked});
   });
   function start() {
-    for (const name of ['supabase-health461','online','offline']) window.addEventListener(name,()=>{if(owner && session()===owner)paintConnection();});
+    window.addEventListener('supabase-health461',()=>{if(owner && session()===owner)paintConnection();});
     const gate=document.getElementById('loginGate');
     if (gate) new MutationObserver(syncView).observe(gate,{attributes:true,attributeFilter:['class']});
     for (const name of ['page113','session-online14333','focus','tabletviewport132','online']) window.addEventListener(name,syncView);
     document.addEventListener('visibilitychange',syncView);
-    // Catch a new slot during active work; no interval or refresh while idle.
-    document.addEventListener('click',()=>{if (owner && slotRead!==slot() && !dialog.open) syncView();},{passive:true});
     syncView();
   }
   if (document.readyState==='loading') document.addEventListener('DOMContentLoaded',start,{once:true});else start();

@@ -1,81 +1,59 @@
-/* Observe real database traffic only. No polling, credentials or account data. */
+/* One status check per login, plus explicit Check connection. No traffic observer or polling. */
 (() => {
   'use strict';
-  let state={kind:'unknown',at:null}, sequence=0, applied=0, origin='';
-  function configuredOrigin() {
-    try { return new URL(window.OJM_SUPABASE_URL).origin; } catch { return ''; }
+  let owner='', state={kind:'unknown',at:null}, openPanel=()=>false;
+  const messages={
+    unknown:['Database not checked','Check the connection to view the current database status.',''],
+    healthy:['Database is connected','Use Sync Now to send pending changes when ready.',''],
+    paused:['Database is paused','Open your Supabase project and select Resume project. After it finishes, return here and press Check connection.','red'],
+    pending:['Database is restarting','Open your Supabase project to view progress. When it is ready, return here and press Check connection.','red'],
+    unavailable:['Cannot connect to database','Check your internet connection or open your Supabase project to view its status. Then press Check connection.','red'],
+    offline:['No internet connection','Reconnect to the internet, then press Check connection.','red'],
+    access:['Database access denied','Sign in online again, then press Check connection.','red'],
+    limited:['Database requests limited','Wait a moment, then press Check connection.','red']
+  };
+  function emit(){window.dispatchEvent(new Event('supabase-health461'));}
+  function beginLogin(id){
+    if(!id || owner===id)return false;
+    owner=id;state={kind:'unknown',at:null};emit();return true;
   }
-  function resetOrigin() {
-    const next=configuredOrigin();
-    if (next!==origin) {origin=next;state={kind:'unknown',at:null};applied=++sequence;}
-    return next;
+  function endLogin(){if(!owner)return;owner='';state={kind:'unknown',at:null};emit();}
+  function classify(result){
+    if(result.offline)return 'offline';
+    const error=result.error;
+    if(!error && result.status>=200 && result.status<300)return 'healthy';
+    const body=JSON.stringify(error||{}).slice(0,16384);
+    // A generic network error must never be falsely described as a paused project.
+    if(/\b(?:project|database)\s+(?:is\s+|has been\s+)?(?:currently\s+)?(?:paused|inactive)\b|"status"\s*:\s*"(?:INACTIVE|PAUSED)"/i.test(body))return 'paused';
+    if(/"status"\s*:\s*"(?:RESTORING|COMING_UP|GOING_DOWN|PAUSING)"/i.test(body))return 'pending';
+    if(result.status===401 || result.status===403)return 'access';
+    if(result.status===429)return 'limited';
+    return 'unavailable';
   }
-  function publish(kind,id,requestOrigin) {
-    if (requestOrigin!==configuredOrigin() || id<applied) return;
-    applied=id;state={kind,at:new Date().toISOString()};
-    window.dispatchEvent(new Event('supabase-health461'));
+  function record(id,result){
+    if(!owner || id!==owner)return;
+    state={kind:classify(result),at:new Date().toISOString()};emit();
   }
-  function classify(status,body='') {
-    // Only explicit upstream pause evidence earns a definitive Paused label.
-    if (/\b(?:project|database)\s+(?:is\s+|has been\s+)?(?:paused|inactive)\b|"status"\s*:\s*"(?:INACTIVE|PAUSED)"/i.test(body)) return 'paused';
-    if (/"status"\s*:\s*"(?:RESTORING|COMING_UP|GOING_DOWN|PAUSING)"/i.test(body)) return 'pending';
-    if (status>=500 || status===404) return 'unavailable';
-    if (status===401 || status===403) return 'access';
-    if (status===429) return 'limited';
-    return status>=200 && status<300?'healthy':null;
+  function presentation(){let [title,detail,tone]=messages[state.kind];if(tone==='red')detail+=' Locally saved work stays on this device until you reconnect and sync.';return {title,detail,tone};}
+  function notices(id){
+    const p=presentation();
+    return id===owner && p.tone==='red'?[{noticeId:'supabase-status461',type:'Database',title:p.title,detail:p.detail,target:'supabase-status461',critical:true,priority:100,persistent:true}]:[];
   }
-  function observeFetch(fetcher) {
-    return async function(input,options) {
-      const target=resetOrigin();
-      let url;
-      try {url=new URL(typeof input==='string'?input:input.url);} catch {return fetcher(input,options);}
-      if (!target || url.origin!==target || !url.pathname.startsWith('/rest/v1/')) return fetcher(input,options);
-      const id=++sequence,started=Date.now();
-      try {
-        const response=await fetcher(input,options);
-        // Service-worker/device snapshots must never clear a cloud failure.
-        if (!response.headers.has('X-OJM-Cached')) {
-          const kind=classify(response.status);
-          if (kind) publish(kind,id,target);
-          if (!response.ok) {
-            // Read only a bounded error prefix; never retain response content.
-            void (async()=>{
-              const reader=response.clone().body?.getReader();
-              if (!reader) return;
-              const decoder=new TextDecoder();let body='';
-              try {while(body.length<16384){const {value,done}=await reader.read();if(done)break;body+=decoder.decode(value,{stream:true});}}
-              finally {void reader.cancel().catch(()=>{});}
-              const detail=classify(response.status,body.slice(0,16384));
-              if (detail && detail!==kind) publish(detail,id,target);
-            })().catch(()=>{});
-          }
-        }
-        return response;
-      } catch(error) {
-        // Short caller cancellations are navigation, not an outage. Existing
-        // database deadlines run for at least eight seconds.
-        if (error?.name!=='AbortError' || Date.now()-started>=7500) publish('unavailable',id,target);
-        throw error;
-      }
-    };
-  }
-  function current() {
-    resetOrigin();
-    return {...state,kind:navigator.onLine===false?'offline':state.kind};
-  }
-  function dashboardURL() {
+  function dashboardURL(){
     try {
       const host=new URL(window.OJM_SUPABASE_URL).hostname;
       const ref=host.match(/^([a-z0-9]{20})\.supabase\.co$/)?.[1];
       return ref?'https://supabase.com/dashboard/project/'+ref:'https://supabase.com/dashboard';
-    } catch {return 'https://supabase.com/dashboard';}
+    }catch{return 'https://supabase.com/dashboard';}
   }
-  window.supabaseHealth461=Object.freeze({current,dashboardURL,observeFetch});
+  // Browser offline events are local signals, not another Supabase request.
+  window.addEventListener('offline',()=>{if(owner)record(owner,{offline:true});});
+  window.supabaseHealth461=Object.freeze({beginLogin,endLogin,record,presentation,notices,dashboardURL,current:()=>({...state}),setOpen:fn=>{openPanel=fn;},open:()=>openPanel()});
 })();
 
 /* Account-scoped response snapshots and saved-entry synchronization. */
 (()=>{'use strict';
-const nativeFetch=window.supabaseHealth461.observeFetch(window.fetch.bind(window)),readRPC=new Set(['workspace_standing379','workflow_capabilities14253','current_access14228','accounting_workspace_allowed123','is_admin','branch_home14229','review_directory14229','review_inbox14229','fund_balances136','team_funds113','staff_report1434','report_history14229','approved_report1443','book_sessions_list136','reminder_load14229','opening_status14234','workspace_context138','workspace_live_activity_v49','audit_month1434','employee_photo113','journal_window14333','payroll_window14334','journal_receipt14228','journal_change_receipt14385','password_change_status14257','preview_journal_number14257','installation_status14320','list_journal_plans280']);
+const nativeFetch=window.fetch.bind(window),readRPC=new Set(['workspace_standing379','workflow_capabilities14253','current_access14228','accounting_workspace_allowed123','is_admin','branch_home14229','review_directory14229','review_inbox14229','fund_balances136','team_funds113','staff_report1434','report_history14229','approved_report1443','book_sessions_list136','reminder_load14229','opening_status14234','workspace_context138','workspace_live_activity_v49','audit_month1434','employee_photo113','journal_window14333','payroll_window14334','journal_receipt14228','journal_change_receipt14385','password_change_status14257','preview_journal_number14257','installation_status14320','list_journal_plans280']);
 const actor=()=>typeof liveProfile!=='undefined'?liveProfile?.id||'':'',scope=()=>String(window.OJM_SUPABASE_URL||location.origin),prefix=id=>'ojm-offline14239:'+scope()+(window.accountingReset143108?.suffix()||'')+':'+id+':';
 let reachable=navigator.onLine,syncing=false,lastRead=null,storageError='',cacheDB,dialog,shellReady=false,visibleActor='',connectionError='',notificationPending=false,queueRevision=0,cacheRevision14333=0,lastNotification='',freshReadDepth14338=0,cacheReadDepth14359=0;
 const canonical=v=>JSON.stringify(v,(_,x)=>x&&typeof x==='object'&&!Array.isArray(x)?Object.fromEntries(Object.entries(x).sort(([a],[b])=>a.localeCompare(b))):x);
@@ -185,8 +163,12 @@ window.fetch=async function(input,options={}){
  let direct=directTables.includes(url.pathname.split('/').pop())||directRPC.includes(rpc)||req.headers.get('x-ojm-database-only')==='1';
  if(rpc==='change_journal14385'){try{direct=(await req.clone().json()).p_kind==='void'}catch{}}
  if(direct){
+  // One login/manual read may inspect the server even after local sign-in fallback.
+  // It never re-enables writes, refreshes saved data, or uses an offline response.
+  let statusRead=false;
+  if(rpc==='desktop_dock_status'&&req.method==='POST'){try{statusRead=(await req.clone().json()).p_action==='read'}catch{}}
   const referenceKey=id&&req.method==='GET'&&['accounts','sub_accounts','currencies'].includes(url.pathname.split('/').pop())&&!req.headers.has('range')&&!url.searchParams.has('limit')&&!url.searchParams.has('offset')?prefix(id)+'read:'+req.method+':'+url.href+'::'+(req.headers.get('accept')||'')+':workspace:'+(req.headers.get('x-ojm-workspace')||''):'';
-  if(navigator.onLine===false||window.sessionCache14333?.localMode||window.deviceVault14334?.offline)return errorResponse('Connect to the database to confirm this operation. No cached result is used.');
+  if(navigator.onLine===false||!statusRead&&(window.sessionCache14333?.localMode||window.deviceVault14334?.offline))return errorResponse('Connect to the database to confirm this operation. No cached result is used.');
   try{const headers=new Headers(req.headers);headers.delete('x-ojm-database-only');const response=await fetchWithDeadline(req,15000,{headers,cache:'no-store'});if(response.ok){reachable=true;connectionError='';changed();
    // Confirmed reference reads also replace their browsing copy for offline reopening.
    if(referenceKey){const body=await response.clone().text();JSON.parse(body);remember(referenceKey,{body,status:response.status,headers:Object.fromEntries(response.headers),at:new Date().toISOString()});}
@@ -350,7 +332,7 @@ function renderDialog(){
 }
 
 function paint(doc=document,phone=false){if(visibleActor!==actor()){visibleActor=actor();dialog?.close();lastRead=null}const s=state(),label=s.online?'Online':navigator.onLine===false?'Offline':'Limited connection';const hosts=phone?[doc.querySelector('.top')]:[...doc.querySelectorAll('.area-banner113,.dash-hero112')];for(const host of hosts.filter(Boolean)){let b=host.querySelector('.connection14239');if(!b){b=doc.createElement('button');b.type='button';b.className='connection14239';b.onclick=open;if(phone)host.insertBefore(b,host.querySelector('.profile'));else host.append(b)}const text=label;if(b.textContent!==text)b.textContent=text;const state=s.online?'online':navigator.onLine===false?'offline':'limited',aria=text+(window.autoSync14256?'. Connection and manual sync':'. Connection and saved-entry status');if(b.dataset.state!==state)b.dataset.state=state;if(b.getAttribute('aria-label')!==aria)b.setAttribute('aria-label',aria);}}
-const SHELL_VERSION='143.461';let releaseNotes=null;try{const saved=JSON.parse(localStorage.getItem('ojm_release_notes143105')||'null');if(saved&&/^\d+\.\d+$/.test(saved.version)&&Array.isArray(saved.changes))releaseNotes=saved}catch{}let checkingUpdate=false,updateMessage='';let shellRegistration=null,waitingForLoad=false,shellFailures=0,shellRetry=null,availableShell='';
+const SHELL_VERSION='143.463';let releaseNotes=null;try{const saved=JSON.parse(localStorage.getItem('ojm_release_notes143105')||'null');if(saved&&/^\d+\.\d+$/.test(saved.version)&&Array.isArray(saved.changes))releaseNotes=saved}catch{}let checkingUpdate=false,updateMessage='';let shellRegistration=null,waitingForLoad=false,shellFailures=0,shellRetry=null,availableShell='';
 function shellStatus(data){shellReady=data.ready===true&&data.version===SHELL_VERSION;if(data.ready&&String(data.version).localeCompare(SHELL_VERSION,undefined,{numeric:true})>0&&availableShell!==data.version){availableShell=data.version;window.showCenterStatus?.('Website update '+data.version+' is ready. Open System to review and apply it.');}if(shellReady&&/^(Offline files|Offline reopening)/.test(storageError))storageError='';changed()}
 async function checkForUpdates(){
  if(checkingUpdate)return;
