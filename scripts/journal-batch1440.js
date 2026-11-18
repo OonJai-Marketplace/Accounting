@@ -294,6 +294,7 @@ function syncLineRates(card){
    state.automatic=true;state.autoValue=null;
   }
   state.account=id;
+  if(row.dataset.savedRate291)state.automatic=false;
   const active=foreign(account);
   if(active&&row.dataset.bookRate14383&&row.dataset.bookRate14383!==state.autoValue){state.automatic=false;delete row.dataset.averageBookRate;}
   const date=rowDate(row);
@@ -315,7 +316,7 @@ function syncLineRates(card){
    const n=raw&&valid(Number(raw))?Number(raw):null;
    if((n===null&&input.value)||(n!==null&&readAppRateInput(input)!==n))bindAppRateInput(input,n??'');
    input.setCustomValidity('');
-   const placeholder=active&&field==='fxRate14383'?'Enter rate':'—';
+   const placeholder=active&&field==='fxRate14383'?'Enter rate':active&&row.dataset.savedRate291&&valid(Number(row.dataset.fxRate14383))?'Uses entered rate':'—';
    if(input.placeholder!==placeholder)input.placeholder=placeholder;
   }
  }

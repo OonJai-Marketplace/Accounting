@@ -155,7 +155,10 @@ async function prepare(record,canContinue=()=>true){
  window.JournalFX14383?.restore(current.data.rates||{});
  const fill=()=>{for(const l of lines){
   addJournalLineRow(l.account.code+' — '+l.account.name,l.memo,l.side==='DR'?String(l.amount):'',{[l.account.currency]:l.side==='CR'?String(l.amount):''});
-  const row=$('jeLinesBody').lastElementChild;row.dataset.fxRate14383=l.fx_rate_lak;row.dataset.bookRate14383=l.book_rate_lak||'';
+  const row=$('jeLinesBody').lastElementChild;
+  // A blank book rate uses the payroll valuation. Preserve it when account averages load.
+  row.dataset.savedRate291='1';delete row.dataset.averageBookRate;
+  row.dataset.fxRate14383=l.fx_rate_lak;row.dataset.bookRate14383=l.book_rate_lak||'';
   const field=row.querySelector('.je-line-date');if(field)field.value=date;
  }calculateJournalBalance();};
  preparing={id:current.id,version:current.version,month:current.data.month,correctionId:plan.context.correction_id||null,mode:plan.context.mode,ledgerHash:plan.context.ledger_hash||null,marker:plan.marker,owner:liveProfile.id,reference:current.data.reference,rateSource:current.data.rateSource,rateDate:current.data.rateDate};
@@ -164,7 +167,7 @@ async function prepare(record,canContinue=()=>true){
  sessionStorage.setItem('ojm_prepared_payroll1429_'+preparing.owner,JSON.stringify(preparing));
  showPrepared();$('jeGeneralMemo').dispatchEvent(new Event('input',{bubbles:true}));window.drafts1427?.flush();window.dispatchEvent(new Event('save-state14234'));
 }
-function showPrepared(){let banner=$('payrollPostBanner1429');if(!preparing||preparing.owner!==liveProfile?.id){banner?.remove();const b=$('btnPostJournal');if(b?.dataset.payroll1429){b.textContent='Post Entry';delete b.dataset.payroll1429}return}if(!banner){banner=document.createElement('div');banner.id='payrollPostBanner1429';banner.className='payroll-post-banner1429';$('journalEntry98')?.prepend(banner)}banner.textContent='Payroll '+preparing.reference+(preparing.mode==='replace'?' → Update the existing journal after review. ':preparing.mode==='adjustment'?' → Separate payroll adjustment. Original journal retained. ':' → Journal ID assigned on successful posting. ')+ 'Review all accounts and amounts.';const b=$('btnPostJournal');if(b){b.textContent=preparing.mode==='replace'?'Save Payroll Journal Changes':preparing.mode==='adjustment'?'Post Payroll Adjustment':'Post Payroll Journal';b.dataset.payroll1429='1'}}
+function showPrepared(){let banner=$('payrollPostBanner1429');if(!preparing||preparing.owner!==liveProfile?.id){banner?.remove();const b=$('btnPostJournal');if(b?.dataset.payroll1429){b.textContent='Post Entry';delete b.dataset.payroll1429}return}if(!banner){banner=document.createElement('div');banner.id='payrollPostBanner1429';banner.className='payroll-post-banner1429';$('journalEntry98')?.prepend(banner)}banner.textContent='Payroll '+preparing.reference+(preparing.mode==='replace'?' → Update the existing journal after review. ':preparing.mode==='adjustment'?' → Separate payroll adjustment. Original journal retained. ':' → Journal ID assigned on successful posting. ')+ 'Review all accounts and amounts. Foreign lines use the saved payroll rate unless you enter a separate book rate.';const b=$('btnPostJournal');if(b){b.textContent=preparing.mode==='replace'?'Save Payroll Journal Changes':preparing.mode==='adjustment'?'Post Payroll Adjustment':'Post Payroll Journal';b.dataset.payroll1429='1'}}
 function editorSnapshot1429(){return JSON.stringify({journal:snapshotJournal69(),memo:$('jeGeneralMemo')?.value,date:$('jeTransDate')?.value,multiple:$('jeMultipleDates')?.checked,mode:window.entry1430?.mode,single:window.entry1430?.read?.(),editing:JournalModule.editingEntryId})}
 function installPosting1429(){const submitBefore=window.submitJournalEntry;window.submitJournalEntry=async function(...args){
  if(!preparing){try{const saved=JSON.parse(sessionStorage.getItem('ojm_prepared_payroll1429_'+liveProfile?.id)||'null');if(saved&&$('jeGeneralMemo')?.value.includes(saved.marker||tag(saved.id)))preparing=saved}catch{}}

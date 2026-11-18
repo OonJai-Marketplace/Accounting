@@ -1,6 +1,7 @@
 {
-  "version": "143.485",
+  "version": "143.486",
   "changes": [
+    "Prepared and direct payroll journals use the same saved payroll valuation. A separate book rate remains editable, and restoring a payroll draft preserves explicit rates.",
     "Overtime preserves approved unpaid leave. Payroll inputs are locked during finalization.",
     "Phone sync continues with independent valid entries when a receipt needs correction.",
     "Approved reports preserve unfinished journals. Budget finalization checks remaining funding per currency.",

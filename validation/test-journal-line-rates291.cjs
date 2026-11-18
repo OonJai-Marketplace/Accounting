@@ -23,4 +23,11 @@ r.acc.value='THB';sync();assert.equal(r.dataset.bookRate14383,undefined);assert.
 r.acc.value='LAK';sync();assert.equal(book.disabled,true);
 r=row('USD',{bookRate14383:'22111.985664',fxRate14383:'22112',savedRate291:'1'});body.rows=[r];sync();assert.equal(r.dataset.bookRate14383,'22111.985664');assert.equal(r.children[1].children[0].value,'22,111.99');
 r=row('USD',{savedRate291:'1'});body.rows=[r];sync();assert.equal(r.dataset.bookRate14383,undefined);
+// A payroll row may receive its saved rate after its account editor has mounted.
+r=row('USD');body.rows=[r];sync();assert.equal(r.dataset.bookRate14383,'22000');
+r.dataset.savedRate291='1';r.dataset.fxRate14383='22294';r.dataset.bookRate14383='';delete r.dataset.averageBookRate;
+sync();date.value='2026-03-01';sync();
+assert.equal(r.dataset.bookRate14383,'');assert.equal(r.children[1].children[0].placeholder,'Uses entered rate');
+const manualBook=r.children[1].children[0];manualBook.value='22188.75';manualBook.dispatch('input');sync();
+assert.equal(r.dataset.bookRate14383,'22188.75');
 console.log('PASS account/date averages, manual override, saved precision, currency change, missing balances and historical blank rates');
