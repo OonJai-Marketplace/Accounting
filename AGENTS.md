@@ -594,3 +594,13 @@ copyable email/WhatsApp messages belong inside the request dialog. Keep request
 messages manual and retain totals by original currency.
 
 Journal numbering, 2026-11-11: Show the assigned manual journal number immediately on offline saves and pending rows. Reconnecting retries pending new journal posts with their original request and number. Full workspace sync remains manual.
+
+Fund utilization protocol, 2026-11-18: salary cost is earned gross after attendance
+deductions, before employee PIT/SSO and advance recovery, in USD and LAK. Show
+PIT as employer 50% only and SSO as employer 6% only. Approved requests remain
+separate from recorded committed costs. Funding remaining uses committed expense
+cost in its funding currency, not net cash paid; conversion is not a second expense.
+Keep physical cash details separately. Finalized payroll corrections use the
+administrator-only, version/fingerprint-checked payroll amendment with audit history.
+Preserve all unrelated report edits, cash payments, approval statuses, source payroll
+and posted journals. Missing payment evidence must be visibly unconfirmed.

@@ -1,4 +1,4 @@
-/* Funding decisions and cash disbursements belong to the utilization draft. */
+/* Funding commitments and expense amounts belong to the utilization draft. */
 window.BudgetSpendingWorksheet=(()=>{
  function mount(host,draft,openPayment){
   const report=BudgetReport290,request=host.querySelector('[data-request-summary]'),payments=host.querySelector('[data-disbursements]');
@@ -13,7 +13,7 @@ window.BudgetSpendingWorksheet=(()=>{
    const prior=report.lineFunding(draft,line,i);
    return prior.status!==select.value||(select.value==='deduction'&&prior.amount!==input.valueAsNumber);
   })||rows.some(({inputs,ref})=>ref.value.trim()!==(draft.movements[Number(ref.dataset.payment)]?.reference||'')||
-   inputs.some(input=>{const m=draft.movements[Number(input.dataset.payment)];return input.validity.badInput||(m?input.valueAsNumber!==report.cashPaid(m):!!input.value);}));
+   inputs.some(input=>{const m=draft.movements[Number(input.dataset.payment)];return input.validity.badInput||(m?input.valueAsNumber!==report.expenseAmount(m):!!input.value);}));
   function read(commit=false){
    const movements=draft.movements.slice(),funding={...draft.fundingByItem},funded=new Map();
    function invalid(field,message){if(commit)field.focus();throw Error(message);}
@@ -33,18 +33,17 @@ window.BudgetSpendingWorksheet=(()=>{
     for(const input of inputs){
      const index=Number(input.dataset.payment),prior=draft.movements[index],lineIndex=Number(input.dataset.line);
      const amount=input.valueAsNumber,currency=input.dataset.paidIn;
-     if(prior&&amount===report.cashPaid(prior)&&reference===(prior.reference||''))continue;
+     if(prior&&amount===report.expenseAmount(prior)&&reference===(prior.reference||''))continue;
      if(!input.value&&!input.validity.badInput&&!prior)continue;
-     if(!Number.isFinite(amount)||!Number.isSafeInteger(Math.round(amount*100))||!input.validity.valid||(amount===0&&prior&&prior.cashDistributed==null))
-      invalid(input,'Enter a valid amount paid in '+currency+'. Use Details to remove an existing payment.');
+     if(!Number.isFinite(amount)||!Number.isSafeInteger(Math.round(amount*100))||!input.validity.valid||(amount===0&&prior))
+      invalid(input,'Enter a valid expense amount in '+currency+'. Use Details to remove an existing payment.');
      if(!prior&&amount===0)continue;
      if(prior){
       if(!reference&&prior.reference&&!prior.worksheetSpend)invalid(ref,'Enter the payment reference.');
-      if(reference===prior.reference&&amount===report.cashPaid(prior))continue;
+      if(reference===prior.reference&&amount===report.expenseAmount(prior))continue;
       const next={...prior,reference};
-      if(amount!==report.cashPaid(prior)){
-       if(prior.cashDistributed!=null){next.cashDistributed=amount;delete next.cashBudgetAmount;}
-       else{next.outflow=amount;delete next.ownerAmount;delete next.ownerCurrency;delete next.budgetAmount290;}
+      if(amount!==report.expenseAmount(prior)){
+       next.outflow=amount;delete next.ownerAmount;delete next.ownerCurrency;delete next.budgetAmount290;
       }
       movements[index]=next;
      }else{
@@ -100,7 +99,7 @@ window.BudgetReport290 = (() => {
   const body = [...groups(lines)].map(([category,items]) => items.map(l => {
    const key = esc(l.key117 || '');
    const actions = editing ? `<td><button type="button" data-budget-edit290="${key}">Edit</button><button type="button" data-budget-delete290="${key}">Delete</button></td>` : '';
-   return `<tr data-budget-key14316="${key}"><td>${esc(category)}</td><td>${esc(l.description)}</td><td style="text-align:right">${money(l.amount)}</td><td>${esc(l.currency)}</td>${actions}</tr>`;
+   return `<tr data-budget-key14316="${key}"><td>${esc(category)}</td><td>${esc(itemName(l))}</td><td style="text-align:right">${money(l.amount)}</td><td>${esc(l.currency)}</td>${actions}</tr>`;
   }).join('')+subtotal(category,items,editing?3:2)).join('');
   return `<table ${editing?'class="budget-items290"':'data-budget-table14316="items"'} style="width:100%;border-collapse:collapse"><thead><tr><th>Category</th><th>Item</th><th>Amount</th><th>Currency</th>${editing?'<th>Action</th>':''}</tr></thead><tbody>${body||'<tr><td colspan="5">No budget items yet.</td></tr>'}</tbody><tfoot>${grand(lines,editing)}</tfoot></table>`;
  }
@@ -159,6 +158,13 @@ window.BudgetReport290 = (() => {
  }
  const labels={receipt:'Funding received',spend:'Expense paid',borrow:'Temporary advance received',repay:'Advance repaid',refund:'Cash handover / return',transfer:'Transfer between accounts',coverage:'Shortfall covered by restaurant'};
  function cashPaid(m){return Number(m.cashDistributed??m.outflow);}
+ function expenseAmount(m){return Number(m.outflow)||0;}
+ function itemName(line){
+  const name=String(line?.description||'');
+  if(/personal.*tax|income.*tax|^pit(?:\s|$)/i.test(name))return 'PIT — employer 50%';
+  if(/social security|^sso(?:\s|$)/i.test(name))return 'SSO — employer 6%';
+  return name;
+ }
  function equivalentField(m){return m?.cashDistributed!=null?'cashBudgetAmount':'budgetAmount290';}
  function balances(d) {
   const sums=new Map();
@@ -174,6 +180,21 @@ window.BudgetReport290 = (() => {
    const available=t.receipt+t.coverage+t.borrow+t.convertedIn-t.cashSpent-t.repay-t.convertedOut;
    t.beforeReturn=round(available);
    t.remaining=round(available-t.refund);
+  }
+  for(const t of sums.values())t.allocated=0;
+  // The committed cost is the expense (including earned gross), never the net
+  // cash payment or the entire approved request. Keep its funding currency.
+  for(const m of d.movements||[]){
+   if(kind(m)!=='spend')continue;
+   const line=d.lines.find((line,i)=>forLine(m,line,i));
+   const c=m.ownerAmount!=null?(m.ownerCurrency||m.currency):(line?.currency||m.currency);
+   const amount=m.ownerAmount!=null?Number(m.ownerAmount):valueIn(d,expenseAmount(m),m.currency,c,line,m);
+   const t=currency(c);
+   t.allocated=amount==null||t.allocated===null?null:round((t.allocated||0)+amount);
+  }
+  for(const t of sums.values()){
+   t.fundAvailable=round(t.receipt+t.coverage+t.borrow-t.repay);
+   t.fundRemaining=t.allocated===null?null:round(t.fundAvailable-(t.allocated||0));
   }
   return sums;
  }
@@ -245,6 +266,9 @@ window.BudgetReport290 = (() => {
  function amountLines(codes,value){
   return orderedUnits(codes).map(c=>amountHtml(c,value(c))).join('<br>');
  }
+ function fundingAmountLines(codes,value){
+  return orderedUnits(codes).map(c=>value(c)===null?esc(c)+' equivalent needed':amountHtml(c,value(c))).join('<br>');
+ }
  function spendingRows(d){
   const spent=(d.movements||[]).filter(m=>kind(m)==='spend');
   const rows=d.lines.map((line,index)=>({line,index,movements:spent.filter(m=>forLine(m,line,index))}));
@@ -280,10 +304,10 @@ window.BudgetReport290 = (() => {
   return '<div class="data-table82"><table '+marker+' style="width:100%;border-collapse:collapse"><thead><tr>'+heading+'</tr></thead><tbody>'+
    rows.map(r=>tr(r,false)).join('')+'</tbody>'+(totals.length?'<tfoot>'+totals.map(r=>tr(r,true)).join('')+'</tfoot>':'')+'</table></div>';
  }
- function cashSummary(d){
+ function physicalCashSummary(d){
   const totals=balances(d),codes=cashCodes(d),rows=[];
   const cols=(name,value)=>[name,...codes.map(c=>value(c)==null?'—':amountHtml(c,value(c)))];
-  const key=(name,k)=>cols(name,c=>totals.get(c)?.[k]||0);
+  const key=(name,k)=>[name,...codes.map(c=>['cashSpent','beforeReturn'].includes(k)&&(d.movements||[]).some(m=>m.currency===c&&m.cashUnconfirmed)?'Payment details pending':amountHtml(c,totals.get(c)?.[k]||0))];
   const ref=s=>s?'<br><small>'+esc(s)+'</small>':'';
   for(const [i,m] of d.movements.entries()){
    if(kind(m)!=='receipt')continue;
@@ -304,8 +328,18 @@ window.BudgetReport290 = (() => {
   }
   rows.push(cols('Available to distribute',c=>{const t=totals.get(c);return t?t.receipt+t.coverage+t.borrow-t.repay+t.convertedIn-t.convertedOut:0;}));
   rows.push(key('Total distributed','cashSpent'));
-  const closing=[key('Remaining','beforeReturn')];
+  const closing=[key('Cash remaining','beforeReturn')];
   return summaryTable(['Source / activity',...codes],rows,closing,'data-cash-summary');
+ }
+ function cashSummary(d){
+  const totals=balances(d),codes=cashCodes(d),rows=[];
+  const cols=(label,key)=>[label,...codes.map(c=>{const t=totals.get(c);return t?.[key]===null?'Equivalent needed':amountHtml(c,t?.[key]||0);})];
+  for(const m of d.movements||[])if(kind(m)==='receipt')rows.push([esc(m.account||'Receipt')+(m.reference?'<br><small>'+esc(m.reference)+'</small>':''),...codes.map(c=>c===m.currency?amountHtml(c,m.inflow):'—')]);
+  rows.push(cols('Total received','receipt'));
+  for(const [key,label] of [['coverage','Additional coverage'],['borrow','Temporary funding'],['repay','Funding repaid']])if([...totals.values()].some(t=>t[key]))rows.push(cols(label,key));
+  rows.push(cols('Allocated / committed','allocated'));
+  return summaryTable(['Funding source',...codes],rows,[cols('Remaining funding','fundRemaining')],'data-cash-summary')+
+   '<details class="worksheet-details"><summary>Cash movements</summary>'+physicalCashSummary(d)+'</details>';
  }
  function requestSummary(d,editable=false){
   const sum=new Map(),funded=new Map();
@@ -315,7 +349,7 @@ window.BudgetReport290 = (() => {
    funded.set(l.currency,amount==null||funded.get(l.currency)===null?null:(funded.get(l.currency)||0)+Number(amount));
    const decision=editable?'<select data-plain14285 data-decision="'+i+'" aria-label="Funding status for '+esc(l.description)+'">'+Object.entries(fundingLabels).map(([k,v])=>'<option value="'+k+'"'+(k===status?' selected':'')+'>'+v+'</option>').join('')+'</select>':esc(fundingLabels[status]);
    const adjustment=editable?'<input data-adjusted="'+i+'" data-currency="'+esc(l.currency)+'" aria-label="Adjusted funding for '+esc(l.description)+'" type="number" min="0" max="'+Number(l.amount)+'" step="0.01" value="'+(status==='deduction'?Number(amount):'')+'"'+(status==='deduction'?'':' hidden')+'>':'';
-   return [esc(l.category),esc(l.description),amountHtml(l.currency,l.amount),decision,
+   return [esc(l.category),esc(itemName(l)),amountHtml(l.currency,l.amount),decision,
     '<span data-funded="'+i+'"'+(editable&&status==='deduction'?' hidden':'')+'>'+(amount==null?'Unconfirmed':amountHtml(l.currency,amount))+'</span>'+adjustment];
   });
   return summaryTable(['Category','Item','Requested','Status','Funded / adjusted'],rows,[['Total requested','',amountLines(sum.keys(),c=>sum.get(c)),'Total funded','<span data-funded-total>'+fundedTotal(funded)+'</span>']],'data-request-summary');
@@ -325,31 +359,31 @@ window.BudgetReport290 = (() => {
   const codes=cashCodes(d),rows=[],sums=balances(d);
   for(const {line,index,movements} of spendingRows(d)){
    for(const m of movements.length?movements:[null]){
-    const i=m?d.movements.indexOf(m):-1,item=line?.description||m?.item290||m?.destination290||m?.description290||'Additional spending';
+    const i=m?d.movements.indexOf(m):-1,item=(line?itemName(line):'')||m?.item290||m?.destination290||m?.description290||'Additional spending';
     const category=line?.category||m?.category290||'Additional spending';
     const identity=' data-payment="'+i+'" data-line="'+(index??-1)+'"';
     const reference=editable?'<input data-payment-reference'+identity+' aria-label="Reference for '+esc(item)+'" placeholder="Reference" value="'+esc(m?.reference||'')+'">':esc(m?.reference||'—');
     const itemCell='<strong>'+esc(item)+'</strong>'+(line?'':' <small>Outside request</small>');
     const amounts=codes.map(c=>{
      if(m&&m.currency!==c)return '—';
-     const n=m?cashPaid(m):null;
-     return editable?'<input type="number" min="0" step="0.01" data-paid-in="'+esc(c)+'" data-currency="'+esc(c)+'"'+identity+' aria-label="'+esc(c)+' paid for '+esc(item)+'" value="'+(n==null?'':Number(n))+'" placeholder="0.00">':
+     const n=m?expenseAmount(m):null;
+     return editable?'<input type="number" min="0" step="0.01" data-paid-in="'+esc(c)+'" data-currency="'+esc(c)+'"'+identity+' aria-label="'+esc(c)+' expense for '+esc(item)+'" value="'+(n==null?'':Number(n))+'" placeholder="0.00">':
       n==null?(c===line.currency?amountHtml(c,0):'—'):amountHtml(c,n);
     });
     rows.push([esc(category),itemCell,...amounts,reference,...(editable?['<button type="button" data-pay-detail'+identity+'>Details</button>']:[])]);
    }
   }
-  const total=['Total distributed','',...codes.map(c=>amountHtml(c,sums.get(c)?.cashSpent||0)),'',...(editable?['']:[])];
+  const total=['Total expense','',...codes.map(c=>amountHtml(c,sums.get(c)?.spend||0)),'',...(editable?['']:[])];
   return summaryTable(['Category','Item',...codes,'Reference',...(editable?['Action']:[])],rows,[total],'data-disbursements');
  }
  function summary(d){
-  return section82('Funding summary',cashSummary(d))+section82('Budget request summary',requestSummary(d))+section82('Disbursement breakdown',disbursements(d));
+  return section82('Funding summary',cashSummary(d))+section82('Budget request summary',requestSummary(d))+section82('Disbursement breakdown',disbursements(d))+'<p class="fund-payroll-protocol">Salary: earned gross after absence and late deductions, before employee deductions and advance recovery. PIT: employer 50%. SSO: employer 6%. Remaining funding deducts committed costs in their funding currency; exchanges are not a second expense.</p>';
  }
  function movementRows(d){
   return d.movements.map(m=>{
    const loan=kind(m)==='repay'?d.movements.find(l=>l.id290===m.loanId290&&kind(l)==='borrow'):null;
    const ref=loan?m.reference+' · Advance '+loan.reference+' · '+currencyAmount(loan.currency,m.loanAmount290||m.outflow)+' settled':m.reference;
-   return [esc(m.date290?formatAppDate(m.date290):'—'),esc(labels[kind(m)]),esc(m.account),esc(m.destination290||loan?.account||'—'),esc(d.lines.find((l,i)=>forLine(m,l,i))?.description||(kind(m)==='spend'?m.destination290:'')||'—')+(m.description290?'<br>'+esc(m.description290):''),amountHtml(m.currency,Number(m.inflow)||Number(m.outflow))+(m.cashDistributed!=null?'<br><small>Cash distributed: '+amountHtml(m.currency,m.cashDistributed)+'</small>':''),esc(ref)];
+   return [esc(m.date290?formatAppDate(m.date290):'—'),esc(labels[kind(m)]),esc(m.account),esc(m.destination290||loan?.account||'—'),esc(d.lines.find((l,i)=>forLine(m,l,i))?.description||(kind(m)==='spend'?m.destination290:'')||'—')+(m.description290?'<br>'+esc(m.description290):''),amountHtml(m.currency,Number(m.inflow)||Number(m.outflow))+(m.cashDistributed!=null?'<br><small>'+(m.cashUnconfirmed?'Cash payment details pending':'Cash distributed: '+amountHtml(m.currency,m.cashDistributed))+'</small>':''),esc(ref)];
   });
  }
  const movementHeaders=['Date','Activity','Source / lender','Paid to / destination','Budget item','Amount','Reference'];
@@ -360,7 +394,7 @@ window.BudgetReport290 = (() => {
   return '<h1 style="text-align:center">'+title+'</h1><p><strong>'+esc(d.purpose)+'</strong></p><p>'+esc(period(d))+' · '+esc(formatAppDate(d.date))+
    (d.status==='finalized'?' · <span data-final-status>Finalized</span>':'')+(refs?'<br>'+refs:'')+'</p>'+summary(d)+(d.notes&&print?'<p>'+esc(d.notes)+'</p>':'')+signature(d);
  }
- return {title,compare,cashPaid,equivalentField,reportRate,requestCurrency,valueIn,amountText,currencyAmount,amountHtml,amountLines,orderedUnits,items,period,layout,recalculate,signature,report,kind,labels,summary,cashSummary,requestSummary,disbursements,fundedTotal,balances,conversionAmount,outstanding,movementRows,movementHeaders,forLine,fundingLabels,fundingKey,lineFunding};
+ return {title,compare,cashPaid,fundingAmountLines,expenseAmount,itemName,physicalCashSummary,equivalentField,reportRate,requestCurrency,valueIn,amountText,currencyAmount,amountHtml,amountLines,orderedUnits,items,period,layout,recalculate,signature,report,kind,labels,summary,cashSummary,requestSummary,disbursements,fundedTotal,balances,conversionAmount,outstanding,movementRows,movementHeaders,forLine,fundingLabels,fundingKey,lineFunding};
 })();
 /* USD owner support is accounted for in regular equity, in its original currency. */
 window.BudgetSupportEquity=(()=>{
@@ -398,32 +432,11 @@ window.BudgetSupportEquity=(()=>{
   return data||[];
  }
  function usage(d,received){
-  const balances=BudgetReport290.balances(d),usd=balances.get('USD');
-  let used=0;
-  const fxRows=d.conversions||[];
-  for(const [currency,b] of balances){
-   if(currency==='USD')continue;
-   const sales=fxRows.filter(f=>f.currency==='USD'&&f.target===currency);
-   const proceeds=sales.reduce((n,f)=>n+BudgetReport290.conversionAmount(f),0);
-   const sold=sales.reduce((n,f)=>n+Number(f.amount),0);
-   const boughtBack=fxRows.filter(f=>f.currency===currency&&f.target==='USD').reduce((n,f)=>n+Number(f.amount),0);
-   if((sales.length||b.cashSpent)&&fxRows.some(f=>f.currency!=='USD'&&f.target!=='USD'&&(f.currency===currency||f.target===currency)))
-    throw Error('Review the cross-currency conversion before allocating USD support to '+currency+' spending.');
-   // Local top-ups cover shortfalls. Other funds, returns and unspent proceeds are not owner spending.
-   const available=Math.max(0,proceeds-boughtBack);
-   if(round(b.cashSpent+b.repay+b.refund+boughtBack-proceeds-b.receipt-b.coverage-b.borrow)>0)
-    throw Error('Record the exchange or separate funding that covered the '+currency+' payments before preparing USD support.');
-   const ownerPaid=Math.max(0,b.cashSpent-b.coverage);
-   if(available>0&&ownerPaid>0)used+=Math.min(available,ownerPaid)*sold/proceeds;
-  }
-  const otherUsd=Math.max(0,usd.receipt-received)+usd.borrow+usd.coverage;
-  if(round(usd.cashSpent+usd.convertedOut+usd.refund+usd.repay-usd.convertedIn-received-otherUsd)>0)
-   throw Error('The USD payments exceed the recorded cash available. Review receipts and exchanges.');
-  if(otherUsd>0&&usd.convertedOut>0&&usd.convertedOut>received)
-   throw Error('Separate the USD exchange funded by other sources before preparing owner support.');
-  used=round(used+Math.max(0,usd.cashSpent-usd.coverage));
-  if(used>received&&otherUsd<=0)throw Error('USD used exceeds owner funding. Review payments, receipts and conversions.');
-  return Math.min(used,received);
+  const usd=BudgetReport290.balances(d).get('USD');
+  if(usd?.allocated===null)throw Error('Enter the missing USD funding equivalent before preparing owner support.');
+  const other=(d.movements||[]).filter(m=>BudgetReport290.kind(m)==='receipt'&&m.currency==='USD'&&m.ownerSource==='other').reduce((n,m)=>n+Number(m.inflow),0);
+  if(other>0)throw Error('Enter the owner-funded share of each expense when USD funding has more than one source.');
+  return round(Math.max(0,(usd?.allocated||0)-(usd?.coverage||0)));
  }
  function receivingAccount(destination){
   const accounts=AccountingStore.accounts.filter(a=>regular(a,'ASSET'));
@@ -445,7 +458,7 @@ window.BudgetSupportEquity=(()=>{
     entry_no:j.entry_no,currency:'USD',received:j.journal_lines.filter(l=>l.currency_code==='USD'&&(l.accounts?.id===remaining?.id||l.accounts?.code==='3026')).reduce((n,l)=>n+Number(l.credit),0),debited:0,used:0
    }))});
    const usd=review.rows.get('USD');
-   if(usd?.basis!=='Report entries'||usd.received!==Math.round(received*100)||usd.used>usd.received)
+   if(usd?.basis!=='Report entries'||usd.received!==Math.round(received*100))
     throw Error('Review the owner-funded receipts and spending before preparing their equity allocation.');
    used=usd.used/100;
   }else used=usage(d,received);
@@ -696,11 +709,9 @@ window.BudgetUtilizationJournal=(()=>{
  function localJob(id){return window.journalDurable14385?.pending().find(j=>j.id.startsWith('budget-use:'+id+':'));}
  function reference(link){return link?link.entry_no+(link.status==='posted'?'':' ('+link.status+')'):'';}
  function amounts(data){
-  const comparison=BudgetReport290.compare(data,"cost");
-  const requested=[...new Set(data.lines.map(l=>l.currency))],currency=requested[0];
-  if(requested.length===1&&comparison.totals[currency]?.used!=null)
-   return [[currency,Math.round(comparison.totals[currency].used*100)/100]].filter(([,n])=>n>0);
-  return [...BudgetReport290.balances(data)].map(([c,t])=>[c,Math.round(t.spend*100)/100]).filter(([,n])=>n>0);
+  const totals=[...BudgetReport290.balances(data)];
+  if(totals.some(([,t])=>t.allocated===null))throw Error('Enter the missing funding equivalent before preparing the utilization journal.');
+  return totals.map(([c,t])=>[c,Math.round((t.allocated||0)*100)/100]).filter(([,n])=>n>0);
  }
  function open(record,groups=BudgetSupportEquity.groups(record.data),journals=[]){
   if(!access113.can('journal','post')||window.workspaceRequest138?.target)throw Error('Open your company journal with Post permission.');
@@ -886,19 +897,19 @@ function totals327(d,asLines=false){
  return (asLines?report.amountLines(codes,value):codes.map(c=>report.currencyAmount(c,value(c))).join(' · '))||'—';
 }
 function utilizationHeaderTotals(reports){
- const totals=new Map(),keys=['requested','receipt','cashSpent','beforeReturn'];
+ const totals=new Map(),keys=['requested','receipt','allocated','fundRemaining'];
  for(const {balances} of reports)for(const [currency,values] of balances){
   if(!totals.has(currency))totals.set(currency,Object.fromEntries(keys.map(key=>[key,0])));
-  for(const key of keys)totals.get(currency)[key]+=Math.round(num(values[key])*100);
+  for(const key of keys)totals.get(currency)[key]=totals.get(currency)[key]===null||values[key]===null?null:totals.get(currency)[key]+Math.round(num(values[key])*100);
  }
- return new Map([...totals].map(([currency,values])=>[currency,Object.fromEntries(keys.map(key=>[key,values[key]/100]))]));
+ return new Map([...totals].map(([currency,values])=>[currency,Object.fromEntries(keys.map(key=>[key,values[key]===null?null:values[key]/100]))]));
 }
 function utilizationRegister(reports,rows){
  const totals=utilizationHeaderTotals(reports),codes=report.orderedUnits(totals.keys());
- const columns=[['Month'],['Purpose'],['Status'],['Requested','requested'],['Received','receipt'],['Cash paid','cashSpent'],['Remaining','beforeReturn'],['Action']];
+ const columns=[['Month'],['Purpose'],['Status'],['Requested','requested'],['Received','receipt'],['Allocated','allocated'],['Remaining','fundRemaining'],['Action']];
  let table=table82(columns.map(([label])=>label),rows).replace('<table>','<table id="savedFundReports" class="budget-saved-table">');
  for(const [label,key] of columns){
-  const summary=key?(report.amountLines(codes,c=>totals.get(c)[key])||'—'):label==='Purpose'?'Total · '+reports.length+' '+(reports.length===1?'report':'reports'):'';
+  const summary=key?(report.fundingAmountLines(codes,c=>totals.get(c)[key])||'—'):label==='Purpose'?'Total · '+reports.length+' '+(reports.length===1?'report':'reports'):'';
   table=table.replace('<th>'+label+'</th>','<th data-resize-label="'+label+'"><span class="fund-register-label">'+label+'</span><div class="fund-register-total"'+(key?' aria-label="Total '+label.toLowerCase()+'"':'')+'>'+summary+'</div></th>');
  }
  return table;
@@ -917,9 +928,9 @@ function renderRequest(notice=''){
  const reports=rows.filter(r=>r.data.mode==='utilization').map(record=>({record,balances:report.balances({...record.data,lines:record.data.lines||[]})}));
  const utilization=reports.map(({record:r,balances})=>{
   const codes=report.orderedUnits(balances.keys());
-  const amounts=key=>report.amountLines(codes,c=>balances.get(c)[key]);
-  const remaining=amounts('beforeReturn');
-  return [esc(report.period(r.data)),esc(r.data.purpose),esc(r.data.status||'Draft'),amounts('requested'),amounts('receipt'),amounts('cashSpent'),remaining,
+  const amounts=key=>report.fundingAmountLines(codes,c=>balances.get(c)[key]);
+  const remaining=amounts('fundRemaining');
+  return [esc(report.period(r.data)),esc(r.data.purpose),esc(r.data.status||'Draft'),amounts('requested'),amounts('receipt'),amounts('allocated'),remaining,
    button(isFinal(r)?'View':'Edit',`openAllocation(${JSON.stringify(r.id)})`)];
  });
  const content=section82('Saved budget requests',table82(['Month','Recipient','Purpose','Requested','Action'],requestRows).replace('<table>','<table id="savedBudgetRequests" class="budget-saved-table">'))+
@@ -1245,6 +1256,7 @@ function renderAllocation(){
  const d=allocation;
  if(host.editingAllocation!==d){host.editingAllocation=d;host.savedValues=editorData(d);}
  const actions=button('Reports','chooseRequest()')+button('Print','previewAllocation()')+
+  (allocationRecord?button('Payroll amounts',`reviewPayroll(${JSON.stringify(allocationRecord.id)})`):'')+
   button('Save','saveAllocation(false)')+button('Finalize','saveAllocation(true)');
  reportToolbar(fundPopup,actions).querySelector('[onclick*="saveAllocation(false)"]').classList.add('fund-save-draft');
  const cashActions='<button type="button" data-edit-funding>Edit funding</button><button type="button" data-add-funding>Add row</button>';
@@ -1258,6 +1270,7 @@ function renderAllocation(){
   section82('Funding summary','<div data-fund-summary></div>',cashActions)+
   section82('Budget request summary',report.requestSummary(d,true))+
   section82('Disbursement breakdown',report.disbursements(d,true),'<button type="button" data-activity="spend">Add row</button>')+
+  '<p class="fund-payroll-protocol">Salary: earned gross after absence and late deductions. PIT: employer 50%. SSO: employer 6%. Remaining funding excludes committed allocations.</p>'+
   '<details class="worksheet-details" '+(d.requestId14316?'':'open')+'><summary>Report details</summary>'+header+'<div data-journal-ref></div>'+postControl(allocationRecord)+
   (supplements(allocationRecord).length?button('Combine requests','combineRequests()'):'')+'</details>';
  showJournalReference(host,allocationRecord);
@@ -1282,7 +1295,7 @@ function renderAllocation(){
    summary.innerHTML=report.cashSummary(current);
    const totals=host.querySelector('[data-disbursements] tfoot tr');
    for(const [i,th] of [...host.querySelector('[data-disbursements] thead tr').cells].entries()){
-    const c=th.textContent;if(i&&CurrencyStore.currencies.some(unit=>unit.code===c))totals.cells[i].innerHTML=report.amountHtml(c,balances.get(c)?.cashSpent||0);
+    const c=th.textContent;if(i&&CurrencyStore.currencies.some(unit=>unit.code===c))totals.cells[i].innerHTML=report.amountHtml(c,balances.get(c)?.spend||0);
    }
   }catch(error){summary.textContent=error.message;}
  }
@@ -1455,6 +1468,11 @@ function openActivity(group,index=null,preset={}){
    }
    f.querySelector('[type=submit]').before(more);
    if(prior?.cashDistributed!=null||prior?.ownerAmount!=null)more.open=true;
+   if(prior?.cashUnconfirmed){
+    const confirm=document.createElement('label');
+    confirm.innerHTML='<input type="checkbox" name="cashConfirmed"> Cash payment amount confirmed';
+    f.elements.cashDistributed.closest('label').after(confirm);
+   }
    f.addEventListener('invalid',e=>{if(more.contains(e.target))more.open=true;},true);
    let currency=f.elements.currency.value;
    f.elements.currency.onchange=()=>{
@@ -1538,6 +1556,7 @@ function saveMovement(f){
    BudgetOwnerBalance.validateShare(next);
   }
   if(type==='spend'&&fields.cashDistributed!=='')next.cashDistributed=movementAmount(f.elements.cashDistributed);
+  if(type==='spend'&&prior?.cashUnconfirmed&&!fields.cashConfirmed)next.cashUnconfirmed=true;
   if(type==='spend'){
    if(!prior||prior.worksheetSpend)next.worksheetSpend=true;
    if(!next.budgetKey117){
@@ -1739,10 +1758,10 @@ function validateAllocation(d,finalize){
  }
  for(const f of d.conversions)if(!currencies.has(f.currency)||!currencies.has(f.target)||f.currency===f.target||!validDate14317(f.date)||!f.source||!(f.evidence||f.reference)||!positive(f.amount)||!Number.isFinite(Number(f.rate))||Number(f.rate)<=0||!positive(report.conversionAmount(f)))throw Error('Enter both currencies, amounts, date, source and evidence for the exchange.');
  const totals=[...report.balances(d).values()];
- if(totals.some(t=>Object.values(t).some(n=>!Number.isFinite(n)||!Number.isSafeInteger(Math.round(n*100)))))throw Error('Funding totals exceed the supported amount range.');
+ if(totals.some(t=>Object.values(t).some(n=>n!==null&&(!Number.isFinite(n)||!Number.isSafeInteger(Math.round(n*100))))))throw Error('Funding totals exceed the supported amount range.');
 }
 function negativeAllocationBalances(d){
- return [...report.balances(d)].filter(([,t])=>Math.round(t.remaining*100)<0)
+ return [...report.balances(d)].filter(([c,t])=>Math.round(t.remaining*100)<0&&!(d.movements||[]).some(m=>m.currency===c&&m.cashUnconfirmed))
   .map(([currency,t])=>currency+' ('+Math.abs(t.remaining).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+')').join(', ');
 }
 async function confirmAllocationFinalization(d){
@@ -1763,6 +1782,55 @@ function renderFinalization(){if(liveProfile?.role!=='admin')return;if(finalTab=
 function finalization(tab){if(tab==='reconciliation'&&!access113.can('report-reconciliation'))return showCenterStatus('Reconciliation access is required.',true);if(tab==='funds'&&(liveProfile?.role!=='admin'||!access113.can('transactions-budget14313')))return showCenterStatus('Budget Request access is required for Fund Allocation.',true);if(tab==='funds')tab='submitted';finalTab=tab;window.workspace14337?.closeReconciliationHistory();renderFinalization()}
 function renderHistory(){const budgetAllowed=liveProfile?.role==='admin'&&!!access113.can('transactions-budget14313')&&Work82.owner===liveProfile.id;const submissionAllowed=!!access113.can('user-entry-review');if(historyTab==='budget'&&!(liveProfile?.role==='admin'&&access113.can('transactions-budget14313'))||historyTab==='submitted'&&!submissionAllowed)historyTab='journal';const panel=document.getElementById('transactions-all');if(!panel)return;let bar=panel.querySelector('#historySwitch14316');if(!bar){const journal=document.createElement('div');journal.id='journalHistory14316';for(const child of [...panel.children])if(!child.matches('.area-banner113,.module-header,#categoryTabShell'))journal.append(child);panel.append(journal);bar=document.createElement('div');bar.id='historySwitch14316';bar.className='workflow-switch14316';bar.innerHTML=button('Journal',"history('journal')")+button('Submitted Entries',"history('submitted')")+button('Budget Requests',"history('budget')");journal.before(bar);const budget=document.createElement('section');budget.id='budgetHistory14316';panel.append(budget)}bar.querySelectorAll('button').forEach((b,i)=>b.hidden=i===1&&!submissionAllowed||i===2&&!budgetAllowed);const submission=document.getElementById('userEntryHistoryPanel');if(submission&&submission.parentElement!==panel){panel.append(submission);submission.querySelectorAll('[onclick*=toggleSubmissionHistory]').forEach(b=>b.remove())}document.getElementById('journalHistory14316').hidden=historyTab!=='journal';if(submission)submission.hidden=historyTab!=='submitted';const budget=document.getElementById('budgetHistory14316');budget.hidden=historyTab!=='budget';bar.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-pressed',String(['journal','submitted','budget'][i]===historyTab)));const historyRecords=budgetAllowed?budgetRows():[];const month=historyMonth14341.choose('budget',historyRecords.map(budgetMonth));if(historyTab!=='budget')return;budget.innerHTML=historyMonth14341.control('budget',month)+historyMonth14341.summary([['Budget Records',budgetMonthRows(historyRecords,month).length]])+section82('Budget Request History',table82(['Date','Purpose','Record','Status','Action'],budgetMonthRows(historyRecords,month).map(r=>[esc(formatAppDate(r.data.date)),esc(r.data.purpose),r.data.mode==='utilization'?'Fund allocation':'Budget request',esc(r.data.status||'Saved'),button('View',`view(${JSON.stringify(r.id)})`)+(r.data.mode!=='utilization'?button('Editor',`openRequest(${JSON.stringify(r.id)})`):r.data.status!=='finalized'?button('Continue',`openAllocation(${JSON.stringify(r.id)})`):'')+button('Delete',`remove(${JSON.stringify(r.id)})`)])));historyMonth14341.bind(budget,'budget',renderHistory,true)}
 function history(tab){historyTab=tab;renderHistory();if(tab==='submitted')window.renderUserEntryReview?.();if(tab==='budget')(window.startup14257?.isPrepared('payroll')?Promise.resolve():loadWork82()).then(renderHistory)}
+function payrollDraftClean(id){
+ const host=fundPopup?.querySelector('#budgetFunds290');
+ if(host&&allocationRecord?.id===id){
+  captureFund();
+  if(editorData(allocation)!==host.savedValues||host.worksheetChanged())throw Error('Save your report edits before updating payroll amounts.');
+ }
+ if(Work82.reports.find(r=>r.id===id)?._pending14333)throw Error('Wait for this report to finish syncing before updating payroll amounts.');
+}
+async function reviewPayroll(id,reportRoot){
+ try{
+  const check=context();if(busy)return;
+  if(window.offline14239?.offline())throw Error('Connect to the internet to check the finalized payroll.');
+  payrollDraftClean(id);
+  const record=await live(id);check();payrollDraftClean(id);
+  const preview=await ojmDb.rpc('budget_payroll_protocol',{p_report:id,p_version:record.version});
+  check();if(preview.error)throw Error(preview.error.message);
+  const result=preview.data;
+  const rows=changes=>table82(['Employee','Currency','Current expense','Earned gross','Change'],changes.map(c=>[
+   esc(c.employee),esc(c.currency),c.before==null?'—':report.amountHtml(c.currency,c.before),report.amountHtml(c.currency,c.after),esc(c.action)]));
+  const html='<p>Use earned gross after absence and late deductions, before employee deductions and advance recovery. Existing cash payments and posted journals stay unchanged.</p>'+
+   '<p>Payroll: '+esc(result.source||report.period(record.data))+'</p>'+
+   (result.changes.length?rows(result.changes):'<p>Salary amounts already match the finalized payroll.</p>')+
+   (result.skipped.length?'<p>Needs individual review:</p><ul>'+result.skipped.map(c=>'<li>'+esc(c.employee)+': '+esc(c.reason)+'</li>').join('')+'</ul>':'')+
+   (result.history.length?'<details><summary>Previous corrections</summary>'+result.history.map(h=>'<p>Version '+esc(h.version)+' · '+esc(formatAppDate(String(h.date).slice(0,10)))+'</p>'+rows(h.changes)).join('')+'</details>':'')+
+   '<p role="status"></p>'+(result.changes.length?'<button type="button" data-apply-payroll>Apply payroll amounts</button>':'');
+  const {root}=budgetDialog('Payroll amounts · '+report.period(record.data),html);
+  const apply=root.querySelector('[data-apply-payroll]');
+  if(apply)apply.onclick=async()=>{
+   if(busy)return;
+   busy=true;apply.disabled=true;
+   const status=root.querySelector('[role=status]');status.textContent='Saving payroll amounts…';
+   try{
+    check();payrollDraftClean(id);
+    const response=await ojmDb.rpc('budget_payroll_protocol',{p_report:id,p_version:record.version,p_apply:true,p_fingerprint:result.fingerprint});
+    check();if(response.error)throw Error(response.error.message);
+    const saved=response.data.record;
+    if(saved?.id!==id||saved.version!==record.version+1)throw Error('The saved correction could not be confirmed. Reopen the report to check its status.');
+    cacheWording(saved);
+    window.dispatchEvent(new Event('save-state14234'));
+    if(root.isConnected)root.resolve108(true);
+    if(reportRoot?.isConnected){reportRoot.resolve108(true);await showReport(saved);}
+    else if(allocationRecord?.id===id){allocationRecord=saved;allocation=clone(saved.data);renderAllocation();}
+    if(document.querySelector('#transactions-budget14313.active'))renderRequest();
+    showCenterStatus('Payroll amounts saved to Supabase. Other report details preserved.');
+   }catch(e){status.textContent=e.message;apply.disabled=false;}
+   finally{busy=false;}
+  };
+ }catch(e){showCenterStatus(e.message,true);}
+}
 async function showFinal(record){
  rememberFinal(record);
  if(allocation&&(allocationRecord?.id===record.id||record.data.requestId14316&&allocation.requestId14316===record.data.requestId14316)){
@@ -1789,8 +1857,10 @@ async function showReport(r){
   const {root}=budgetDialog(utilization?report.title:'Budget request',html+'<div data-journal-ref></div>');
   root.classList.add('fund-popup326','budget-report-preview');
   const canEditWording=isFinal(r)||(!utilization&&(r.budget_report_wording||budgetRows().some(x=>x.data.requestId14316===id)));
-  reportToolbar(root,(canEditWording?'<button type="button" data-edit-wording>Wording</button>':'')+'<button type="button" data-print-record>Print</button>'+(utilization?postControl(r):''));
+  reportToolbar(root,(canEditWording?'<button type="button" data-edit-wording>Wording</button>':'')+(utilization?'<button type="button" data-payroll-protocol>Payroll amounts</button>':'')+'<button type="button" data-print-record>Print</button>'+(utilization?postControl(r):''));
   root.querySelectorAll('[contenteditable]').forEach(n=>n.removeAttribute('contenteditable'));
+  const payroll=root.querySelector('[data-payroll-protocol]');
+  if(payroll)payroll.onclick=()=>reviewPayroll(id,root);
   const wording=root.querySelector('[data-edit-wording]');
   if(wording)wording.onclick=()=>BudgetReportWording.edit(r,budgetDialog,context(),saved=>{
    cacheWording(saved);if(root.isConnected){root.resolve108(true);showReport(saved);}
@@ -1816,7 +1886,7 @@ const switchBefore=window.switchTab;window.switchTab=function(id,...args){if(id=
 const renderBefore=window.renderWork82;window.renderWork82=function(...args){const out=renderBefore.apply(this,args);if(document.querySelector('#user-entry-review.active'))renderFinalization();if(document.querySelector('#transactions-all.active'))renderHistory();return out};
 const deleteBefore=window.deleteWork108;window.deleteWork108=function(kind,id){return kind==='reports'&&Work82.reports.find(r=>r.id===id)?.data.kind==='finance'?remove(id):deleteBefore(kind,id)};
 const openBefore=window.openOperational82;window.openOperational82=function(id){const r=Work82.reports.find(r=>r.id===id);return r?.data.kind==='finance'?(r.data.mode==='utilization'?openAllocation(id):openRequest(id)):openBefore(id)};
-window.budgetWorkflow14316={get finalTab(){return finalTab},get historyTab(){return historyTab},prepareHistory:renderHistory,prepareFinalization:renderFinalization,renderRequest,newRequest,editRequest,requestData,refreshCategories,templateApplied,printPicker,requestHTML,showFunds,combineRequests,saveDocument,requireSaved,decorateEditor,openRequest,startAllocation,openAllocation,chooseRequest,linkRequest,importHistory,saveAllocation,previewAllocation,newUnlinked,removeMovement,removeConversion,finalization,history,view,printRecord,remove,parseDocument,recalculate,validDate14317,editMovement,editConversion,openFundingEditor};
+window.budgetWorkflow14316={get finalTab(){return finalTab},get historyTab(){return historyTab},prepareHistory:renderHistory,prepareFinalization:renderFinalization,renderRequest,reviewPayroll,newRequest,editRequest,requestData,refreshCategories,templateApplied,printPicker,requestHTML,showFunds,combineRequests,saveDocument,requireSaved,decorateEditor,openRequest,startAllocation,openAllocation,chooseRequest,linkRequest,importHistory,saveAllocation,previewAllocation,newUnlinked,removeMovement,removeConversion,finalization,history,view,printRecord,remove,parseDocument,recalculate,validDate14317,editMovement,editConversion,openFundingEditor};
 window.addEventListener('transactions-reset14316',e=>{if(e.detail.scopes.includes('reports')){confirmedFinals.clear();checkedOnVisit=new Set();selectedParent='';if(requestEditor){requestEditor.root.resolve108(false);requestEditor=null;}allocation=null;allocationRecord=null;clearFundPopup();Work82.reports=[];Work82.report=null;Work82.reportRecord=null;Object.assign(Finance82,{mode:'request',date:today82(),recipient:'',purpose:'',notes:'',lines:[],movements:[],conversions:[]});renderHistory()}});
 function checkPopupAccess(){
  if(requestEditor&&(liveProfile?.id!==actor||ojmDb!==actorClient||liveProfile?.role!=='admin'||!access113.can('transactions-budget14313')||!document.getElementById('loginGate')?.classList.contains('is-authenticated'))){requestEditor.root.resolve108(false);requestEditor=null;}

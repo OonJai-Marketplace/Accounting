@@ -1,5 +1,5 @@
 {
-  "version": "143.466",
+  "version": "143.467",
   "changes": [
     "Leave History uses one table with employee, month and view filters, with 25 records per page.",
     "Leave balances and historical usage display ordinary day counts without currency symbols.",

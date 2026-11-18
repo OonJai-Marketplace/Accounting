@@ -7,7 +7,7 @@ const original=JSON.stringify(d),before=report.balances(d).get('USD');
 assert.equal(before.beforeReturn,4);assert.equal(before.remaining,0);
 for(const editable of [false,true]){
  const summary=report.cashSummary(d,editable);
- assert.match(summary,/>Remaining<\/td>/);assert.match(summary,/\$ 4\.00/);assert.doesNotMatch(summary,/after handover|before handover|data-edit-/i);
+ assert.match(summary,/>Remaining funding<\/td>/);assert.match(summary,/\$ 4\.00/);assert.doesNotMatch(summary,/after handover|before handover|data-edit-/i);
  const paid=report.disbursements(d,editable);
  assert.match(paid,/>Category<\/th>/);assert.match(paid,/>Item<\/th>/);assert.match(paid,/>Reference<\/th>/);
  const requested=report.requestSummary(d,editable);
