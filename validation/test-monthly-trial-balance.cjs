@@ -29,6 +29,7 @@ const fixture=require('./phase0-browser-fixture.cjs');
   await button.click();
   const table=dialog.getByRole('table'),period=dialog.getByRole('button',{name:/^Period/});
   await table.waitFor();
+  await dialog.getByText('Filter',{exact:true}).click();
   assert.equal(await table.locator('tbody tr:has(th[scope=row])').count(),chart.length,'The whole chart is available in one scrollable table');
   const rowNamed=name=>table.locator('tbody tr').filter({hasText:name});
   assert.ok((await rowNamed('Sales Group').locator('td').allTextContents()).every(cell=>cell===''));

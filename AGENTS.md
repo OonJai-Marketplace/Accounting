@@ -697,3 +697,16 @@ amounts may be adjusted as balanced pairs; verified reclassifications and FX
 amounts/rates remain fixed. Read source evidence only on explicit preparation,
 and recheck its fingerprint atomically at posting. Keep durable retry identity,
 report uniqueness, account isolation and no automatic posting or ID allocation.
+
+Account balances default, 2026-11-18: every new opening selects the current calendar
+month, even when that month has no transactions. Keep prior activity in the closing
+balance. Other months and continuous ranges remain available through Period; retain
+an explicit selection during Refresh, but reset to the current month on reopening.
+Avoid constructing the unused ungrouped table before rendering grouped account rows.
+
+Account balances filter/width follow-up, 2026-11-18: retain measured column widths
+on the device instead of measuring them on every redraw. Only previously unseen
+month/field or account labels need first-use measurement. Keep the content-width
+window aligned right; one month must not leave a full-width blank area. Put Period,
+Currency view, Columns and Edit accounts together inside one Filter button, with
+Refresh and Close beside it. Keep the current-month opening default.

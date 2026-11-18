@@ -179,58 +179,76 @@ function monthlyTrialTable(model,print=false,groupCategories=false){
    return '<tr'+(item?.parent?' class="trial-parent"':'')+'><th scope="row" title="'+re79(name)+'">'+label+'</th>'+row.slice(1+first*width,1+(first+part.length)*width).map((value,j)=>'<td class="'+columnClass(j)+'">'+re79(value)+'</td>').join('')+'</tr>';
   };
   const split=values.length-totalCount;
-  let body=values.slice(0,split).map(row=>rowHTML(row)).join('');
+  let body;
   if(groupCategories){
    const separator=(label,kind)=>'<tr class="trial-'+kind+'"><th colspan="'+(1+part.length*width)+'"><span>'+re79(label)+'</span></th></tr>';
    body=monthlyTrialPopupGroups(model).map(group=>separator(group.label,'category')+group.units.map(({unit,items})=>(unit?separator(unit,'currency'):'')+items.map(item=>rowHTML(item.row,item)).join('')).join('')).join('');
-  }
+  }else body=values.slice(0,split).map(row=>rowHTML(row)).join('');
   const footer=values.slice(split);if(groupCategories)footer.sort((a,b)=>monthlyTrialCurrencyCompare(a[0].split(' · ').at(-1),b[0].split(' · ').at(-1)));
   tables.push('<table class="monthly-trial-table" aria-label="Monthly comparative trial balance" data-own-pager14383="1"><thead><tr><th scope="col" rowspan="2">Accounts</th>'+labels+'</tr><tr>'+headers+'</tr></thead><tbody>'+body+'</tbody><tfoot>'+footer.map(row=>rowHTML(row)).join('')+'</tfoot></table>');
  }
  return print?tables.join(''):'<div class="monthly-trial-scroll">'+tables.join('')+'</div>';
 }
 
-// Measure the rendered strings once per redraw, including totals and parentheses.
-// Each month/column keeps its own width; no timer or resize observer is needed.
-function fitMonthlyTrialColumns(panel){
+// Remember measured pixel widths per account label and month/field on this device.
+// Reusing a view applies its saved widths without measuring or reading cell styles.
+function monthlyTrialSavedWidths(){
+ let saved;try{saved=JSON.parse(localStorage.getItem(monthlyTrialPreferenceKey()+':widths'))}catch{}
+ const valid=n=>Number.isFinite(n)&&n>0&&n<10000;
+ const clean=object=>Object.fromEntries(Object.entries(object||{}).filter(([,value])=>valid(value)));
+ return {labels:clean(saved?.labels),columns:clean(saved?.columns),limit:valid(saved?.limit)?saved.limit:null};
+}
+function fitMonthlyTrialColumns(panel,months,basis,saved){
  const table=panel.querySelector('.monthly-trial-table');if(!table)return;
- const canvas=document.createElement('canvas'),context=canvas.getContext('2d');if(!context)return;
- const headers=[...table.tHead.rows[1].cells],widths=Array(headers.length).fill(0);
+ const headers=[...table.tHead.rows[1].cells],fields=headers.length/months.length;
+ const keys=headers.map((cell,i)=>[basis,months[Math.floor(i/fields)],cell.textContent.trim()].join('|'));
+ const missing=keys.map((key,i)=>saved.columns[key]?null:i).filter(i=>i!==null);
+ const rows=[...table.querySelectorAll('tbody tr,tfoot tr')].filter(row=>row.querySelector('th[scope="row"]'));
+ let context,changed=false;
  function measure(cell){
+  if(!context)context=document.createElement('canvas').getContext('2d');
+  if(!context)return 100;
   const style=getComputedStyle(cell);context.font=[style.fontStyle,style.fontWeight,style.fontSize,style.fontFamily].join(' ');
   let text=cell.textContent.trim();if(style.textTransform==='uppercase')text=text.toUpperCase();else if(style.textTransform==='lowercase')text=text.toLowerCase();
   return Math.ceil(context.measureText(text).width+(parseFloat(style.letterSpacing)||0)*Math.max(0,text.length-1)+parseFloat(style.paddingLeft)+parseFloat(style.paddingRight)+parseFloat(style.borderLeftWidth)+parseFloat(style.borderRightWidth)+2);
  }
- headers.forEach((cell,i)=>widths[i]=measure(cell));
- let accountWidth=measure(table.tHead.rows[0].cells[0]);
- for(const row of table.querySelectorAll('tbody tr,tfoot tr')){
-  if(!row.querySelector('th[scope="row"]'))continue;
-  const label=row.cells[0].querySelector('.trial-account-label'),indent=label?parseFloat(label.style.paddingInlineStart)||0:0;
-  accountWidth=Math.max(accountWidth,measure(row.cells[0])+indent);
-  [...row.cells].slice(1).forEach((cell,i)=>widths[i]=Math.max(widths[i],measure(cell)));
+ function labelWidth(cell,parent=false){
+  const key=(parent?'parent|':'regular|')+cell.textContent.trim();
+  if(!saved.labels[key]){const label=cell.querySelector('.trial-account-label'),indent=label?parseFloat(label.style.paddingInlineStart)||0:0;saved.labels[key]=measure(cell)+indent;changed=true;}
+  return saved.labels[key];
  }
- context.font='12px Arial';accountWidth=Math.min(accountWidth,Math.max(160,Math.min(context.measureText('0').width*46,document.documentElement.clientWidth*.38)));
- const columns=[Math.ceil(accountWidth),...widths],group=document.createElement('colgroup');
+ let accountWidth=labelWidth(table.tHead.rows[0].cells[0]);
+ for(const row of rows)accountWidth=Math.max(accountWidth,labelWidth(row.cells[0],row.classList.contains('trial-parent')));
+ for(const i of missing){saved.columns[keys[i]]=Math.max(measure(headers[i]),...rows.map(row=>measure(row.cells[i+1])));changed=true;}
+ if(!saved.limit){if(!context)context=document.createElement('canvas').getContext('2d');if(context)context.font='12px Arial';saved.limit=Math.max(160,Math.min((context?context.measureText('0').width:6.67)*46,document.documentElement.clientWidth*.38));changed=true;}
+ accountWidth=Math.ceil(Math.min(accountWidth,saved.limit));
+ const columns=[accountWidth,...keys.map(key=>saved.columns[key])],group=document.createElement('colgroup');
  group.innerHTML=columns.map(width=>'<col style="width:'+width+'px">').join('');table.prepend(group);
- table.style.setProperty('--trial-table-width',columns.reduce((sum,width)=>sum+width,0)+'px');table.classList.add('trial-fitted');
+ const tableWidth=columns.reduce((sum,width)=>sum+width,0);
+ table.style.setProperty('--trial-table-width',tableWidth+'px');table.classList.add('trial-fitted');
+ panel.closest('dialog')?.style.setProperty('--trial-dialog-width',Math.max(390,tableWidth+2)+'px');
+ if(changed)try{localStorage.setItem(monthlyTrialPreferenceKey()+':widths',JSON.stringify(saved))}catch{}
 }
 
 function openMonthlyTrialBalance(panel,scope){
  const dialog=panel.closest('dialog'),header=dialog.querySelector('header'),close=header.querySelector('.close');
  close.classList.add('je-btn','je-btn-secondary');close.textContent='Close';
- const prefs=monthlyTrialPreferences(),calendar=summaryPeriod14331;
+ const prefs=monthlyTrialPreferences(),calendar=summaryPeriod14331,savedWidths=monthlyTrialSavedWidths();
  const basisControl='<select aria-label="Currency view" data-plain14285 name="trialBasis"><option value="original">Original currencies</option><option value="reporting">Reporting · LAK</option></select>';
  const toolbar=document.createElement('div');toolbar.className='monthly-trial-tools';
- toolbar.innerHTML='<button type="button" class="je-btn je-btn-secondary" data-period aria-haspopup="dialog">Period</button>'+basisControl+monthlyTrialColumnControl(prefs.columns,true)+'<div data-accounts></div><button type="button" class="je-btn je-btn-secondary" data-refresh>Refresh</button>';
+ toolbar.innerHTML='<details class="monthly-trial-filter"><summary class="je-btn je-btn-secondary">Filter</summary><div class="monthly-trial-filter-panel"><label>Period<button type="button" class="je-btn je-btn-secondary" data-period aria-haspopup="dialog">Period</button></label><label>Currency view'+basisControl+'</label><label>Columns'+monthlyTrialColumnControl(prefs.columns,true)+'</label><div data-accounts></div></div></details><button type="button" class="je-btn je-btn-secondary" data-refresh>Refresh</button>';
  toolbar.append(close);header.append(toolbar);
+ const filter=toolbar.querySelector('.monthly-trial-filter');
+ dialog.addEventListener('click',event=>{if(!filter.contains(event.target)&&!event.target.closest('.summary-period14331'))filter.open=false});
  const period=header.querySelector('[data-period]'),columns=header.querySelector('[name=trialColumns]'),accountPicker=header.querySelector('[data-accounts]');
  const basis=header.querySelector('[name=trialBasis]');basis.value=prefs.basis;
  const status=document.createElement('small');header.querySelector('h2').append(status);
- let entries,months,allMonths;
+ // Each opening starts with this month; an explicit range survives Refresh only.
+ let entries,months=[calendar.current()],allMonths;
  function draw(){
   period.textContent=calendar.label(months);period.setAttribute('aria-label','Period · '+period.textContent);
   panel.innerHTML=monthlyTrialTable(monthlyTrialModel(entries,months,prefs),false,true);
-  fitMonthlyTrialColumns(panel);
+  fitMonthlyTrialColumns(panel,months,prefs.basis,savedWidths);
  }
  async function load(refresh,check=true){
   const request=scope.begin();

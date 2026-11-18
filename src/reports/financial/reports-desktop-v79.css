@@ -72,7 +72,7 @@ html body .report-fields299>label [data-period]:enabled::after {content:'';width
 html body .report-fields299>label [data-period]:disabled {opacity:1;color:inherit;background:#f2f6f4}
 @media(max-width:440px){html body .report-dialog299 .report-fields299{grid-template-columns:minmax(0,1fr)}}
 dialog.monthly-trial-dialog {
- box-sizing:border-box;width:min(1240px,calc(100vw - 82px));max-width:none;max-height:calc(100dvh - 32px);
+ box-sizing:border-box;width:min(var(--trial-dialog-width,500px),1240px,calc(100vw - 82px));max-width:none;max-height:calc(100dvh - 32px);
  margin:12px 58px auto auto;padding:0;border:1px solid #adc3b6;border-radius:9px;background:#fffdf7;color:#193e32;
  box-shadow:0 6px 25px #102a2233;
 }
@@ -81,7 +81,7 @@ dialog.monthly-trial-dialog {
 .monthly-trial-dialog>header{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid #cbd9cf}
 .monthly-trial-dialog>header h2{margin:0 auto 0 0;font-size:18px}
 .monthly-trial-dialog>.watch-body{min-height:0;display:flex;flex-direction:column;overflow:hidden}
-dialog.monthly-trial-dialog:has(.trial-account-picker[open]){min-height:min(350px,87dvh)}
+dialog.monthly-trial-dialog:has(.monthly-trial-filter[open]){min-height:min(350px,87dvh)}
 .monthly-trial-dialog>header{padding:6px 10px;gap:6px}
 .monthly-trial-dialog>header h2 small{display:block;font-size:10px;font-weight:400}
 .monthly-trial-dialog>header label{display:flex;align-items:center;gap:4px;font-size:12px}
@@ -121,7 +121,7 @@ html body .monthly-trial-table .month-start{border-left:1px solid #cbd9cf}
 }
 .monthly-trial-table th[scope=colgroup]>span{display:block;text-align:center}
 /* Account balances shortcut: compact controls and a clear chart hierarchy. */
-.monthly-trial-tools{display:flex;align-items:center;gap:6px;flex:none;max-width:100%}
+.monthly-trial-tools{position:relative;display:flex;align-items:center;gap:6px;flex:none;max-width:100%}
 html body .monthly-trial-dialog>header .monthly-trial-tools>select{width:auto!important;min-width:0!important;max-width:none;flex:none;margin:0;font-size:12px;box-sizing:border-box}
 html body .monthly-trial-dialog>header .monthly-trial-tools>:is(button,[data-accounts]){flex:none;width:auto;min-width:0;margin:0;white-space:nowrap}
 html body .monthly-trial-dialog>header .monthly-trial-tools>.close{position:static;inset:auto;transform:none;height:32px;padding:4px 10px}
@@ -132,7 +132,7 @@ html body dialog.monthly-trial-dialog .monthly-trial-table tbody tr.trial-parent
 :is(body,#printableDocArea) :is(dialog.monthly-trial-dialog,#report-tb,#report-open-tb) .monthly-trial-table tbody tr.trial-category>th{background:#174e3b!important;color:#fff!important;border-top:3px solid #fffdf7!important;border-bottom:1px solid #123d2f!important;text-align:left!important;font-size:13px!important;font-weight:700!important;text-transform:none!important;letter-spacing:normal!important;padding:6px 5px!important}
 :is(body,#printableDocArea) :is(dialog.monthly-trial-dialog,#report-tb,#report-open-tb) .monthly-trial-table tbody tr.trial-currency>th{background:#e4eee6!important;color:#174e3b!important;border-bottom:1px solid #bdcfc0!important;text-align:left!important;font-weight:600!important;text-transform:none!important;letter-spacing:normal!important;padding:3px 5px!important}
 .monthly-trial-dialog :is(.trial-category,.trial-currency)>th>span{position:sticky;left:5px}
-@media(max-width:1100px){.monthly-trial-dialog>header h2{flex-basis:100%;font-size:16px}}
+@media(max-width:600px){.monthly-trial-dialog>header h2{font-size:16px}}
 :is(body,#printableDocArea) :is(dialog.monthly-trial-dialog,#report-tb,#report-open-tb) .monthly-trial-scroll .monthly-trial-table.trial-fitted{width:var(--trial-table-width)!important;table-layout:fixed!important}
 :is(body,#printableDocArea) :is(dialog.monthly-trial-dialog,#report-tb,#report-open-tb) .monthly-trial-table.trial-fitted th[scope=colgroup]{white-space:normal!important;overflow-wrap:anywhere!important}
 :is(body,#printableDocArea) :is(dialog.monthly-trial-dialog,#report-tb,#report-open-tb) .monthly-trial-table.trial-fitted th[scope=colgroup]>span{white-space:normal!important;overflow-wrap:anywhere!important}
@@ -140,3 +140,13 @@ html body dialog.monthly-trial-dialog .monthly-trial-table :is(tbody,tfoot) td{t
 html body dialog.monthly-trial-dialog .monthly-trial-table thead th[scope=col]{font:600 12px/1.15 Arial,sans-serif!important;text-transform:none!important;letter-spacing:normal!important}
 html body dialog.monthly-trial-dialog .monthly-trial-table .trial-balance-column{background:#edf5ee!important}
 html body dialog.monthly-trial-dialog .monthly-trial-table :is(thead,tfoot) .trial-balance-column{background:#e1eee3!important;color:#174e3b!important}
+.monthly-trial-filter{position:static}
+.monthly-trial-filter>summary{box-sizing:border-box;display:flex;align-items:center;justify-content:center;height:32px;cursor:pointer;list-style:none;padding:4px 10px}
+.monthly-trial-filter>summary::-webkit-details-marker{display:none}
+.monthly-trial-filter[open]>summary{background:#e4eee6}
+.monthly-trial-filter-panel{position:absolute;right:0;top:calc(100% + 6px);z-index:8;box-sizing:border-box;width:min(310px,calc(100vw - 110px));max-height:calc(100dvh - 130px);overflow:auto;padding:12px;background:#fffdf7;border:1px solid #b8cec4;border-radius:7px;box-shadow:0 5px 18px #183d3026;display:grid;gap:10px}
+html body .monthly-trial-dialog .monthly-trial-filter-panel>label{display:grid;gap:4px;margin:0;font-weight:400}
+html body .monthly-trial-filter-panel>label :is(select,button){width:100%!important;min-width:0!important;max-width:none!important;margin:0;box-sizing:border-box;justify-content:flex-start;text-align:left}
+html body .monthly-trial-filter .trial-account-picker[open]>div{position:static;width:100%;box-sizing:border-box;border:0;box-shadow:none;padding:7px 0}
+.monthly-trial-filter .trial-account-picker>summary{width:100%;text-align:left}
+.monthly-trial-filter .trial-account-list{max-height:28vh}

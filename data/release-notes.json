@@ -1,6 +1,11 @@
 {
-  "version": "143.480",
+  "version": "143.481",
   "changes": [
+    "Account Balances remembers measured widths on this device; refresh and reopening reuse them without measuring the same columns again.",
+    "The Account Balances window fits the displayed columns and stays aligned to the right.",
+    "One Filter button contains Period, Currency view, Columns and Edit accounts. Refresh and Close remain on the header.",
+    "Account Balances opens on the current calendar month each time, including months with no new transactions. Earlier activity still carries into the balance.",
+    "Choose other months or a continuous range through Period. Refresh preserves that selection; reopening starts with the current month.",
     "Fund Utilization → Post Transaction prepares an editable journal in USD, LAK and THB. You review and post it manually.",
     "Verified receipts are not posted again. Existing owner allocations are deducted, and exchanges use their original FX bridge without repeating bank movements.",
     "New receipt and use amounts remain editable as balanced pairs. Original receipt reclassifications and verified exchange amounts/rates stay protected.",
