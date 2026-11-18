@@ -13,7 +13,9 @@ window.createLedgerGraphs=function(context){
  const palette=['#186448','#ad5628','#365b9e','#89529a','#247483','#865819','#a54763','#545bbe'];
  const icons={size:'M5 19 19 5M11 19l8-8M17 19l2-2',grip:'M8 5h1m6 0h1M8 12h1m6 0h1M8 19h1m6 0h1',edit:'M4 20l4-1L20 7l-3-3L5 16l-1 4zM14 7l3 3',add:'M12 4v16M4 12h16',layout:'M3 4h18v16H3zM10 4v16M3 12h7'};
  const icon=name=>`<svg aria-hidden="true" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="${name==='grip'?3:1.7}" stroke-linecap="round" stroke-linejoin="round"><path d="${icons[name]}"/></svg>`;
- const make=(preset,id=crypto.randomUUID())=>({id,title:presets[preset].name,lines:[...presets[preset].lines]});
+ const types={line:'Line',smooth:'Smooth line (wave)',area:'Area',bar:'Vertical bars',horizontal:'Horizontal bars'};
+ const intervals={daily:'Daily',weekly:'Weekly',monthly:'Monthly'};
+ const make=(preset,id=crypto.randomUUID())=>({id,title:presets[preset].name,type:'line',interval:'monthly',lines:[...presets[preset].lines]});
  const defaults=()=>({months:6,side:'right',width:63,cards:[make('performance','main'),make('cash','cash'),make('position','position')]});
  let board=null,scope='',resize=null,popup=null,plots=new Map(),sequence=0,drag=null,host=null;
  const key=()=>['ojm-graph-layout-v1',window.OJM_SUPABASE_URL||location.origin,owner()].join(':');
@@ -26,7 +28,7 @@ window.createLedgerGraphs=function(context){
    const saved=JSON.parse(localStorage.getItem(scope));
    if(saved&&Array.isArray(saved.cards)){
     const ids=new Set();
-    board.cards=saved.cards.filter(c=>c&&typeof c.id==='string'&&!ids.has(c.id)&&ids.add(c.id)&&typeof c.title==='string'&&Array.isArray(c.lines)).map(c=>({...c,lines:[...new Set(c.lines.filter(l=>typeof l==='string'))]}));
+    board.cards=saved.cards.filter(c=>c&&typeof c.id==='string'&&!ids.has(c.id)&&ids.add(c.id)&&typeof c.title==='string'&&Array.isArray(c.lines)).map(c=>({...c,type:types[c.type]?c.type:'line',interval:intervals[c.interval]?c.interval:'monthly',lines:[...new Set(c.lines.filter(l=>typeof l==='string'))]}));
     if([3,6,12].includes(saved.months))board.months=saved.months;
     if(saved.side==='left')board.side='left';
     if(Number.isFinite(saved.width))board.width=Math.max(40,Math.min(75,saved.width));
@@ -74,33 +76,55 @@ window.createLedgerGraphs=function(context){
   }
   return list;
  }
- function values(item,months,m){
-  if(!item)return months.map(()=>null);
+ function timePoints(interval){
+  const month=state.month,[year,mm]=month.split('-').map(Number),last=new Date(Date.UTC(year,mm,0)).getUTCDate();
+  const date=d=>month+'-'+String(d).padStart(2,'0');
+  if(interval==='monthly')return periods(month,settings().months).map(m=>({month:m,from:m+'-01',to:m+'-31',label:shortMonth(m,true),short:shortMonth(m)}));
+  const points=[];
+  for(let day=1;day<=last;){
+   // Calendar weeks run Monday–Sunday and are clipped to the selected month.
+   const weekday=new Date(date(day)+'T12:00:00Z').getUTCDay();
+   const end=interval==='weekly'?Math.min(last,day+(7-weekday)%7):day;
+   const label=interval==='weekly'?day+'–'+end+' '+shortMonth(month,true):day+' '+shortMonth(month,true);
+   points.push({month,from:date(day),to:date(end),label,short:interval==='weekly'?day+'–'+end:String(day)});day=end+1;
+  }
+  return points;
+ }
+ function values(item,points,m,interval){
+  if(!item)return points.map(()=>null);
   const scoped=rows=>rows.filter(r=>r.posting&&r.a.currency===state.currency);
-  const part=(rows,period,basis)=>rows.reduce((n,r)=>n+Math.round(valueFor(r,period,basis===monthly)*100),0);
-  const rows=scoped(item.rows);
+  function amount(row,point,movement){
+   if(interval==='monthly')return Math.round(valueFor(row,point.month,movement)*100);
+   if(movement)return [...row.days].reduce((n,[date,value])=>n+(date>=point.from&&date<=point.to?value:0),0);
+   const january=point.month.slice(0,4)+'-01';
+   let cents=row.openingMonth>=january&&row.openingMonth<=point.month?row.opening:0;
+   for(const [date,value] of row.balanceDays)if(date>=january+'-01'&&date<=point.to)cents+=value;
+   return cents;
+  }
+  const part=(rows,point,basis)=>rows.reduce((n,r)=>n+amount(r,point,basis===monthly),0),rows=scoped(item.rows);
   if(item.id==='net'){
    const income=scoped(m.buckets.get('income')||[]),expense=scoped(m.buckets.get('expense')||[]);
-   return months.map(p=>m.hasMonth(p)&&(income.length||expense.length)?(part(income,p,monthly)-part(expense,p,monthly))/100:null);
+   return points.map(p=>m.hasMonth(p.month)&&(income.length||expense.length)?(part(income,p,monthly)-part(expense,p,monthly))/100:null);
   }
-  return months.map(p=>rows.length&&m.hasMonth(p)?part(rows,p,item.basis)/100:null);
+  return points.map(p=>rows.length&&m.hasMonth(p.month)?part(rows,p,item.basis)/100:null);
  }
  const seriesColor=i=>palette[i]||`hsl(${Math.round((i*137.5)%360)} 52% 36%)`;
  const dash=i=>['','7 3','2 3','10 3 2 3'][i%4];
  const shortMonth=(p,year=false)=>new Date(p+'-01T12:00:00Z').toLocaleDateString('en-GB',{month:'short',...(year?{year:'2-digit'}:{}),timeZone:'UTC'});
  function swatch(s){return `<svg aria-hidden="true" viewBox="0 0 24 8"><path d="M1 4H23" fill="none" stroke="${s.color}" stroke-width="3" stroke-dasharray="${s.dash}"/></svg>`}
  function card(c,main,context){
-  const {months,m,catalog}=context;
+  const {m,catalog}=context,interval=c.interval||'monthly',points=timePoints(interval),type=c.type||'line';
   const lines=c.lines.map((id,i)=>{
    const item=catalog.get(id);
-   return {label:item?.label||'Unavailable account',basis:item?.basis||'',color:seriesColor(i),dash:dash(i),data:values(item,months,m)};
+   const basis=item?.basis===monthly?({daily:'Daily activity',weekly:'Weekly activity',monthly})[interval]:({daily:'Day-end balance',weekly:'Week-end balance',monthly:closing})[interval];
+   return {label:item?.label||'Unavailable account',basis:item?basis:'',color:seriesColor(i),dash:dash(i),data:values(item,points,m,interval)};
   });
-  plots.set(c.id,{months,lines,active:months.length-1});
+  plots.set(c.id,{points,lines,type,active:points.length-1});
   return `<article class="ledger-graph ${main?'graph-main':'graph-small'}" data-graph-id="${esc(c.id)}">
    <header><div class="graph-title"><button type="button" class="graph-grip" aria-label="Move ${esc(c.title)}" title="Drag to move or click for placement" data-graph-action="move">${icon('grip')}</button><h3>${esc(c.title)}</h3></div>
-   <button type="button" class="graph-edit" aria-label="Edit ${esc(c.title)}" data-graph-action="edit">${icon('edit')} Edit</button></header>
-   <div class="graph-plot" data-graph-plot aria-label="${esc(c.title)} monthly line graph"></div>
-   <div class="graph-readout"><div><span data-graph-month>${shortMonth(months.at(-1),true)}</span><span>${esc(state.currency)}</span></div>
+   <button type="button" class="graph-edit" aria-label="Settings for ${esc(c.title)}" data-graph-action="edit">${icon('edit')} Settings</button></header>
+   <div class="graph-plot" data-graph-plot aria-label="${esc(c.title)} ${interval} ${esc(types[type])} graph"></div>
+   <div class="graph-readout"><div><span data-graph-month>${esc(points.at(-1).label)}</span><span>${esc(state.currency)} · ${intervals[interval]}</span></div>
    <ul>${lines.map(s=>`<li>${swatch(s)}<span>${esc(s.label)}<small>${esc(s.basis)}</small></span><strong>${esc(money(s.data.at(-1)))}</strong></li>`).join('')}</ul></div>
    <button type="button" class="graph-size" aria-label="Resize ${esc(c.title)}" title="Drag to resize. Arrow keys adjust the size. Home restores the default size.">${icon('size')}</button></article>`;
  }
@@ -121,34 +145,56 @@ window.createLedgerGraphs=function(context){
  function drawPlot(node){
   const chart=plots.get(node.closest('[data-graph-id]').dataset.graphId);if(!chart)return;
   const w=node.clientWidth,h=node.clientHeight;if(w<20||h<20)return;
-  const {months,lines}=chart,known=lines.flatMap(s=>s.data.filter(v=>v!==null));
+  const {points,lines,type}=chart,known=lines.flatMap(s=>s.data.filter(v=>v!==null));
   if(!known.length){node.innerHTML='<p class="graph-empty">No figures for the selected lines, period and currency.</p>';return;}
+  const horizontal=type==='horizontal',bars=horizontal||type==='bar';
   const min=known.reduce((v,n)=>Math.min(v,n),0),max=known.reduce((v,n)=>Math.max(v,n),0);
   const rough=(max-min||1)/3,base=10**Math.floor(Math.log10(rough)),step=([1,2,2.5,5,10].find(v=>v*base>=rough)||10)*base;
   const lo=Math.floor(min/step)*step,hi=Math.ceil(max/step)*step||(!min?step:0);
-  const top=10,bottom=h-24,left=52,right=w-12;
-  const x=i=>left+(right-left)*i/(months.length-1),y=v=>bottom-(v-lo)*(bottom-top)/(hi-lo);
-  const compact=new Intl.NumberFormat('en',{notation:'compact',maximumFractionDigits:2});
-  const axis=[];for(let i=0;i<=Math.round((hi-lo)/step);i++){const n=lo+i*step;axis.push(`<path d="M${left} ${y(n)}H${right}" class="graph-gridline"/><text x="${left-6}" y="${y(n)+4}" text-anchor="end">${esc(compact.format(n))}</text>`)}
-  const stride=Math.max(1,Math.ceil(months.length*42/(right-left)));
-  const labels=months.map((p,i)=>(i%stride===0&&i<months.length-(stride>1?1:0)||i===months.length-1)?`<text x="${x(i)}" y="${h-6}" text-anchor="${i===0?'start':i===months.length-1?'end':'middle'}">${shortMonth(p)}</text>`:'').join('');
-  const paths=lines.map(s=>{
-   let path='',connected=false,points='';
-   s.data.forEach((value,i)=>{if(value===null){connected=false;return;}path+=(connected?'L':'M')+x(i)+' '+y(value)+' ';connected=true;points+=`<circle cx="${x(i)}" cy="${y(value)}" r="2.6" fill="${s.color}"/>`});
-   return `<path d="${path}" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linejoin="round" stroke-dasharray="${s.dash}"/>${points}`;
-  }).join('');
-  node.innerHTML=`<svg viewBox="0 0 ${w} ${h}" aria-hidden="true">${axis.join('')}${labels}${paths}<line class="graph-cursor" y1="${top}" y2="${bottom}" x1="${x(chart.active)}" x2="${x(chart.active)}"/></svg>`;
-  node.tabIndex=0;node.setAttribute('role','slider');node.setAttribute('aria-label','Inspection month');node.setAttribute('aria-valuemin','1');node.setAttribute('aria-valuemax',String(months.length));
-  function inspect(index){
-   const i=Math.max(0,Math.min(months.length-1,index));chart.active=i;
-   const cursor=node.querySelector('.graph-cursor');cursor.setAttribute('x1',x(i));cursor.setAttribute('x2',x(i));
-   const readout=node.nextElementSibling;readout.querySelector('[data-graph-month]').textContent=shortMonth(months[i],true);
-   readout.querySelectorAll('li strong').forEach((el,j)=>el.textContent=money(lines[j].data[i]));
-   node.setAttribute('aria-valuenow',String(i+1));node.setAttribute('aria-valuetext',shortMonth(months[i],true)+', '+lines.map(l=>l.label+' '+money(l.data[i])).join(', '));
+  const top=10,bottom=h-24,left=52,right=w-12,count=points.length;
+  const pos=i=>horizontal?top+(bottom-top)*(i+.5)/count:bars?left+(right-left)*(i+.5)/count:left+(right-left)*i/Math.max(1,count-1);
+  const value=v=>horizontal?left+(v-lo)*(right-left)/(hi-lo):bottom-(v-lo)*(bottom-top)/(hi-lo);
+  const compact=new Intl.NumberFormat('en',{notation:'compact',maximumFractionDigits:2}),axis=[];
+  for(let i=0;i<=Math.round((hi-lo)/step);i++){
+   const n=lo+i*step,v=value(n),label=esc(compact.format(n));
+   axis.push(horizontal?`<path d="M${v} ${top}V${bottom}" class="graph-gridline"/><text x="${v}" y="${h-6}" text-anchor="middle">${label}</text>`:`<path d="M${left} ${v}H${right}" class="graph-gridline"/><text x="${left-6}" y="${v+4}" text-anchor="end">${label}</text>`);
   }
-  const inspectEvent=e=>{const rect=node.getBoundingClientRect();inspect(Math.round(((e.clientX-rect.left)*w/rect.width-left)*(months.length-1)/(right-left)))};
+  const stride=Math.max(1,Math.ceil(count*(horizontal?18:42)/(horizontal?bottom-top:right-left)));
+  const labels=points.map((p,i)=>(i%stride===0&&i<count-(stride>1?1:0)||i===count-1)?(horizontal?`<text x="${left-6}" y="${pos(i)+4}" text-anchor="end">${esc(p.short)}</text>`:`<text x="${pos(i)}" y="${h-6}" text-anchor="${i===0?'start':i===count-1?'end':'middle'}">${esc(p.short)}</text>`):'').join('');
+  const paths=lines.map((s,j)=>{
+   if(bars){
+    const band=(horizontal?bottom-top:right-left)/count*.8,size=band/lines.length;
+    return s.data.map((v,i)=>{
+     if(v===null)return '';const p=pos(i)-band/2+j*size,z=value(0),end=value(v);
+     const attrs=horizontal?`x="${Math.min(z,end)}" y="${p}" width="${Math.abs(end-z)}" height="${size*.9}"`:`x="${p}" y="${Math.min(z,end)}" width="${size*.9}" height="${Math.abs(end-z)}"`;
+     return `<rect ${attrs} fill="${s.color}" opacity=".9"><title>${esc(points[i].label+' · '+s.label+' '+money(v))}</title></rect>`;
+    }).join('');
+   }
+   const segments=[];let segment=[];
+   s.data.forEach((v,i)=>{if(v===null){if(segment.length)segments.push(segment);segment=[]}else segment.push([pos(i),value(v)])});if(segment.length)segments.push(segment);
+   return segments.map(pts=>{
+    let path='M'+pts[0].join(' ');
+    for(let i=1;i<pts.length;i++){
+     const [x0,y0]=pts[i-1],[x1,y1]=pts[i],mid=(x0+x1)/2;
+     path+=type==='smooth'||type==='area'?` C${mid} ${y0} ${mid} ${y1} ${x1} ${y1}`:` L${x1} ${y1}`;
+    }
+    const area=type==='area'?`<path d="${path} L${pts.at(-1)[0]} ${value(0)} L${pts[0][0]} ${value(0)} Z" fill="${s.color}" opacity=".14"/>`:'';
+    return area+`<path d="${path}" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linejoin="round" stroke-dasharray="${s.dash}"/>`+pts.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="2.6" fill="${s.color}"/>`).join('');
+   }).join('');
+  }).join('');
+  node.innerHTML=`<svg viewBox="0 0 ${w} ${h}" aria-hidden="true">${axis.join('')}${labels}${paths}<line class="graph-cursor"/></svg>`;
+  node.tabIndex=0;node.setAttribute('role','slider');node.setAttribute('aria-label','Inspection period');node.setAttribute('aria-valuemin','1');node.setAttribute('aria-valuemax',String(count));
+  function inspect(index){
+   const i=Math.max(0,Math.min(count-1,index));chart.active=i;
+   const cursor=node.querySelector('.graph-cursor'),v=pos(i);
+   for(const [k,n] of Object.entries(horizontal?{x1:left,x2:right,y1:v,y2:v}:{x1:v,x2:v,y1:top,y2:bottom}))cursor.setAttribute(k,n);
+   const readout=node.nextElementSibling;readout.querySelector('[data-graph-month]').textContent=points[i].label;
+   readout.querySelectorAll('li strong').forEach((el,j)=>el.textContent=money(lines[j].data[i]));
+   node.setAttribute('aria-valuenow',String(i+1));node.setAttribute('aria-valuetext',points[i].label+', '+lines.map(l=>l.label+' '+money(l.data[i])).join(', '));
+  }
+  const inspectEvent=e=>{const r=node.getBoundingClientRect(),v=horizontal?(e.clientY-r.top)*h/r.height:(e.clientX-r.left)*w/r.width,start=horizontal?top:left,span=horizontal?bottom-top:right-left;inspect(Math.round((v-start)/span*(bars?count:count-1)-(bars?.5:0)))};
   node.onpointermove=e=>{if(e.pointerType==='mouse')inspectEvent(e)};node.onclick=inspectEvent;
-  node.onkeydown=e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();inspect(e.key==='Home'?0:e.key==='End'?months.length-1:chart.active+(e.key==='ArrowLeft'?-1:1))}};
+  node.onkeydown=e=>{if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Home','End'].includes(e.key)){e.preventDefault();inspect(e.key==='Home'?0:e.key==='End'?count-1:chart.active+(['ArrowLeft','ArrowUp'].includes(e.key)?-1:1))}};
   inspect(chart.active);
  }
  function dialog(title,content,done,submitLabel='Save'){
@@ -167,13 +213,16 @@ window.createLedgerGraphs=function(context){
  function edit(id){
   const c=board.cards.find(v=>v.id===id),draft=c?{...c,lines:[...c.lines]}:make('performance'),catalog=choices(model()),selected=new Set(draft.lines);
   const form=`<label>Graph title<input name="title" maxlength="90" required value="${esc(draft.title)}"></label>
+   <div class="graph-settings-row"><label>Graph type<select data-plain14285 name="type">${Object.entries(types).map(([k,v])=>`<option value="${k}" ${k===draft.type?'selected':''}>${v}</option>`).join('')}</select></label>
+   <label>Group by<select data-plain14285 name="interval">${Object.entries(intervals).map(([k,v])=>`<option value="${k}" ${k===draft.interval?'selected':''}>${v}</option>`).join('')}</select></label></div>
+   <p class="graph-period-help">Daily and weekly use the selected month. Monthly uses the board’s comparison period. Weeks run Monday–Sunday.</p>
    <label>Report preset<select data-plain14285 name="preset"><option value="">Custom comparison</option>${Object.entries(presets).map(([k,v])=>`<option value="${k}">${esc(v.name)}</option>`).join('')}</select></label>
    <label>Find lines<input type="search" data-graph-search placeholder="Search report lines, account codes or names"></label><div class="graph-line-head"><strong>Lines on this graph</strong><span data-count></span></div>
    <div class="graph-options"></div><p data-error role="alert"></p>`;
-  const d=dialog(c?'Edit graph':'Add graph',form,root=>{
+  const d=dialog(c?'Graph settings':'Add graph',form,root=>{
    const title=root.querySelector('[name=title]').value.trim();
    if(!title||!selected.size){root.querySelector('[data-error]').textContent=title?'Select at least one line.':'Enter a graph title.';return false}
-   const saved={...draft,title,lines:[...selected]};if(c)board.cards[board.cards.indexOf(c)]=saved;else board.cards.push(saved);
+   const saved={...draft,title,type:root.querySelector('[name=type]').value,interval:root.querySelector('[name=interval]').value,lines:[...selected]};if(c)board.cards[board.cards.indexOf(c)]=saved;else board.cards.push(saved);
   },c?'Save graph':'Add graph');
   const f=d.querySelector('form'),options=d.querySelector('.graph-options'),search=d.querySelector('[data-graph-search]');
   const all=[...catalog.values()];
@@ -342,7 +391,7 @@ function overview(){
   const type=String(a.baseType||a.type||'').toUpperCase(),root=path[0],branch=String(root.code);
   const technical=path.some(p=>p.isTechnical||p.type==='SYSTEM'||p.purpose&&p.purpose!=='regular');
   const kind=technical?'system':({ASSET:'assets',LIABILITY:'liabilities',EQUITY:'equity',DRAWING:'equity',REVENUE:'income',INCOME:'income',EXPENSE:'expense',COST:'expense'})[type]||'other';
-  const row={a,root,path,kind,posting:a.isPosting!==false,sign:['LIABILITY','EQUITY','INCOME','REVENUE'].includes(type)?-1:1,opening:0,openingMonth:null,balanceChanges:new Map(),months:new Map(),lines:[]};
+  const row={a,root,path,kind,posting:a.isPosting!==false,sign:['LIABILITY','EQUITY','INCOME','REVENUE'].includes(type)?-1:1,opening:0,openingMonth:null,balanceChanges:new Map(),months:new Map(),balanceDays:new Map(),days:new Map(),lines:[]};
   entries.push(row);byId.set(String(a.id),row);byName.set(JSON.stringify([a.name,a.currency]),row);
   add(kind,row);add('branch:'+branch,row);
   if(kind==='income')add(branch==='4000'||/^(restaurant sales|sales)\b/i.test(root.name)?'revenue':'otherIncome',row);
@@ -362,8 +411,9 @@ function overview(){
   if(!row?.posting||l.currency!==row.a.currency||!l.date)continue;
   const m=l.date.slice(0,7),net=(cents69(l.debit)-cents69(l.credit))*row.sign;
   row.balanceChanges.set(m,(row.balanceChanges.get(m)||0)+net);
+  row.balanceDays.set(l.date,(row.balanceDays.get(l.date)||0)+net);
   if(l.annualOpening||/^Annual opening balances |^Opening Balances$|^Year-end closing /i.test(l.generalMemo||''))continue;
-  row.months.set(m,(row.months.get(m)||0)+net);row.lines.push(l);
+  row.months.set(m,(row.months.get(m)||0)+net);row.days.set(l.date,(row.days.get(l.date)||0)+net);row.lines.push(l);
  }
  for(const b of windowState?.opening||[]){const row=byId.get(String(b.accountId));if(row&&row.a.currency===b.currency){row.openingMonth=windowState.from.slice(0,7);row.opening+=row.sign*cents69(b.balance)}}
  return {entries,buckets,lines,hasMonth};
@@ -492,7 +542,7 @@ function render(){
   const currencyList=[...new Set(['LAK','USD','THB',...model.entries.filter(r=>r.posting).map(r=>r.a.currency),...(typeof CurrencyStore==='undefined'?[]:CurrencyStore.currencies.map(c=>c.code))])].filter(c=>c&&c!=='NA'&&c!=='__PARENT__');
   const filters=`<div class="dash-hero-controls112"><label>${icon('calendar')} Month <input type="month" data-month112 value="${esc(state.month)}"></label><label>Currency <select data-currency112>${currencyList.map(c=>`<option value="${esc(c)}" ${state.currency===c?'selected':''}>${esc(c)}</option>`).join('')}</select></label></div>`;
   host.innerHTML=`<div class="dash-shell112" data-dash-view="${esc(current)}"><nav class="dash-tabs112" role="tablist" aria-label="Overview views">${tabs.filter(t=>t!=='Graphs'||allowed('sec-chart-accounts')).map(t=>`<button role="tab" data-tab112="${t}" aria-selected="${t===current}" type="button">${t==='Operation'?'Operations':t}</button>`).join('')}</nav>
-  <div class="dash-content112">${current==='Home'&&signed?welcome(business,first,filters):`<section class="dash-hero112"><div class="dash-hero-copy112"><small>${esc(business)}</small><h1>${esc(heading)}</h1><p>${current==='Home'?esc(formatAppDate(appLocalDate())):current==='Graphs'?'Account comparisons by month':esc(labelMonth(state.month))+' accounting overview'}</p></div>
+  <div class="dash-content112">${current==='Home'&&signed?welcome(business,first,filters):`<section class="dash-hero112"><div class="dash-hero-copy112"><small>${esc(business)}</small><h1>${esc(heading)}</h1><p>${current==='Home'?esc(formatAppDate(appLocalDate())):current==='Graphs'?'Account comparisons':esc(labelMonth(state.month))+' accounting overview'}</p></div>
   ${filters}</section>
   ${signed?(current==='Overview'?detailedOverview():current==='Graphs'?graphs.view(model):secondary()):'<p class="dash-empty112">Sign in to see your overview.</p>'}`}</div></div>`;
   graphs.mount(host,current==='Graphs'&&signed);

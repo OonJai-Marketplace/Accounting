@@ -24,9 +24,10 @@ function layout(){
   for(const node of [sharedHeader,sharedTabs])if(node&&node.parentElement!==mainArea)mainArea.insertBefore(node,scrollArea);
   const shell=panel.querySelector('.dash-shell112'),hero=panel.querySelector('.dash-hero112'),tabs=panel.querySelector('.dash-tabs112');
   if(shell&&hero&&tabs){
-   const cover=hero.classList.contains('welcome-cover');
-   if(!cover&&shell.firstElementChild!==hero)shell.prepend(hero);
-   place(shell,tabs,cover?null:hero);next.push(tabs);
+   place(shell,tabs,null);
+   const content=shell.querySelector('.dash-content112');
+   if(content&&content.firstElementChild!==hero)content.prepend(hero);
+   next.push(tabs);
   }
  }else if(window.settingsStack143176?.enabled()&&panel.closest('.settings-stack-workspace143176')){
   const host=panel.closest('.settings-stack-workspace143176');

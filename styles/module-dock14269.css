@@ -151,17 +151,17 @@ html[data-device132="tablet"] body.shell113 .tab-content{
  }
 }
 
-/* The earlier action layer owns compact rail dimensions. */
-@layer action-finalization14317 { @media screen {
+/* Company and user tiles share the rail layer and the same complete frame. */
+@layer journalRail291 { @media screen {
  html[data-device132=desktop] body.compact-laptop14362 #appSidebar{--profile-tile461:38px}
  html[data-device132=desktop] body.workspace-full1439 #appSidebar{--profile-tile461:32px}
  :is(html[data-device132=desktop] #appSidebar,html[data-device132=tablet] #appSidebar:not(.rail-open292):not(.mobile-open)){
    /* Match the company tile: one square frame, with an uncropped image inside. */
    & #topHeaderProfile104{border-top:0!important;display:grid!important;place-items:center!important;padding:0!important;width:100%!important;min-height:44px!important;background:transparent!important}
    & #topHeaderProfile104 .header-account-menu{width:var(--profile-tile461,34px)!important;max-width:var(--profile-tile461,34px)!important;margin:0!important}
-   & #topHeaderProfile104 #headerAccountTrigger{display:grid!important;place-items:center!important;width:var(--profile-tile461,34px)!important;min-width:var(--profile-tile461,34px)!important;max-width:var(--profile-tile461,34px)!important;height:var(--profile-tile461,34px)!important;min-height:var(--profile-tile461,34px)!important;max-height:var(--profile-tile461,34px)!important;padding:2px!important;margin:0!important;border:1px solid #dfccaa!important;border-radius:5px!important;background:ButtonFace!important;box-shadow:none!important;box-sizing:border-box!important}
+   & :is(.logo-tile113,#topHeaderProfile104 #headerAccountTrigger){display:grid!important;place-items:center!important;width:var(--profile-tile461,34px)!important;min-width:var(--profile-tile461,34px)!important;max-width:var(--profile-tile461,34px)!important;height:var(--profile-tile461,34px)!important;min-height:var(--profile-tile461,34px)!important;max-height:var(--profile-tile461,34px)!important;padding:2px!important;margin:0!important;border:1px solid #dfccaa!important;border-radius:5px!important;background:var(--profile-background469,#fff8ea)!important;box-shadow:none!important;box-sizing:border-box!important}
    & #topHeaderProfile104 #headerAccountInitials{display:grid!important;place-items:center!important;flex:none!important;width:100%!important;min-width:0!important;height:100%!important;min-height:0!important;padding:0!important;margin:0!important;border:0!important;border-radius:0!important;background:transparent!important;color:#18533f!important;box-sizing:border-box!important}
-   & #topHeaderProfile104 #headerAccountInitials img{width:100%!important;height:100%!important;min-width:0!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center!important;border:0!important;border-radius:0!important}
+   & :is(#companyLogo101,#topHeaderProfile104 #headerAccountInitials img){width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;object-position:center!important;border:0!important;border-radius:0!important;position:static!important;transform:none!important;margin:0!important;flex:none!important}
    & #topHeaderProfile104 #headerAccountTrigger>:not(#headerAccountInitials){display:none!important}
    & #topHeaderProfile104 #headerAccountTrigger::before{display:none!important}
    & #topHeaderProfile104 #headerAccountTrigger:hover,& #topHeaderProfile104 #headerAccountTrigger:focus-visible{box-shadow:0 0 0 3px #e2b45c!important}

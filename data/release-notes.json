@@ -1,6 +1,14 @@
 {
-  "version": "143.468",
+  "version": "143.469",
   "changes": [
+    "Company Profile and View Profile use the same frame, size, padding and saved background on the navigation rail.",
+    "Home and Overview keep their horizontal tabs above the banner.",
+    "Each graph has independent settings for line, smooth line, area, vertical bars or horizontal bars and daily, weekly or monthly grouping.",
+    "Daily and weekly charts use the selected month; balance charts carry balances through each day or week. Preferences stay on this device.",
+    "Budget Request uses Month filter inside the month selector, without a label above it.",
+    "The utilization instruction notice no longer appears above Post double entry transaction; prepared journal links remain intact.",
+    "Active-book audit changes are orange and reviewable. Closed-book amount changes, reclassifications and deletions are red; description, memo, reason and date changes remain orange.",
+    "Clearing orange logs records a compact deletion receipt and never deletes journals or changes their numbering.",
     "Funding summaries include USD exchanged out and exact LAK proceeds with each saved exchange reference.",
     "Used and remaining are calculated in each transaction\u2019s native currency; LAK costs are no longer converted back into USD.",
     "Utilization register headers total Requested, Approved, Received, Exchanged out, Exchanged in, Used and Remaining by currency.",
