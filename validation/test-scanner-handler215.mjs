@@ -5,7 +5,7 @@ import {stripTypeScriptTypes} from 'node:module';
 import * as validation from '../supabase/functions/scanner-integration/validation.mjs';
 import * as ids from '../supabase/functions/scanner-integration/ids215.mjs';
 const owner='11111111-1111-4111-8111-111111111111',scan='22222222-2222-4222-8222-222222222222',group='33333333-3333-4333-8333-333333333333',page='44444444-4444-4444-8444-444444444444',journal='55555555-5555-4555-8555-555555555555';
-let authenticated=true,active=true,canEdit=true,driveSaved=true,registered=null;
+let authenticated=true,active=true,canEdit=true,driveSaved=true,registered=null,origin='https://localhost';
 const records={journal_entries:[{id:journal,entry_no:'OJM26-0010',status:'posted'}],staff_journal_lines:[],scanner_documents208:[]};
 class Query{
  constructor(table){this.table=table;this.filters=[];}
@@ -20,7 +20,7 @@ let creations=0;
 const context={...validation,...ids,Request,Response,URLSearchParams,AbortSignal,crypto,console,Deno:{env:{get:()=> 'https://fixture.test'},serve(){}},createClient:()=>++creations===1?admin:user,fetch:async()=>new Response(JSON.stringify({id:'drive123456789',sha256Checksum:driveSaved?'a'.repeat(64):'wrong'}),{status:200})};
 vm.createContext(context);
 const source=stripTypeScriptTypes(fs.readFileSync('supabase/functions/scanner-integration/index.ts','utf8').replace(/^import .*;\n/gm,'').replace('export async function handler','async function handler'))+'\nglobalThis.handler215=handler;';vm.runInContext(source,context);
-const invoke=async body=>{const r=await context.handler215(new Request('https://fixture.test',{method:'POST',headers:{Origin:'https://localhost',authorization:'Bearer fixture'},body:JSON.stringify(body)}));return {status:r.status,data:await r.json()};};
+const invoke=async body=>{const r=await context.handler215(new Request('https://fixture.test',{method:'POST',headers:{Origin:origin,authorization:'Bearer fixture'},body:JSON.stringify(body)}));assert.equal(r.headers.get('Access-Control-Allow-Origin'),origin);return {status:r.status,data:await r.json()};};
 let r=await invoke({action:'ids',scan,groups:[{type:'journal',label:'OJM26-0010'}]});assert.equal(r.data.ids[0].available,true);
 canEdit=false;records.staff_journal_lines=[{id:page,staff_journal_id:group,workspace_entry_no:'OJM26-0010',owner_id:'another-owner'}];r=await invoke({action:'ids',scan,groups:[{type:'journal',label:'OJM26-0010'}]});assert.equal(r.data.ids[0].available,false,'another user’s staff IDs are excluded');
 records.staff_journal_lines[0].owner_id=owner;r=await invoke({action:'ids',scan,groups:[{type:'journal',label:'OJM26-0010'}]});assert.equal(r.data.ids[0].available,true);canEdit=true;
@@ -40,3 +40,21 @@ const modern=structuredClone(manifest);modern.workflow=218;modern.groups[0].entr
 authenticated=false;r=await invoke({action:'ids',scan,groups:[{type:'journal',label:'OJM26-0010'}]});assert.equal(r.status,401);
 authenticated=true;active=false;r=await invoke({action:'ids',scan,groups:[{type:'journal',label:'OJM26-0010'}]});assert.match(r.data.error,/active, unlocked/);
 console.log('PASS actual handler: authorized ID lookup, own-staff scope, verified Drive before registration, immutable journal UUID recheck and service-only atomic registration');
+
+// A first receipt may start at an October ID, even with no January–September receipts.
+active=true;authenticated=true;records.scanner_documents208=[];records.staff_journal_lines=[];
+records.journal_entries=[{id:journal,entry_no:'OJM260284',status:'closed',transaction_date:'2026-10-15'}];
+for(origin of ['https://oonjai-marketplace.github.io','https://localhost','capacitor://localhost','https://accounting.oonjai.invalid']){
+ const preflight=await context.handler215(new Request('https://fixture.test',{method:'OPTIONS',headers:{Origin:origin,'Access-Control-Request-Method':'POST','Access-Control-Request-Headers':'apikey,authorization,content-type'}}));
+ assert.equal(preflight.status,200);assert.equal(preflight.headers.get('Access-Control-Allow-Origin'),origin);
+ r=await invoke({action:'ids',groups:[{type:'journal',label:'OJM260284'}]});assert.equal(r.data.ids[0].available,true);assert.equal(r.data.ids[0].receiptCount,0);
+ const october=structuredClone(modern);october.groups[0].entryLabel='OJM260284';october.groups[0].receiptChoice={mode:'new',expected:[]};
+ r=await invoke({action:'register',manifest:october});assert.equal(r.data.registered,true);assert.equal(registered.rows[0].entry_label,'OJM260284');
+ authenticated=false;r=await invoke({action:'ids',groups:[{type:'journal',label:'OJM260284'}]});assert.equal(r.status,401);authenticated=true;
+}
+origin='https://accounting.oonjai.invalid';canEdit=false;
+r=await invoke({action:'ids',groups:[{type:'journal',label:'OJM260284'}]});assert.equal(r.data.ids[0].available,false,'Hub origin does not grant main-journal permission');
+for(const deniedOrigin of ['https://restaurant.oonjai.invalid','http://accounting.oonjai.invalid','https://accounting.oonjai.invalid.evil.test','null']){
+ const denied=await context.handler215(new Request('https://fixture.test',{method:'OPTIONS',headers:{Origin:deniedOrigin}}));assert.equal(denied.status,403);assert.notEqual(denied.headers.get('Access-Control-Allow-Origin'),deniedOrigin);
+}
+console.log('PASS exact native/workspace CORS, October-first receipts in a closed book, and unchanged authentication and journal permissions');

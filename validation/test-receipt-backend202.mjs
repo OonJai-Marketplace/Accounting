@@ -21,7 +21,7 @@ allowed=false;assert.match((await (await invoke({action:'status'})).json()).erro
 conn.owner='other';assert.match((await (await invoke({action:'status'})).json()).error,/owner/);conn.owner='owner-a';
 const status=await (await invoke({action:'status'})).json();assert.equal(status.email,'first@example.test');assert(!JSON.stringify(status).includes('server-only-token'));
 const data={action:'upload-start',parent:'root',name:'October 2026.pdf',id:'file12345678',scan:'a1234567-b123-c123-d123-e12345678901',size:1234};
-duplicates=true;assert.match((await (await invoke(data)).json()).error,/already exists/);duplicates=false;
+duplicates=true;assert.match((await (await invoke(data)).json()).error,/already (?:exists|uses this name)/);duplicates=false;
 let result=await (await invoke(data)).json();assert(result.session);assert.equal(calls.at(-1).o.headers.Authorization,'Bearer server-only-token');
 existing={id:data.id,name:data.name,parents:['folder123456'],version:'2',appProperties:{ojmOwner:'other',ojmScan:data.scan}};
 assert.match((await (await invoke({...data,version:'2'})).json()).error,/does not match/);
@@ -31,9 +31,13 @@ existing.appProperties.ojmOwner='other';assert.match((await (await invoke({actio
 assert.equal((await T.documentHandler(new Request('https://edge.test',{method:'POST',headers:{Origin:'https://evil.test'}}))).status,403);
 console.log('PASS: server auth, permission and owner isolation; folder/session validation; duplicate prevention and version checks');
 
-for(const origin of ['https://localhost','capacitor://localhost']){
+for(const origin of ['https://oonjai-marketplace.github.io','https://localhost','capacitor://localhost','https://accounting.oonjai.invalid']){
  const response=await T.documentHandler(new Request('https://edge.test',{method:'OPTIONS',headers:{Origin:origin}}));assert.equal(response.status,200);assert.equal(response.headers.get('Access-Control-Allow-Origin'),origin);
+ const connected=await T.documentHandler(new Request('https://edge.test',{method:'POST',headers:{Origin:origin,Authorization:'Bearer fake'},body:'{"action":"status"}'}));assert.equal(connected.headers.get('Access-Control-Allow-Origin'),origin);assert.equal((await connected.json()).connected,true);
  user=null;const denied=await T.documentHandler(new Request('https://edge.test',{method:'POST',headers:{Origin:origin,Authorization:'Bearer fake'},body:'{"action":"status"}'}));assert.match((await denied.json()).error,/expired/);user='owner-a';
+}
+for(const origin of ['https://restaurant.oonjai.invalid','http://accounting.oonjai.invalid','https://accounting.oonjai.invalid.evil.test','null']){
+ const response=await T.documentHandler(new Request('https://edge.test',{method:'OPTIONS',headers:{Origin:origin}}));assert.equal(response.status,403);assert.notEqual(response.headers.get('Access-Control-Allow-Origin'),origin);
 }
 console.log('PASS native origins have explicit CORS and retain session authorization');
 
