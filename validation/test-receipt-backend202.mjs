@@ -22,7 +22,7 @@ conn.owner='other';assert.match((await (await invoke({action:'status'})).json())
 const status=await (await invoke({action:'status'})).json();assert.equal(status.email,'first@example.test');assert(!JSON.stringify(status).includes('server-only-token'));
 const data={action:'upload-start',parent:'root',name:'October 2026.pdf',id:'file12345678',scan:'a1234567-b123-c123-d123-e12345678901',size:1234};
 duplicates=true;assert.match((await (await invoke(data)).json()).error,/already (?:exists|uses this name)/);duplicates=false;
-let result=await (await invoke(data)).json();assert(result.session);assert.equal(calls.at(-1).o.headers.Authorization,'Bearer server-only-token');
+let result=await (await invoke(data)).json();assert(result.session);assert.equal(calls.at(-1).o.headers.Authorization,'Bearer server-only-token');assert.equal(calls.at(-1).o.headers.Origin,'https://oonjai-marketplace.github.io');assert.equal(result.origin477,true);
 existing={id:data.id,name:data.name,parents:['folder123456'],version:'2',appProperties:{ojmOwner:'other',ojmScan:data.scan}};
 assert.match((await (await invoke({...data,version:'2'})).json()).error,/does not match/);
 existing.appProperties.ojmOwner=user;assert.match((await (await invoke({...data,version:'1'})).json()).error,/changed/);

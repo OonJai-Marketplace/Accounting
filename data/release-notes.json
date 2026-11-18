@@ -1,6 +1,10 @@
 {
-  "version": "143.477",
+  "version": "143.478",
   "changes": [
+    "Scans collected before one Save stay together in one bookmarked PDF, with each entry ID linked to its own pages.",
+    "Next ID and Jump ID remain visible at the bottom of the phone scanner; entry rows use less space.",
+    "Successful saves close the capture batch; failed uploads retain all scans and reuse the same reserved file ID.",
+    "Full-page web captures skip unnecessary perspective resampling; native capture improvements require a separate Android release.",
     "Owner support shows matched currency transfers separately from new receipts and spending.",
     "Remaining follows received plus exchange in, less exchange out and used, separately for each currency.",
     "Combined receipt references can verify one funding amount without creating another receipt. Unexplained journal differences still require review.",

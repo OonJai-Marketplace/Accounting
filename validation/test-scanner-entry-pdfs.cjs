@@ -36,12 +36,12 @@ function functions(start,end) {
   assert.throws(()=>core.entryDocuments({...batch,pages:[...batch.pages,{group:'missing'}]}),/Assign/);
   const records=new Map(), uploads=new Map(), starts=new Map(), manifests=new Map();
   let ioFail=true, linkFail=true, lastStatus='';
-  const context={window:{},cameraQueue:[],C:core, ReceiptCore202:core,jspdf:{jsPDF}, setTimeout,clearTimeout,crypto,structuredClone,
+  const context={window:{},idKey221:s=>String(s).replace(/^OJM[ -]*(\d{2})[ -]*(\d{4})$/i,'OJM$1$2'),cameraQueue:[],C:core, ReceiptCore202:core,jspdf:{jsPDF}, setTimeout,clearTimeout,crypto,structuredClone,
     Date,URL,AbortSignal,Uint8Array,Blob,console,draft:batch,draftIndex:[],pdfCache:null,
     driveState:{connected:true,email:'fixture@example.test'},settings:{folder:batch.folder},saveChain:Promise.resolve(),
     owner:'fixture-owner',scope:'fixture',OJM_SUPABASE_ANON_KEY:'fixture',db:{auth:{getSession:async()=>({data:{session:{user:{id:'fixture-owner'}}}})}},
     primaryDialog:{open:false},localStorage:{setItem(){}},$:()=>null,valid(){},status(text){lastStatus=text},render(){},
-    closeDialog(){},nativeUI215:()=>false,storageMode:()=>'drive',connection:async()=>{},showEntryFiles(){},
+    closeDialog(){},rememberIDs215:async()=>{},nativeUI215:()=>false,storageMode:()=>'drive',connection:async()=>{},showEntryFiles(){},
     async store(key,value){if(key.startsWith('page:'))return {width:100,height:120,data:'data:image/jpeg;base64,'+image};
       if(value!==undefined)records.set(key,structuredClone(value));return structuredClone(records.get(key));},
     async writeRecords(entries,deletes){if(ioFail)throw Error('device write failed');
