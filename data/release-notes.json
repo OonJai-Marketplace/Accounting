@@ -1,6 +1,7 @@
 {
-  "version": "143.464",
+  "version": "143.465",
   "changes": [
+    "Fund utilization reports show Requested, Received, Cash paid and Remaining totals in their matching column headers, with separate currencies and month-filtered totals.",
     "Confirmed saves automatically verify their durable device copy without asking for Verify device copy or triggering a full sync.",
     "Negative utilization finalization shows one warning before confirmation, with a simple success message afterward.",
     "Database status is checked once at login, with no periodic checks; Check connection runs another check only when requested.",

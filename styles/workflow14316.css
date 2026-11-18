@@ -245,3 +245,10 @@ body .funding-inline table[data-funding-grid=other]{min-width:1400px}
 
 .funding-inline .funding-edit-grid [data-funding-cell=loanId290]{min-width:7rem}
 .funding-inline .funding-edit-grid [data-funding-cell=loanAmount290]{min-width:8rem}
+
+/* Totals share the actual columns, including administrator-resized widths. */
+body #savedFundReports thead th{vertical-align:top!important}
+#savedFundReports .fund-register-label{display:block;white-space:nowrap}
+#savedFundReports .fund-register-total{margin-top:8px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.5;white-space:nowrap}
+#savedFundReports th:nth-child(n+4):nth-child(-n+7){text-align:right!important}
+#savedFundReports th:nth-child(2) .fund-register-total{font-weight:500;font-size:11px}

@@ -120,6 +120,24 @@ function totals327(d,asLines=false){
  const codes=report.orderedUnits(sums.keys()),value=c=>sums.get(c)/100;
  return (asLines?report.amountLines(codes,value):codes.map(c=>report.currencyAmount(c,value(c))).join(' · '))||'—';
 }
+function utilizationHeaderTotals(reports){
+ const totals=new Map(),keys=['requested','receipt','cashSpent','beforeReturn'];
+ for(const {balances} of reports)for(const [currency,values] of balances){
+  if(!totals.has(currency))totals.set(currency,Object.fromEntries(keys.map(key=>[key,0])));
+  for(const key of keys)totals.get(currency)[key]+=Math.round(num(values[key])*100);
+ }
+ return new Map([...totals].map(([currency,values])=>[currency,Object.fromEntries(keys.map(key=>[key,values[key]/100]))]));
+}
+function utilizationRegister(reports,rows){
+ const totals=utilizationHeaderTotals(reports),codes=report.orderedUnits(totals.keys());
+ const columns=[['Month'],['Purpose'],['Status'],['Requested','requested'],['Received','receipt'],['Cash paid','cashSpent'],['Remaining','beforeReturn'],['Action']];
+ let table=table82(columns.map(([label])=>label),rows).replace('<table>','<table id="savedFundReports" class="budget-saved-table">');
+ for(const [label,key] of columns){
+  const summary=key?(report.amountLines(codes,c=>totals.get(c)[key])||'—'):label==='Purpose'?'Total · '+reports.length+' '+(reports.length===1?'report':'reports'):'';
+  table=table.replace('<th>'+label+'</th>','<th data-resize-label="'+label+'"><span class="fund-register-label">'+label+'</span><div class="fund-register-total"'+(key?' aria-label="Total '+label.toLowerCase()+'"':'')+'>'+summary+'</div></th>');
+ }
+ return table;
+}
 function renderRequest(notice=''){
  guard();
  const allRows=budgetRows();
@@ -140,7 +158,7 @@ function renderRequest(notice=''){
    button(isFinal(r)?'View':'Edit',`openAllocation(${JSON.stringify(r.id)})`)];
  });
  const content=section82('Saved budget requests',table82(['Month','Recipient','Purpose','Requested','Action'],requestRows).replace('<table>','<table id="savedBudgetRequests" class="budget-saved-table">'))+
-  section82('Fund utilization reports',table82(['Month','Purpose','Status','Requested','Received','Cash paid','Remaining','Action'],utilization).replace('<table>','<table id="savedFundReports" class="budget-saved-table">'));
+  section82('Fund utilization reports',utilizationRegister(reports,utilization));
  mount82('transactions-budget14313','Budget Requests','',notice+content+historyImportButton(),monthFilter+button('Fund utilization','showFunds()')+button('New Report','newRequest()')+button('Print / PDF','printPicker()')+(access113.can('transactions-all')?'<button type="button" data-book-history="budget">History</button>':''));
  document.getElementById('budgetListMonth').onchange=e=>{budgetListMonth=e.target.value;renderRequest();};
 }
