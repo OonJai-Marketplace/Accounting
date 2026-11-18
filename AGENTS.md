@@ -614,3 +614,13 @@ server; retain the durable local request and exact receipt verification. Do not
 start background budget delivery or full-workspace refresh after Save. Offline
 budget drafts wait for explicit Sync Now. A newer server draft supersedes an
 older finalized copy retained in the current tab.
+Audit policy, 2026-11-18: all changes in an active open book (amount, details,
+reclassification, date and deletion) are orange and reviewable. Red is reserved
+for amount changes, reclassification and deletion in a closed or reopened closed
+book. Description, reason, line memo and date-only edits remain orange. Capture
+the book state at the event; closing later must not recolor earlier active edits.
+Explicit orange-log deletion records a compact audit receipt without purging
+journal entries or releasing numbers. This supersedes older red/green criteria.
+Dashboard, 2026-11-18: horizontal tabs precede the banner in every Home/Overview
+view. Each graph remembers its own type and daily/weekly/monthly grouping.
+Budget Request month picker has no upper label; its empty option is Month filter.

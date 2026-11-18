@@ -5290,6 +5290,10 @@ html:root body .graph-dialog form{max-height:min(85dvh,calc(var(--feedback-heigh
  #dashboard .graph-board:not(.single,.main-left) .graph-main .graph-size,#dashboard .graph-board.main-left .graph-small .graph-size{right:auto;left:0;cursor:nesw-resize;transform:scaleX(-1)}
 }
 @media(max-width:780px){#dashboard .graph-main .graph-plot{height:var(--plot-height,225px)}}
+.graph-settings-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.graph-settings-row select{width:100%}
+.graph-period-help{font-size:12px;line-height:1.45;color:#59695d;margin:0}
+@media(max-width:480px){.graph-settings-row{grid-template-columns:1fr}}
 
 /* styles/polish-v113.css */
 /* One shared rhythm and readable warm palette across the application. */

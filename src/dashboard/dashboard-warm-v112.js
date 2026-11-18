@@ -31,7 +31,7 @@ function overview(){
   const type=String(a.baseType||a.type||'').toUpperCase(),root=path[0],branch=String(root.code);
   const technical=path.some(p=>p.isTechnical||p.type==='SYSTEM'||p.purpose&&p.purpose!=='regular');
   const kind=technical?'system':({ASSET:'assets',LIABILITY:'liabilities',EQUITY:'equity',DRAWING:'equity',REVENUE:'income',INCOME:'income',EXPENSE:'expense',COST:'expense'})[type]||'other';
-  const row={a,root,path,kind,posting:a.isPosting!==false,sign:['LIABILITY','EQUITY','INCOME','REVENUE'].includes(type)?-1:1,opening:0,openingMonth:null,balanceChanges:new Map(),months:new Map(),lines:[]};
+  const row={a,root,path,kind,posting:a.isPosting!==false,sign:['LIABILITY','EQUITY','INCOME','REVENUE'].includes(type)?-1:1,opening:0,openingMonth:null,balanceChanges:new Map(),months:new Map(),balanceDays:new Map(),days:new Map(),lines:[]};
   entries.push(row);byId.set(String(a.id),row);byName.set(JSON.stringify([a.name,a.currency]),row);
   add(kind,row);add('branch:'+branch,row);
   if(kind==='income')add(branch==='4000'||/^(restaurant sales|sales)\b/i.test(root.name)?'revenue':'otherIncome',row);
@@ -51,8 +51,9 @@ function overview(){
   if(!row?.posting||l.currency!==row.a.currency||!l.date)continue;
   const m=l.date.slice(0,7),net=(cents69(l.debit)-cents69(l.credit))*row.sign;
   row.balanceChanges.set(m,(row.balanceChanges.get(m)||0)+net);
+  row.balanceDays.set(l.date,(row.balanceDays.get(l.date)||0)+net);
   if(l.annualOpening||/^Annual opening balances |^Opening Balances$|^Year-end closing /i.test(l.generalMemo||''))continue;
-  row.months.set(m,(row.months.get(m)||0)+net);row.lines.push(l);
+  row.months.set(m,(row.months.get(m)||0)+net);row.days.set(l.date,(row.days.get(l.date)||0)+net);row.lines.push(l);
  }
  for(const b of windowState?.opening||[]){const row=byId.get(String(b.accountId));if(row&&row.a.currency===b.currency){row.openingMonth=windowState.from.slice(0,7);row.opening+=row.sign*cents69(b.balance)}}
  return {entries,buckets,lines,hasMonth};
@@ -181,7 +182,7 @@ function render(){
   const currencyList=[...new Set(['LAK','USD','THB',...model.entries.filter(r=>r.posting).map(r=>r.a.currency),...(typeof CurrencyStore==='undefined'?[]:CurrencyStore.currencies.map(c=>c.code))])].filter(c=>c&&c!=='NA'&&c!=='__PARENT__');
   const filters=`<div class="dash-hero-controls112"><label>${icon('calendar')} Month <input type="month" data-month112 value="${esc(state.month)}"></label><label>Currency <select data-currency112>${currencyList.map(c=>`<option value="${esc(c)}" ${state.currency===c?'selected':''}>${esc(c)}</option>`).join('')}</select></label></div>`;
   host.innerHTML=`<div class="dash-shell112" data-dash-view="${esc(current)}"><nav class="dash-tabs112" role="tablist" aria-label="Overview views">${tabs.filter(t=>t!=='Graphs'||allowed('sec-chart-accounts')).map(t=>`<button role="tab" data-tab112="${t}" aria-selected="${t===current}" type="button">${t==='Operation'?'Operations':t}</button>`).join('')}</nav>
-  <div class="dash-content112">${current==='Home'&&signed?welcome(business,first,filters):`<section class="dash-hero112"><div class="dash-hero-copy112"><small>${esc(business)}</small><h1>${esc(heading)}</h1><p>${current==='Home'?esc(formatAppDate(appLocalDate())):current==='Graphs'?'Account comparisons by month':esc(labelMonth(state.month))+' accounting overview'}</p></div>
+  <div class="dash-content112">${current==='Home'&&signed?welcome(business,first,filters):`<section class="dash-hero112"><div class="dash-hero-copy112"><small>${esc(business)}</small><h1>${esc(heading)}</h1><p>${current==='Home'?esc(formatAppDate(appLocalDate())):current==='Graphs'?'Account comparisons':esc(labelMonth(state.month))+' accounting overview'}</p></div>
   ${filters}</section>
   ${signed?(current==='Overview'?detailedOverview():current==='Graphs'?graphs.view(model):secondary()):'<p class="dash-empty112">Sign in to see your overview.</p>'}`}</div></div>`;
   graphs.mount(host,current==='Graphs'&&signed);

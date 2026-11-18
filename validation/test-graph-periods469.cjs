@@ -1,0 +1,32 @@
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
+const source=fs.readFileSync('src/dashboard/ledger-graphs.js','utf8').replace('return {view,mount,reset,prepareRange};','return {view,mount,reset,prepareRange,settings,timePoints,values,drawPlot};');
+const storage=new Map();const box={window:{},location:{origin:'fixture'},localStorage:{getItem:k=>storage.get(k),setItem:(k,v)=>storage.set(k,v)},crypto:{randomUUID:()=>Math.random().toString()},Intl,Date,Map,Set};
+vm.runInNewContext(source,box);
+const state={tab:'Graphs',month:'2026-11',currency:'LAK'};
+const row={a:{id:'sales',currency:'LAK'},posting:true,opening:0,openingMonth:null,days:new Map([['2026-11-01',10000],['2026-11-02',5000],['2026-11-08',-2000],['2026-11-30',9000]]),balanceDays:new Map([['2026-10-31',10000],['2026-11-01',10000],['2026-11-02',5000],['2026-11-08',-2000],['2026-11-30',9000]]),path:[]};
+const model={entries:[row],buckets:new Map([['income',[row]]]),hasMonth:()=>true};
+const graph=box.window.createLedgerGraphs({owner:()=>1,allowed:()=>true,state,money:n=>String(n),esc:x=>String(x),valueFor:()=>220,flowAccount:()=>true,groups:{income:'Income'},render:()=>{},model:()=>model});
+const item={id:'income',rows:[row],basis:'Monthly activity'};
+let daily=graph.timePoints('daily'),weekly=graph.timePoints('weekly');
+assert.equal(daily.length,30);assert.equal(weekly.length,6);
+assert.equal(weekly[0].from,'2026-11-01');assert.equal(weekly[0].to,'2026-11-01');assert.equal(weekly[1].from,'2026-11-02');assert.equal(weekly[1].to,'2026-11-08');assert.equal(weekly[5].to,'2026-11-30');
+assert.deepEqual(Array.from(graph.values(item,weekly,model,'weekly')),[100,30,0,0,0,90]);
+assert.equal(graph.values(item,daily,model,'daily').reduce((a,b)=>a+b,0),220);
+assert.equal(graph.values({...item,basis:'Month-end balance'},daily,model,'daily')[1],250);
+assert.equal(graph.values({...item,basis:'Month-end balance'},daily,model,'daily').at(-1),320);
+state.month='2024-02';assert.equal(graph.timePoints('daily').length,29);state.month='2026-11';
+state.currency='USD';assert(graph.values(item,daily,model,'daily').every(x=>x===null));state.currency='LAK';
+const board=graph.settings();
+for(const type of ['line','smooth','area','bar','horizontal']){
+ board.cards[0].type=type;board.cards[0].interval='daily';
+ const html=graph.view(model);assert(html.includes('Settings for Income &amp;')||html.includes('Settings for Income & expenses'));
+ const cursor={setAttribute:()=>{}},label={},strongs=[{},{}],readout={querySelector:()=>label,querySelectorAll:()=>strongs};
+ const attrs={};const node={clientWidth:600,clientHeight:240,closest:()=>({dataset:{graphId:'main'}}),querySelector:()=>cursor,nextElementSibling:readout,setAttribute:(k,v)=>attrs[k]=v};
+ graph.drawPlot(node);assert(node.innerHTML.includes('<svg'));assert(!/NaN|Infinity/.test(node.innerHTML));
+ if(type==='horizontal'||type==='bar')assert(node.innerHTML.includes('<rect'));
+ if(type==='smooth'||type==='area')assert(/ C[0-9]/.test(node.innerHTML));
+ assert.equal(attrs['aria-valuemax'],'30');node.onkeydown({key:'Home',preventDefault:()=>{}});assert.equal(strongs[0].textContent,'100');
+ node.onkeydown({key:'ArrowRight',preventDefault:()=>{}});assert.equal(strongs[0].textContent,'50');
+}
+assert.equal(board.cards[1].interval,'monthly');
+console.log('PASS daily/weekly/monthly grouping, leap year, clipped calendar weeks, cumulative balances, separate currencies, all five chart renderers and keyboard inspection');

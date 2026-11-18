@@ -705,10 +705,7 @@ window.BudgetUtilizationJournal=(()=>{
  function restore(value){
   prepared=value?.owner===liveProfile?.id?value:null;
   $('budgetJournalNotice')?.remove();
-  if(!prepared)return;
-  const notice=document.createElement('p');notice.id='budgetJournalNotice';
-  notice.textContent=prepared.notice||'Budget utilization · '+prepared.period+'. Choose the debit and credit accounts for each summary pair. For funding already posted, use the budget tracking accounts.';
-  $('journalEntry98')?.prepend(notice);
+  // Keep the prepared journal association without an instructional banner.
  }
  async function lookup(id){
   const {data,error}=await ojmDb.rpc('budget_utilization_journal',{p_report:id});
@@ -931,7 +928,7 @@ function renderRequest(notice=''){
  if(budgetListMonth&&!months.includes(budgetListMonth))budgetListMonth='';
  const rows=budgetMonthRows(allRows,budgetListMonth);
  checkListedDrafts(rows,notice);
- const monthFilter='<label>Month <select id="budgetListMonth"><option value="">All months</option>'+months.map(month=>'<option value="'+month+'"'+(month===budgetListMonth?' selected':'')+'>'+esc(report.period({budgetMonth290:month}))+'</option>').join('')+'</select></label>';
+ const monthFilter='<label><select id="budgetListMonth" aria-label="Month filter"><option value="">Month filter</option>'+months.map(month=>'<option value="'+month+'"'+(month===budgetListMonth?' selected':'')+'>'+esc(report.period({budgetMonth290:month}))+'</option>').join('')+'</select></label>';
 
  const requestRows=rows.filter(r=>r.data.mode!=='utilization').map(r=>[esc(report.period(r.data)),esc(r.data.recipient),esc(r.data.purpose),totals327(r.data,true),'<div class="budget-row-actions">'+button('Open',`editRequest(${JSON.stringify(r.id)})`)+button('Utilization',`startAllocation(${JSON.stringify(r.id)})`)+'</div>']);
  const reports=rows.filter(r=>r.data.mode==='utilization').map(record=>({record,balances:report.balances({...record.data,lines:record.data.lines||[]})}));

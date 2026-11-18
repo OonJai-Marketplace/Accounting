@@ -7,10 +7,7 @@ window.BudgetUtilizationJournal=(()=>{
  function restore(value){
   prepared=value?.owner===liveProfile?.id?value:null;
   $('budgetJournalNotice')?.remove();
-  if(!prepared)return;
-  const notice=document.createElement('p');notice.id='budgetJournalNotice';
-  notice.textContent=prepared.notice||'Budget utilization · '+prepared.period+'. Choose the debit and credit accounts for each summary pair. For funding already posted, use the budget tracking accounts.';
-  $('journalEntry98')?.prepend(notice);
+  // Keep the prepared journal association without an instructional banner.
  }
  async function lookup(id){
   const {data,error}=await ojmDb.rpc('budget_utilization_journal',{p_report:id});

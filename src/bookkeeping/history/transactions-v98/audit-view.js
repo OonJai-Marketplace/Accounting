@@ -2,7 +2,7 @@
   let auditFilter14361='all',auditOwner14361='',auditDetailRequest143198=0;
   const auditAction14361=item=>String(item.action||'CHANGE').toUpperCase();
   function auditKind14361(item){
- const labels={R1:'Financial record deleted',R2:'Posted debit / credit changed',R3:'Opening balance changed',R4:'Bulk or period deletion',R5:'Journal voided / reversed',R6:'Closed period reopened',R7:'Finalized payroll amount changed',O1:'Draft debit / credit changed',O2:'Exchange rate changed'};
+ const labels={R1:'Financial record deleted',R2:'Closed-book amount changed',R3:'Opening balance changed',R4:'Bulk or period deletion',R5:'Journal voided / reversed',R6:'Closed period reopened',R8:'Closed-book reclassification',R7:'Finalized payroll amount changed',O1:'Active-book amount changed',O2:'Exchange rate changed',O3:'Details or date changed',O4:'Active-book deletion / void',O5:'Active-book reclassification',O9:'Audit log deletion recorded'};
  const category=String(item.category143324||'');
  if(!Object.hasOwn(labels,category))return null;
  const tier=category.startsWith('R')?'red':'orange';
