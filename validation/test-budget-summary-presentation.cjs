@@ -9,9 +9,11 @@ for(const editable of [false,true]){
  const summary=report.cashSummary(d,editable);
  assert.match(summary,/>Remaining<\/td>/);assert.match(summary,/\$ 4\.00/);assert.doesNotMatch(summary,/after handover|before handover|data-edit-/i);
  const paid=report.disbursements(d,editable);
- assert.match(paid,/>Reference<\/th>/);assert.match(paid,/R&lt;&amp;1/);
+ assert.match(paid,/>Category<\/th>/);assert.match(paid,/>Item<\/th>/);assert.match(paid,/>Reference<\/th>/);
+ const requested=report.requestSummary(d,editable);
+ assert.match(requested,/>Category<\/th>/);assert.match(requested,/>Item<\/th>/);assert.doesNotMatch(requested,/Item \/ category|Utilities<br>/);assert.match(paid,/R&lt;&amp;1/);
  const item=paid.slice(paid.indexOf('<strong>'),paid.indexOf('</td>',paid.indexOf('<strong>')));
  assert.doesNotMatch(item,/R&lt;&amp;1|data-payment-reference/);
 }
 assert.equal(JSON.stringify(d),original,'Presentation must preserve handover records and original amounts');
-console.log('PASS remaining before handover, independent cash balance, escaped reference column and unchanged source data.');
+console.log('PASS remaining before handover, independent cash balance, separate category/item/reference columns and unchanged source data.');

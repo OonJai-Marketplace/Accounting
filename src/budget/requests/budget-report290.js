@@ -203,8 +203,9 @@ window.BudgetReport290 = (() => {
   return orderedUnits(['USD','LAK',...balances(d).keys()]);
  }
  function summaryTable(headers,rows,totals=[],marker=''){
-  const heading=headers.map((h,i)=>'<th scope="col" style="text-align:'+(i?'right':'left')+'">'+esc(h)+'</th>').join('');
-  const tr=(cells,total)=>'<tr'+(total?' data-budget-summary290="total"':'')+'>'+cells.map((cell,i)=>'<td style="vertical-align:top;text-align:'+(i?'right':'left')+';padding:4px 6px;'+(total?fill:'')+'">'+cell+'</td>').join('')+'</tr>';
+  const left=i=>i===0||['Category','Item','Reference','Action','Status'].includes(headers[i]);
+  const heading=headers.map((h,i)=>'<th scope="col" style="text-align:'+(left(i)?'left':'right')+'">'+esc(h)+'</th>').join('');
+  const tr=(cells,total)=>'<tr'+(total?' data-budget-summary290="total"':'')+'>'+cells.map((cell,i)=>'<td style="vertical-align:top;text-align:'+(left(i)?'left':'right')+';padding:3px 6px;'+(total?fill:'')+'">'+cell+'</td>').join('')+'</tr>';
   return '<div class="data-table82"><table '+marker+' style="width:100%;border-collapse:collapse"><thead><tr>'+heading+'</tr></thead><tbody>'+
    rows.map(r=>tr(r,false)).join('')+'</tbody>'+(totals.length?'<tfoot>'+totals.map(r=>tr(r,true)).join('')+'</tfoot>':'')+'</table></div>';
  }
@@ -243,10 +244,10 @@ window.BudgetReport290 = (() => {
    funded.set(l.currency,amount==null||funded.get(l.currency)===null?null:(funded.get(l.currency)||0)+Number(amount));
    const decision=editable?'<select data-plain14285 data-decision="'+i+'" aria-label="Funding status for '+esc(l.description)+'">'+Object.entries(fundingLabels).map(([k,v])=>'<option value="'+k+'"'+(k===status?' selected':'')+'>'+v+'</option>').join('')+'</select>':esc(fundingLabels[status]);
    const adjustment=editable?'<input data-adjusted="'+i+'" data-currency="'+esc(l.currency)+'" aria-label="Adjusted funding for '+esc(l.description)+'" type="number" min="0" max="'+Number(l.amount)+'" step="0.01" value="'+(status==='deduction'?Number(amount):'')+'"'+(status==='deduction'?'':' hidden')+'>':'';
-   return [esc(l.description)+'<br><small>'+esc(l.category)+'</small>',amountHtml(l.currency,l.amount),decision,
+   return [esc(l.category),esc(l.description),amountHtml(l.currency,l.amount),decision,
     '<span data-funded="'+i+'"'+(editable&&status==='deduction'?' hidden':'')+'>'+(amount==null?'Unconfirmed':amountHtml(l.currency,amount))+'</span>'+adjustment];
   });
-  return summaryTable(['Item / category','Requested','Status','Funded / adjusted'],rows,[['Total requested',amountLines(sum.keys(),c=>sum.get(c)),'Total funded','<span data-funded-total>'+fundedTotal(funded)+'</span>']],'data-request-summary');
+  return summaryTable(['Category','Item','Requested','Status','Funded / adjusted'],rows,[['Total requested','',amountLines(sum.keys(),c=>sum.get(c)),'Total funded','<span data-funded-total>'+fundedTotal(funded)+'</span>']],'data-request-summary');
  }
  function fundedTotal(sums){return orderedUnits(sums.keys()).map(c=>sums.get(c)==null?esc(c)+' unconfirmed':amountHtml(c,sums.get(c))).join('<br>');}
  function disbursements(d,editable=false){
@@ -257,18 +258,18 @@ window.BudgetReport290 = (() => {
     const category=line?.category||m?.category290||'Additional spending';
     const identity=' data-payment="'+i+'" data-line="'+(index??-1)+'"';
     const reference=editable?'<input data-payment-reference'+identity+' aria-label="Reference for '+esc(item)+'" placeholder="Reference" value="'+esc(m?.reference||'')+'">':esc(m?.reference||'—');
-    const itemCell='<strong>'+esc(item)+'</strong> · '+esc(category)+(line?'':' · Outside request');
+    const itemCell='<strong>'+esc(item)+'</strong>'+(line?'':' <small>Outside request</small>');
     const amounts=codes.map(c=>{
      if(m&&m.currency!==c)return '—';
      const n=m?cashPaid(m):null;
      return editable?'<input type="number" min="0" step="0.01" data-paid-in="'+esc(c)+'" data-currency="'+esc(c)+'"'+identity+' aria-label="'+esc(c)+' paid for '+esc(item)+'" value="'+(n==null?'':Number(n))+'" placeholder="0.00">':
       n==null?(c===line.currency?amountHtml(c,0):'—'):amountHtml(c,n);
     });
-    rows.push([itemCell,...amounts,reference,...(editable?['<button type="button" data-pay-detail'+identity+'>Details</button>']:[])]);
+    rows.push([esc(category),itemCell,...amounts,reference,...(editable?['<button type="button" data-pay-detail'+identity+'>Details</button>']:[])]);
    }
   }
-  const total=['Total distributed',...codes.map(c=>amountHtml(c,sums.get(c)?.cashSpent||0)),'',...(editable?['']:[])];
-  return summaryTable(['Item / category',...codes,'Reference',...(editable?['Action']:[])],rows,[total],'data-disbursements');
+  const total=['Total distributed','',...codes.map(c=>amountHtml(c,sums.get(c)?.cashSpent||0)),'',...(editable?['']:[])];
+  return summaryTable(['Category','Item',...codes,'Reference',...(editable?['Action']:[])],rows,[total],'data-disbursements');
  }
  function summary(d){
   return section82('Funding summary',cashSummary(d))+section82('Budget request summary',requestSummary(d))+section82('Disbursement breakdown',disbursements(d));

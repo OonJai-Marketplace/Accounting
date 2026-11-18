@@ -1,8 +1,8 @@
 {
-  "version": "143.457",
+  "version": "143.458",
   "changes": [
-    "Edit funding from one section, with compact spending and exchange details.",
-    "References have their own disbursement column; report buttons and saved budget tables use consistent sizing.",
-    "Show unused funding as Remaining without the after-handover line."
+    "Edit funding lists every receipt and reference, with Add row for additional amounts received and direct access to exchange details.",
+    "Category and Item have separate columns in budget request summaries and disbursement breakdowns.",
+    "Compact saved request and report rows while retaining space for stacked utilization currency totals."
   ]
 }

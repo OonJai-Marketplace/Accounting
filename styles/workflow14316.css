@@ -197,3 +197,24 @@ body #transactions-budget14313 .data-table82:has(>.budget-saved-table){overflow-
 @layer compact14327{
  body #transactions-budget14313 table.budget-saved-table tbody td :is(button,.row-menu99>summary){height:32px!important;min-height:32px!important;max-height:32px!important;line-height:20px!important;padding:5px 10px!important}
 }
+
+/* Funding entry list keeps every source and reference visible before editing. */
+body .funding-list .budget-dialog14313{width:min(1050px,calc(100vw - 36px))!important}
+.funding-list .funding-help{margin:0 0 12px;color:#50655c}
+.funding-list .block82>header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.funding-list .data-table82 table{width:100%;min-width:680px}
+.funding-list .data-table82 :is(th,td){padding:3px 6px!important;white-space:normal;overflow-wrap:anywhere;vertical-align:middle}
+.funding-list .funding-entry-link{height:32px;min-height:32px;padding:4px 0;background:transparent;color:#145c4a;border:0;text-decoration:underline;text-underline-offset:3px;text-align:left;cursor:pointer;max-width:100%}
+.funding-entry-toolbar{margin:0 0 12px}
+/* Compact single-line rows; keep the utilization register's stacked currency room. */
+@layer compact14327{
+ body #transactions-budget14313 table#savedBudgetRequests :is(th,td){padding-top:1px!important;padding-bottom:1px!important}
+ body #budgetFunds290 :is([data-request-summary],[data-disbursements]) :is(th,td){padding-top:3px!important;padding-bottom:3px!important;line-height:1.2!important;height:auto!important;vertical-align:middle!important}
+ body #budgetFunds290 :is([data-request-summary],[data-disbursements]) :is(input,select){height:30px!important;min-height:30px!important;padding:3px 6px!important}
+}
+#budgetFunds290 :is([data-request-summary],[data-disbursements]) :is(th,td):nth-child(-n+2){text-align:left!important;white-space:normal;overflow-wrap:anywhere}
+#budgetFunds290 [data-disbursements] [data-paid-in]{width:8em;max-width:100%;min-width:6em}
+#budgetFunds290 [data-disbursements] [data-payment-reference]{min-width:7em}
+
+#budgetFunds290 [data-disbursements]:not(.table-resized143117) :is(th,td):first-child{min-width:6em}
+#budgetFunds290 [data-disbursements]:not(.table-resized143117) :is(th,td):nth-child(2){min-width:8em;overflow-wrap:normal!important;word-break:normal!important}
