@@ -366,23 +366,21 @@ function toggleReportFilters143153(button){
  const accountField=ledger?field('Account','account',[],''):'';
  const checks=kind==='cf'?'<fieldset><legend>Cash and bank accounts</legend><details><summary data-cash-summary>Choose accounts</summary><div data-choices></div></details></fieldset>':kind==='payroll'?'<fieldset><legend>Payroll accounts</legend><div data-choices></div></fieldset>':'';
  const trial=kind==='tb',openBook=button.closest('.tab-content')?.id==='report-open-tb';
- const prefs=trial?monthlyTrialPreferences():null;
+ const prefs=trial?monthlyTrialPreferences('report'):null;
  const trialFields=trial?field('Report type','trialView',[['standard','Standard Trial Balance'],['comparative','Monthly comparative']],s.trialView||'standard')+
-  '<div class="trial-filter-options" data-trial-options>'+monthlyTrialColumnControl(prefs.columns)+'<div data-trial-accounts></div></div>':'';
+  '<label class="trial-filter-options" data-trial-options>Columns'+monthlyTrialColumnControl(prefs.columns,true)+'</label>':'';
  const body=trialFields+periodControl+field('Report basis','basis',[['LAK','LAK equivalent · posted values'],['original','Original Amount · by currency'],['reporting','Reporting Amount · dated book rate']],s.basis)+field('Currency','currency',[['','All original currencies'],...currencies.map(c=>[c,c])],s.currency)+accountField+field('Sort by','by',[...(ledger?[['date','Date']]:[]),['account','Account code']],sort.by)+field('Order','direction',orders(sort.by),sort.direction)+checks;
  const dialog=openReportDialog299(button,reportNames79[kind]+' filters',body,()=>{
   const next={...period,basis:form.basis.value,currency:form.currency.value};
   if(ledger)next.account=form.account.value;
   if(checks)next[listKey]=[...chosen];
-  if(trial){next.trialView=form.trialView.value;if(next.trialView==='comparative')saveMonthlyTrialPreferences({columns:form.trialColumns.value,accounts:readAccounts()})}
+  if(trial){next.trialView=form.trialView.value;if(next.trialView==='comparative')saveMonthlyTrialPreferences({columns:form.trialColumns.value},'report')}
   reportBooks.applyFilters(next);reportSorts143153.set(kind,{by:form.by.value,direction:form.direction.value});renderReports79();
  });
  const form=dialog.querySelector('form').elements,periodButton=dialog.querySelector('[data-period]');
  const comparing=()=>trial&&form.trialView.value==='comparative';
- let readAccounts;
  if(trial){
   const controls=dialog.querySelector('[data-trial-options]');
-  readAccounts=monthlyTrialAccountPicker(controls.querySelector('[data-trial-accounts]'),monthlyTrialChoices(window.reportWindow143195?.cachedLedger?.()||[]),prefs.accounts);
   const syncType=()=>{controls.hidden=!comparing();periodButton.disabled=openBook&&!comparing();periodButton.setAttribute('aria-haspopup','dialog')};
   form.trialView.onchange=syncType;syncType();
  }

@@ -733,3 +733,10 @@ its drafts untouched by review. Journal Templates exposes the saved-utilization
 report picker and selects regular Remaining/Used equity in each currency for
 receipt, usage and staff-deposit starters. Preserve template numbers, same-rate
 support allocations, manual amounts and bank/staff selections, and posting guards.
+
+Trial Balance filters, 2026-11-18: keep the Reports/Open-book Trial Balance filter
+independent from the floating Account Balances shortcut. Only the shortcut has
+Edit accounts. Comparative reports include all accounts matching their own currency
+filter and retain their own column choice. Put Columns beside Report type in the
+filter; comparative account names and headings need readable dark text against
+their pale backgrounds. Preserve source amounts and the shortcut's saved settings.

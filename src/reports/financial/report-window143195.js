@@ -79,7 +79,7 @@ function signature(){
  const s=Reports79,kind=s.kind,settings=typeof ApplicationSettings==='undefined'?{}:ApplicationSettings;
  const selection=['gl','activity'].includes(kind)?[s.account,s.query]:kind==='cf'?s.cash:kind==='payroll'?s.payroll:null;
  return JSON.stringify([scope,generation,reportBooks.scope(),reportBooks.closedMonths(),kind,s.mode,s.month,s.year,s.quarter,s.from,s.to,s.allMonths14331,s.selectedMonths14331,s.basis,s.currency,
-  kind==='tb'&&s.trialView==='comparative'?monthlyTrialPreferences():null,selection,window.reportSort143153?.(kind),settings.system?.dateFormat,settings.system?.numberFormat,settings.accounting?.decimalPlaces,
+  kind==='tb'&&s.trialView==='comparative'?monthlyTrialPreferences('report'):null,selection,window.reportSort143153?.(kind),settings.system?.dateFormat,settings.system?.numberFormat,settings.accounting?.decimalPlaces,
   AccountingStore.accounts,AccountingStore.subAccounts,CurrencyStore.currencies,...periods().map(p=>available(p)?.revision)]);
 }
 function reuse(host){restoreFilters();if(!reportBooks.sync())return false;normalizeAll();return complete()&&renderedViews.get(host)===signature()}
