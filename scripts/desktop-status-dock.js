@@ -20,6 +20,36 @@ function monthlyTrialLabel(account,unit){
  const namedUnit=String(account.name||'').trim().split(/[\s·–—()\/-]+/).filter(Boolean).at(-1);
  return [account.code,account.name,namedUnit?.toUpperCase()===unit?null:unit].filter(Boolean).join(' · ');
 }
+// Presentation only: stored account names, currencies and financial rows stay unchanged.
+function monthlyTrialReadableName(name){
+ const acronyms=new Set(['LAK','USD','THB','BHT','BCEL','SSO','PIT','VAT','FX','OJM','ATM','POS','HR','IT','UNICEF','NGO']);
+ return String(name||'').replace(/\b[A-Z][A-Z']*\b/g,word=>acronyms.has(word)?word:word[0]+word.slice(1).toLowerCase());
+}
+function monthlyTrialPopupLabel(account){
+ return [account.code,monthlyTrialReadableName(account.name)].filter(Boolean).join(' · ');
+}
+function monthlyTrialCurrencyCompare(a,b){
+ const order=unit=>['LAK','USD','THB'].includes(unit)?['LAK','USD','THB'].indexOf(unit):unit?3:-1;
+ return order(a)-order(b)||String(a).localeCompare(String(b));
+}
+function monthlyTrialPopupGroups(model){
+ const categories=[['ASSET','Assets'],['LIABILITY','Liabilities'],['EQUITY','Equity'],['INCOME','Income'],['EXPENSE','Expenses'],['DRAWING','Drawings'],['OTHER','Other accounts'],['SYSTEM','System']],groups=new Map(),parents=ForeignFunds14386.parentIndex();
+ const compare=(a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true});
+ model.values.slice(0,model.values.length-model.totalCount).forEach((row,i)=>{
+  const account=model.rowAccounts?.[i],raw=String(account?.isTechnical||account?.is_technical?'SYSTEM':account?.type||account?.baseType||account?.account_type||'OTHER').toUpperCase();
+  const type=raw==='REVENUE'?'INCOME':categories.some(([key])=>key===raw)?raw:'OTHER';
+  const ancestors=account?parents(account).slice().reverse():[];
+  const parent=account&&monthlyTrialParent(account,account.currency),unit=model.rowCurrencies?.[i]??(parent?'':account?.currency||'');
+  const name=model.rateDates?monthlyTrialReadableName(row[0]).replace(/ · Subtotal · LAK$/,' · Subtotal'):account?monthlyTrialPopupLabel(account)+(parent&&row.slice(1).some(Boolean)?' · Subtotal':''):monthlyTrialReadableName(row[0]);
+  const item={row,account,unit,name,parent,depth:ancestors.length,path:[...ancestors,account].filter(Boolean).map(a=>a.code)};
+  if(!groups.has(type))groups.set(type,new Map());
+  const units=groups.get(type);if(!units.has(unit))units.set(unit,[]);units.get(unit).push(item);
+ });
+ return categories.filter(([key])=>groups.has(key)).map(([key,label])=>({label,units:[...groups.get(key)].sort(([a],[b])=>monthlyTrialCurrencyCompare(a,b)).map(([unit,items])=>({unit,items:items.sort((a,b)=>{
+  for(let i=0;i<Math.min(a.path.length,b.path.length);i++){const difference=compare(a.path[i],b.path[i]);if(difference)return difference}
+  return a.path.length-b.path.length;
+ })}))}));
+}
 function monthlyTrialChoices(entries){
  const choices=new Map(),byId=new Map(),byCode=new Map(),byName=new Map();
  function add(a,currency){
@@ -37,11 +67,11 @@ function monthlyTrialChoices(entries){
  return [...choices.values()].sort((a,b)=>String(a.account.code).localeCompare(String(b.account.code),undefined,{numeric:true}));
 }
 // A null selection tracks the entire chart, including accounts added later.
-function monthlyTrialAccountPicker(host,choices,selected,onChange){
+function monthlyTrialAccountPicker(host,choices,selected,onChange,compact=false){
  const picked=new Set(selected||choices.map(r=>r.key));
  const labels=choices.map(({account,currency,key})=>{
   const unit=monthlyTrialParent(account,currency)?'Parent account':currency;
-  return '<label><input type="checkbox" value="'+re79(key)+'" '+(picked.has(key)?'checked':'')+'> '+re79(monthlyTrialLabel(account,unit))+'</label>';
+  return '<label><input type="checkbox" value="'+re79(key)+'" '+(picked.has(key)?'checked':'')+'> '+re79(compact?monthlyTrialPopupLabel(account)+(monthlyTrialParent(account,currency)?' · Parent account':''):monthlyTrialLabel(account,unit))+'</label>';
  });
  host.innerHTML='<details class="trial-account-picker"><summary>Edit accounts</summary><div><input type="search" aria-label="Find accounts" placeholder="Code, name, type or currency"><label><input type="checkbox" data-all-accounts> All accounts</label><div class="trial-account-list">'+labels.join('')+'</div></div></details>';
  const all=host.querySelector('[data-all-accounts]'),items=[...host.querySelectorAll('.trial-account-list input')];
@@ -108,12 +138,12 @@ function monthlyTrialModel(entries,months,options){
    });
   }
  }
- const rowAccounts=[];
+ const rowAccounts=[],rowCurrencies=[];
  const values=ordered.flatMap(row=>{
   if(row.headingOnly){
    const units=byParent.get(row.account.code);
-   if(!units?.size){rowAccounts.push(row.account);return [[monthlyTrialLabel(row.account,'Parent account'),...Array(months.length*subheads.length).fill('')]];}
-   return [...units].sort(([a],[b])=>a.localeCompare(b)).map(([unit,series])=>{rowAccounts.push(row.account);return [monthlyTrialLabel(row.account,'Subtotal · '+unit),...series.flatMap(cells)]});
+   if(!units?.size){rowAccounts.push(row.account);rowCurrencies.push('');return [[monthlyTrialLabel(row.account,'Parent account'),...Array(months.length*subheads.length).fill('')]];}
+   return [...units].sort(([a],[b])=>a.localeCompare(b)).map(([unit,series])=>{rowAccounts.push(row.account);rowCurrencies.push(unit);return [monthlyTrialLabel(row.account,'Subtotal · '+unit),...series.flatMap(cells)]});
   }
   const unit=base?'LAK':row.currency;
   if(!totals.has(unit))totals.set(unit,months.map(empty));
@@ -123,12 +153,12 @@ function monthlyTrialModel(entries,months,options){
    sum.missingTurnover||=t.missingTurnover;sum.missingBalance||=t.missingBalance;
    return cells(t);
   });
-  rowAccounts.push(row.account);
+  rowAccounts.push(row.account);rowCurrencies.push(unit);
   return [[monthlyTrialLabel(row.account,row.currency),...amounts]];
  });
  const totalRows=[...totals].map(([unit,list])=>[(selected?'Selected total':'Total')+' · '+unit,...list.flatMap(cells)]);
  return {monthlyTrial:true,months,subheads,headers:['Accounts',...months.flatMap(m=>subheads.map(h=>summaryPeriod14331.monthLabel(m)+' '+h))],
-  rowAccounts,values:values.concat(totalRows),totalCount:totalRows.length,currency:base?'LAK equivalent':'Original currencies',metrics:[],note:''};
+  rowAccounts,rowCurrencies,values:values.concat(totalRows),totalCount:totalRows.length,currency:base?'LAK equivalent':'Original currencies',metrics:[],note:''};
 }
 
 function monthlyTrialReportModel(){
@@ -143,21 +173,45 @@ function monthlyTrialTable(model,print=false,groupCategories=false){
  for(let first=0;first<months.length;first+=span){
   const part=months.slice(first,first+span),labels=part.map((m,i)=>'<th colspan="'+width+'" scope="colgroup"'+(model.rateDates?' data-as-of="'+re79(model.rateDates[first+i])+'"':'')+'><span>'+re79(model.rateDates?formatAppDate(model.rateDates[first+i]):summaryPeriod14331.monthLabel(m))+'</span></th>').join('');
   const headers=part.map(()=>subheads.map((h,j)=>'<th scope="col"'+(j===0?' class="month-start"':'')+'>'+h+'</th>').join('')).join('');
-  const rowHTML=(row,account)=>'<tr'+(groupCategories&&account&&monthlyTrialParent(account,account.currency)?' class="trial-parent"':'')+'><th scope="row" title="'+re79(row[0])+'">'+re79(row[0])+'</th>'+row.slice(1+first*width,1+(first+part.length)*width).map((value,j)=>'<td'+(j%width===0?' class="month-start"':'')+'>'+re79(value)+'</td>').join('')+'</tr>';
+  const rowHTML=(row,item)=>{
+   const name=item?.name||row[0],label=item?'<span class="trial-account-label" style="padding-inline-start:'+item.depth*16+'px">'+re79(name)+'</span>':re79(name);
+   return '<tr'+(item?.parent?' class="trial-parent"':'')+'><th scope="row" title="'+re79(name)+'">'+label+'</th>'+row.slice(1+first*width,1+(first+part.length)*width).map((value,j)=>'<td'+(j%width===0?' class="month-start"':'')+'>'+re79(value)+'</td>').join('')+'</tr>';
+  };
   const split=values.length-totalCount;
   let body=values.slice(0,split).map(row=>rowHTML(row)).join('');
   if(groupCategories){
-   const categories=[['ASSET','Assets'],['LIABILITY','Liabilities'],['EQUITY','Equity'],['INCOME','Income'],['EXPENSE','Expenses'],['DRAWING','Drawings'],['OTHER','Other accounts'],['SYSTEM','System']],groups=new Map();
-   values.slice(0,split).forEach((row,i)=>{
-    const account=model.rowAccounts?.[i],raw=String(account?.isTechnical||account?.is_technical?'SYSTEM':account?.type||account?.baseType||account?.account_type||'OTHER').toUpperCase();
-    const type=raw==='REVENUE'?'INCOME':categories.some(([key])=>key===raw)?raw:'OTHER';
-    if(!groups.has(type))groups.set(type,[]);groups.get(type).push({row,account});
-   });
-   body=categories.filter(([key])=>groups.has(key)).map(([key,label])=>'<tr class="trial-category"><th colspan="'+(1+part.length*width)+'"><span>'+label+'</span></th></tr>'+groups.get(key).map(({row,account})=>rowHTML(row,account)).join('')).join('');
+   const separator=(label,kind)=>'<tr class="trial-'+kind+'"><th colspan="'+(1+part.length*width)+'"><span>'+re79(label)+'</span></th></tr>';
+   body=monthlyTrialPopupGroups(model).map(group=>separator(group.label,'category')+group.units.map(({unit,items})=>(unit?separator(unit,'currency'):'')+items.map(item=>rowHTML(item.row,item)).join('')).join('')).join('');
   }
-  tables.push('<table class="monthly-trial-table" aria-label="Monthly comparative trial balance" data-own-pager14383="1"><thead><tr><th scope="col" rowspan="2">Accounts</th>'+labels+'</tr><tr>'+headers+'</tr></thead><tbody>'+body+'</tbody><tfoot>'+values.slice(split).map(row=>rowHTML(row)).join('')+'</tfoot></table>');
+  const footer=values.slice(split);if(groupCategories)footer.sort((a,b)=>monthlyTrialCurrencyCompare(a[0].split(' · ').at(-1),b[0].split(' · ').at(-1)));
+  tables.push('<table class="monthly-trial-table" aria-label="Monthly comparative trial balance" data-own-pager14383="1"><thead><tr><th scope="col" rowspan="2">Accounts</th>'+labels+'</tr><tr>'+headers+'</tr></thead><tbody>'+body+'</tbody><tfoot>'+footer.map(row=>rowHTML(row)).join('')+'</tfoot></table>');
  }
  return print?tables.join(''):'<div class="monthly-trial-scroll">'+tables.join('')+'</div>';
+}
+
+// Measure the rendered strings once per redraw, including totals and parentheses.
+// Each month/column keeps its own width; no timer or resize observer is needed.
+function fitMonthlyTrialColumns(panel){
+ const table=panel.querySelector('.monthly-trial-table');if(!table)return;
+ const canvas=document.createElement('canvas'),context=canvas.getContext('2d');if(!context)return;
+ const headers=[...table.tHead.rows[1].cells],widths=Array(headers.length).fill(0);
+ function measure(cell){
+  const style=getComputedStyle(cell);context.font=[style.fontStyle,style.fontWeight,style.fontSize,style.fontFamily].join(' ');
+  let text=cell.textContent.trim();if(style.textTransform==='uppercase')text=text.toUpperCase();else if(style.textTransform==='lowercase')text=text.toLowerCase();
+  return Math.ceil(context.measureText(text).width+(parseFloat(style.letterSpacing)||0)*Math.max(0,text.length-1)+parseFloat(style.paddingLeft)+parseFloat(style.paddingRight)+parseFloat(style.borderLeftWidth)+parseFloat(style.borderRightWidth)+2);
+ }
+ headers.forEach((cell,i)=>widths[i]=measure(cell));
+ let accountWidth=measure(table.tHead.rows[0].cells[0]);
+ for(const row of table.querySelectorAll('tbody tr,tfoot tr')){
+  if(!row.querySelector('th[scope="row"]'))continue;
+  const label=row.cells[0].querySelector('.trial-account-label'),indent=label?parseFloat(label.style.paddingInlineStart)||0:0;
+  accountWidth=Math.max(accountWidth,measure(row.cells[0])+indent);
+  [...row.cells].slice(1).forEach((cell,i)=>widths[i]=Math.max(widths[i],measure(cell)));
+ }
+ context.font='12px Arial';accountWidth=Math.min(accountWidth,Math.max(160,Math.min(context.measureText('0').width*46,document.documentElement.clientWidth*.38)));
+ const columns=[Math.ceil(accountWidth),...widths],group=document.createElement('colgroup');
+ group.innerHTML=columns.map(width=>'<col style="width:'+width+'px">').join('');table.prepend(group);
+ table.style.setProperty('--trial-table-width',columns.reduce((sum,width)=>sum+width,0)+'px');table.classList.add('trial-fitted');
 }
 
 function openMonthlyTrialBalance(panel,scope){
@@ -175,6 +229,7 @@ function openMonthlyTrialBalance(panel,scope){
  function draw(){
   period.textContent=calendar.label(months);period.setAttribute('aria-label','Period · '+period.textContent);
   panel.innerHTML=monthlyTrialTable(monthlyTrialModel(entries,months,prefs),false,true);
+  fitMonthlyTrialColumns(panel);
  }
  async function load(refresh,check=true){
   const request=scope.begin();
@@ -198,7 +253,7 @@ function openMonthlyTrialBalance(panel,scope){
    if(!months||previousAll)months=allMonths;
    monthlyTrialAccountPicker(accountPicker,monthlyTrialChoices(entries),prefs.accounts,accounts=>{
     if(!scope.current(request))return;prefs.accounts=accounts;saveMonthlyTrialPreferences(prefs);draw();
-   });
+   },true);
    basis.onchange=()=>{if(scope.current(request)){prefs.basis=basis.value;saveMonthlyTrialPreferences(prefs);draw()}};
    columns.onchange=()=>{if(scope.current(request)){prefs.columns=columns.value;saveMonthlyTrialPreferences(prefs);draw()}};
    period.onclick=()=>calendar.open(period,months,selected=>{if(scope.current(request)){months=selected.length?selected:allMonths;draw()}});

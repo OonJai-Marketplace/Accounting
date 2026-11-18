@@ -1,6 +1,11 @@
 {
-  "version": "143.473",
+  "version": "143.474",
   "changes": [
+    "Account balances overrides the shared bold uppercase table style: ordinary account names use regular weight and readable capitalization, while currency codes and familiar acronyms stay uppercase.",
+    "Dark category bands clearly separate Assets through System. Each category groups LAK, USD and THB accounts in that order.",
+    "Parent accounts precede their children, with a 16-pixel indent per level. Each currency keeps its own existing parent subtotal.",
+    "Account balances and its picker no longer append an extra currency after account names, including Cashiers Float-BHT. Stored names and amounts are unchanged.",
+    "Debit, Credit and Balance columns measure their own widest displayed value, including totals and negative parentheses. Balance-only view follows the same rule; headings stay readable and month labels can wrap.",
     "Account balances uses regular account-name text, with bold parent headings and clear category separators from Assets through System.",
     "Account balances omits a repeated currency when the account name already includes it.",
     "The two display dropdowns have no visible labels and fit their longest option; Refresh and Close sit alongside the controls in one compact row.",

@@ -125,8 +125,15 @@ html body .monthly-trial-table .month-start{border-left:1px solid #cbd9cf}
 html body .monthly-trial-dialog>header .monthly-trial-tools>select{width:auto!important;min-width:0!important;max-width:none;flex:none;margin:0;font-size:12px;box-sizing:border-box}
 html body .monthly-trial-dialog>header .monthly-trial-tools>:is(button,[data-accounts]){flex:none;width:auto;min-width:0;margin:0;white-space:nowrap}
 html body .monthly-trial-dialog>header .monthly-trial-tools>.close{position:static;inset:auto;transform:none;height:32px;padding:4px 10px}
-html body .monthly-trial-dialog .monthly-trial-table tbody th[scope=row]{font-weight:400}
-html body .monthly-trial-dialog .monthly-trial-table tbody .trial-parent th[scope=row]{font-weight:700}
-html body .monthly-trial-dialog .monthly-trial-table tbody .trial-category>th{background:#e7f0e9;color:#193e32;border-top:2px solid #b5cbbd;border-bottom:1px solid #b5cbbd;text-align:left;font-weight:700;padding:4px!important}
-.monthly-trial-dialog .trial-category>th>span{position:sticky;left:4px}
+html body dialog.monthly-trial-dialog .monthly-trial-table tbody th[scope=row]{font-weight:400!important;text-transform:none!important;letter-spacing:normal!important}
+html body dialog.monthly-trial-dialog .monthly-trial-table tbody .trial-parent th[scope=row]{font-weight:600!important}
+.monthly-trial-dialog .trial-account-label{display:inline-block}
+:is(body,#printableDocArea) :is(dialog.monthly-trial-dialog,#report-tb,#report-open-tb) .monthly-trial-table tbody tr.trial-category>th{background:#174e3b!important;color:#fff!important;border-top:3px solid #fffdf7!important;border-bottom:1px solid #123d2f!important;text-align:left!important;font-size:13px!important;font-weight:700!important;text-transform:none!important;letter-spacing:normal!important;padding:6px 5px!important}
+:is(body,#printableDocArea) :is(dialog.monthly-trial-dialog,#report-tb,#report-open-tb) .monthly-trial-table tbody tr.trial-currency>th{background:#e4eee6!important;color:#174e3b!important;border-bottom:1px solid #bdcfc0!important;text-align:left!important;font-weight:600!important;text-transform:none!important;letter-spacing:normal!important;padding:3px 5px!important}
+.monthly-trial-dialog :is(.trial-category,.trial-currency)>th>span{position:sticky;left:5px}
 @media(max-width:1100px){.monthly-trial-dialog>header h2{flex-basis:100%;font-size:16px}}
+:is(body,#printableDocArea) :is(dialog.monthly-trial-dialog,#report-tb,#report-open-tb) .monthly-trial-scroll .monthly-trial-table.trial-fitted{width:var(--trial-table-width)!important;table-layout:fixed!important}
+:is(body,#printableDocArea) :is(dialog.monthly-trial-dialog,#report-tb,#report-open-tb) .monthly-trial-table.trial-fitted th[scope=colgroup]{white-space:normal!important;overflow-wrap:anywhere!important}
+:is(body,#printableDocArea) :is(dialog.monthly-trial-dialog,#report-tb,#report-open-tb) .monthly-trial-table.trial-fitted th[scope=colgroup]>span{white-space:normal!important;overflow-wrap:anywhere!important}
+html body dialog.monthly-trial-dialog .monthly-trial-table :is(tbody,tfoot) td{text-align:right!important}
+html body dialog.monthly-trial-dialog .monthly-trial-table thead th[scope=col]{font:600 12px/1.15 Arial,sans-serif!important;text-transform:none!important;letter-spacing:normal!important}

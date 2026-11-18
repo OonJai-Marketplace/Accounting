@@ -55,12 +55,12 @@ const fixture=require('./phase0-browser-fixture.cjs');
    if(last)await dialog.locator('[data-month="'+last+'"]').click();
    await dialog.locator('[data-apply]').click();
   }
-  const cash=table.locator('tbody tr').filter({has:page.getByRole('rowheader',{name:new RegExp('^'+account.code+' .*LAK$')})});
+  const cash=table.locator('tbody tr').filter({has:page.getByRole('rowheader',{name:new RegExp('^'+account.code+' · ')})});
   await range('2026-01','2026-10');
   assert.equal(await table.locator('th[scope=colgroup]').count(),10);
   assert.equal(await cash.count(),1);
   const read=()=>cash.locator('td').evaluateAll(nodes=>nodes.map(n=>parseReportAmount69(n.textContent)));
-  const usdRow=table.locator('tbody tr').filter({hasText:new RegExp('^'+usd.code+' .*USD')});
+  const usdRow=table.locator('tbody tr').filter({hasText:new RegExp('^'+usd.code+' · ')});
   assert.equal(await usdRow.locator('td').first().evaluate(cell=>parseReportAmount69(cell.textContent)),7.25);
   const lakTotal=table.locator('tfoot tr').filter({hasText:'Total · LAK'});
   assert.equal(await lakTotal.locator('td').first().evaluate(cell=>parseReportAmount69(cell.textContent)),50.25);

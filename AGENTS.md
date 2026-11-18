@@ -633,3 +633,11 @@ headings/subtotals. Avoid repeating a currency already in an account name. Keep
 the two display dropdowns, without visible Currency view / Columns labels, sized
 to their longest option. Period, dropdowns, account picker, Refresh and Close
 belong in one compact controls row. Preserve amounts, selections and report logic.
+
+Account balances follow-up, 2026-11-18: override inherited bold/uppercase row
+headers in this popup. Show readable account names with familiar acronyms intact,
+dark category bands, then LAK/USD/THB groups, parents before indented children.
+Keep each parent subtotal in its own currency and do not append extra currencies
+to account names or picker labels. This is presentation only. Each numeric column
+fits its own widest displayed amount (including totals and parentheses), with
+readable headings, in full and balance-only views; recalculate only on redraw.
