@@ -1,5 +1,13 @@
 # Approved application foundation
 
+Receipt connection correction, 2026-11-18: the bundled Oon Jai workspace serves
+Accounting from https://accounting.oonjai.invalid. Receipt destination and scanner
+ID/link endpoints must allow this exact HTTPS origin alongside existing web and
+Capacitor origins. Preserve authentication, own-account scope, journal permissions,
+and protected company folders; never use a wildcard or allow other hub workspaces.
+Test October-first receipts without requiring January–September attachments.
+This is a server correction; do not require an APK reinstall or add polling.
+
 The phone layout at v142.53 is approved and frozen. Preserve its navigation,
 spacing, colors, controls, and responsive behavior unless the user explicitly
 requests a phone design change. Report printing and necessary correctness fixes

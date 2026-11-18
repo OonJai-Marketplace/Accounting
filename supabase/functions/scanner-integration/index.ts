@@ -4,7 +4,9 @@ import {BUCKET,uuid,validateManifest,latestGroups,pinnedTargets} from './validat
 import {idRequest,idResults,requireAvailable,sameTargets,suggestionRequest217,nextDocumentID217,canonicalID218,aliases218} from './ids215.mjs';
 const URL=Deno.env.get('SUPABASE_URL')!,KEY=Deno.env.get('SUPABASE_ANON_KEY')!;
 const admin=createClient(URL,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,{auth:{persistSession:false,autoRefreshToken:false}});
-const origins=new Set(['https://oonjai-marketplace.github.io','https://localhost','capacitor://localhost']);
+// The bundled Oon Jai workspace serves Accounting from this isolated HTTPS origin.
+// Keep the exact allowlist; every POST still requires authenticated, permitted access.
+const origins=new Set(['https://oonjai-marketplace.github.io','https://localhost','capacitor://localhost','https://accounting.oonjai.invalid']);
 const result=(r:any)=>{if(r.error)throw Error(r.error.message);return r.data;};
 const check=(value:any,message:string)=>{if(!value)throw Error(message);};
 export async function handler(req:Request){

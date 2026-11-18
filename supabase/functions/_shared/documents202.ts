@@ -102,7 +102,8 @@ export async function finishDocumentOAuth(saved:any,params:URLSearchParams){
 }
 export async function documentHandler(req:Request){
  const origin=req.headers.get('origin')||'';
- if(origin&&!['https://oonjai-marketplace.github.io','https://localhost','capacitor://localhost'].includes(origin))return reply({error:'Origin not allowed.'},403);
+ // Include the isolated Accounting origin used by the bundled Oon Jai workspace.
+ if(origin&&!['https://oonjai-marketplace.github.io','https://localhost','capacitor://localhost','https://accounting.oonjai.invalid'].includes(origin))return reply({error:'Origin not allowed.'},403);
  const response=await documentHandler214(req);
  if(origin)response.headers.set('Access-Control-Allow-Origin',origin);
  return response;
