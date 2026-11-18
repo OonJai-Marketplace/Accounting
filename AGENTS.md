@@ -1,5 +1,14 @@
 # Approved application foundation
 
+Background activity, 2026-11-18: retain full permitted startup preparation so
+switching screens stays fast, and keep existing server schedules. Dashboard,
+receipt/backup access guards and settings summaries react to actual changes;
+do not restore their recurring polling. User funds establish the subscription
+before their normal opening read, with a bounded slow-connection fallback.
+Reminders use their configured deadlines, calendar dates update once daily in
+Asia/Vientiane, and missed reminder slots consolidate on foreground return.
+Preserve security enforcement, account isolation, offline work and manual full sync.
+
 Receipt connection correction, 2026-11-18: the bundled Oon Jai workspace serves
 Accounting from https://accounting.oonjai.invalid. Receipt destination and scanner
 ID/link endpoints must allow this exact HTTPS origin alongside existing web and

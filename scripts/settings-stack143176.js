@@ -192,7 +192,8 @@ function renderNavigation(current,target){
 window.settingsStack143176={enabled,sync,revealAccounting,renderNavigation,openDefault,chooseAccounting:key=>{if(enabled()){const r=sections.get(key);if(r)select(r);}},open:key=>{const r=sections.get(key);if(r)select(r);}};
 function ready(){installed=true;sync();window.addEventListener('page113',sync);window.addEventListener('presentation-ready113',schedule);window.addEventListener('resize',schedule);window.addEventListener('companysettings14320',schedule);window.addEventListener('storage',schedule);document.addEventListener('change',e=>{if(e.target.closest?.('[data-module=settings]'))schedule();});document.addEventListener('submit',e=>{if(e.target.closest?.('[data-module=settings]'))setTimeout(schedule,0);});
  for(const type of ['click','submit','focusin'])window.addEventListener(type,activateForInteraction,true);
- setInterval(()=>{if(enabled()&&groupFor(active())&&document.visibilityState==='visible')summarize();},2000);
+ window.addEventListener('account-access477',schedule);window.addEventListener('workspace-data477',e=>{if(['settings','reference'].includes(e.detail?.group))schedule();});
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&groupFor(active()))schedule();});
  new MutationObserver(rs=>{if(rs.some(r=>r.type==='attributes'?r.target.matches?.('.tab-content'):r.target.matches?.('[data-settings-stack-panel143176]')||[...r.addedNodes].some(n=>n.nodeType===1&&(n.id==='googleSheets143129'||n.id==='prefixRegistry89'))))schedule();}).observe($('printableDocArea')||document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class']});
  new MutationObserver(schedule).observe(document.documentElement,{attributes:true,attributeFilter:['data-device132']});
 }

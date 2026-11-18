@@ -353,12 +353,12 @@ async function saveSettingsGroup(event) {
   const form = event.currentTarget;
   const group = form.dataset.settingsGroup;
   if (['payroll','tax'].includes(group)) {
-    try { await payrollTaxSettings.save(group, collectSettingsForm(form)); showAppNotification('Settings Saved', 'Payroll and tax settings are saved to the shared database.', false); return true; }
+    try { await payrollTaxSettings.save(group, collectSettingsForm(form));window.activity477?.changed('settings'); showAppNotification('Settings Saved', 'Payroll and tax settings are saved to the shared database.', false); return true; }
     catch (error) { showAppNotification('Settings Not Saved', error.message, true); return false; }
   }
   const next={...ApplicationSettings,[group]:{...ApplicationSettings[group],...collectSettingsForm(form)}};
   try{localStorage.setItem(APP_SETTINGS_KEY,JSON.stringify(next))}catch(error){showAppNotification('Settings Not Saved',error.message,true);return false}
-  ApplicationSettings=next;
+  ApplicationSettings=next;window.activity477?.changed('settings');
   const badge = document.querySelector(`[data-settings-badge="${group}"]`);
   if (badge) { badge.textContent = 'Saved'; badge.classList.add('is-saved'); }
   showAppNotification('Settings Saved', `${group[0].toUpperCase()}${group.slice(1)} settings were saved.`, false);
@@ -370,13 +370,13 @@ async function saveSettingsGroup(event) {
 async function resetSettingsGroup(group) {
   if(!Object.hasOwn(APP_SETTINGS_DEFAULTS,group))return;
   if (['payroll','tax'].includes(group)) {
-    try { await payrollTaxSettings.save(group, JSON.parse(JSON.stringify(APP_SETTINGS_DEFAULTS[group]))); showAppNotification('Settings Reset', 'Shared settings restored to defaults.', false); }
+    try { await payrollTaxSettings.save(group, JSON.parse(JSON.stringify(APP_SETTINGS_DEFAULTS[group])));window.activity477?.changed('settings'); showAppNotification('Settings Reset', 'Shared settings restored to defaults.', false); }
     catch(error) { showAppNotification('Settings Not Reset',error.message,true); }
     return;
   }
   const next={...ApplicationSettings,[group]:JSON.parse(JSON.stringify(APP_SETTINGS_DEFAULTS[group]))};
   try{localStorage.setItem(APP_SETTINGS_KEY,JSON.stringify(next))}catch(error){showAppNotification('Settings Not Reset',error.message,true);return}
-  ApplicationSettings=next;
+  ApplicationSettings=next;window.activity477?.changed('settings');
   setSettingsFormValues(group);
   const badge = document.querySelector(`[data-settings-badge="${group}"]`);
   if (badge) { badge.textContent = 'Default'; badge.classList.add('is-saved'); }

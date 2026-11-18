@@ -147,6 +147,7 @@ window.WorkingStanding379=(()=>{
  async function refresh(s){
   if(active!==s)return;
   if(!s.current()){close();return}
+  if(s.openingTimer){clearTimeout(s.openingTimer);s.openingTimer=null;s.openingRead=true;}
   if(s.loading){s.again=true;return}
   s.loading=true;
   try{
@@ -157,17 +158,22 @@ window.WorkingStanding379=(()=>{
   }catch(error){if(active===s){s.failed=true;if(['42501','PGRST301','PGRST302'].includes(error.code))s.data=null}}
   finally{s.loading=false;if(active===s){panel(s);if(s.again){s.again=false;void refresh(s)}}}
  }
- function close(){const s=active;active=null;if(s?.channel)s.client.removeChannel(s.channel)}
+ function close(){const s=active;active=null;if(s?.openingTimer)clearTimeout(s.openingTimer);if(s?.channel)s.client.removeChannel(s.channel)}
  function open(options){
   if(active?.owner===options.owner&&active.actor===options.actor&&active.client===options.client&&active.current()){
    Object.assign(active,options);panel(active);return;
   }
-  close();const s=active={...options,data:options.cached||null};panel(s);void refresh(s);
+  close();const s=active={...options,data:options.cached||null};panel(s);
   if(s.client.channel){
+   // Establish the event boundary before taking the first snapshot. This avoids
+   // two opening reads without losing a save in the subscribe/read gap.
+   // One bounded fallback keeps cached/REST balances usable if the live socket
+   // is slow. A later successful subscription then needs its own catch-up read.
+   s.openingTimer=setTimeout(()=>{s.openingTimer=null;if(active===s){s.openingRead=true;void refresh(s)}},400);
    s.channel=s.client.channel('working-funds-'+s.owner)
-    .on('postgres_changes',{event:'*',schema:'public',table:'workspace_fund_revision379',filter:'owner_id=eq.'+s.owner},()=>refresh(s))
-    .subscribe(status=>{if(active!==s)return;if(status==='SUBSCRIBED')void refresh(s);else if(['CLOSED','TIMED_OUT','CHANNEL_ERROR'].includes(status)){s.failed=true;panel(s)}});
-  }
+    .on('postgres_changes',{event:'*',schema:'public',table:'workspace_fund_revision379',filter:'owner_id=eq.'+s.owner},()=>{if(s.subscribed)void refresh(s)})
+    .subscribe(status=>{if(active!==s)return;if(status==='SUBSCRIBED'){if(s.subscribed)return;s.subscribed=true;clearTimeout(s.openingTimer);s.openingTimer=null;s.openingRead=true;void refresh(s);}else if(['CLOSED','TIMED_OUT','CHANNEL_ERROR'].includes(status)){s.subscribed=false;clearTimeout(s.openingTimer);s.openingTimer=null;s.failed=true;panel(s);if(!s.openingRead){s.openingRead=true;void refresh(s)}}});
+  }else void refresh(s);
  }
  document.addEventListener('visibilitychange',()=>{if(document.hidden){close()}else window.dispatchEvent(new Event('standing-visible379'))});
  window.addEventListener('online',()=>{if(active)void refresh(active)});

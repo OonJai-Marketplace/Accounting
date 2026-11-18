@@ -292,6 +292,7 @@ window.WorkingStanding379=(()=>{
  async function refresh(s){
   if(active!==s)return;
   if(!s.current()){close();return}
+  if(s.openingTimer){clearTimeout(s.openingTimer);s.openingTimer=null;s.openingRead=true;}
   if(s.loading){s.again=true;return}
   s.loading=true;
   try{
@@ -302,17 +303,22 @@ window.WorkingStanding379=(()=>{
   }catch(error){if(active===s){s.failed=true;if(['42501','PGRST301','PGRST302'].includes(error.code))s.data=null}}
   finally{s.loading=false;if(active===s){panel(s);if(s.again){s.again=false;void refresh(s)}}}
  }
- function close(){const s=active;active=null;if(s?.channel)s.client.removeChannel(s.channel)}
+ function close(){const s=active;active=null;if(s?.openingTimer)clearTimeout(s.openingTimer);if(s?.channel)s.client.removeChannel(s.channel)}
  function open(options){
   if(active?.owner===options.owner&&active.actor===options.actor&&active.client===options.client&&active.current()){
    Object.assign(active,options);panel(active);return;
   }
-  close();const s=active={...options,data:options.cached||null};panel(s);void refresh(s);
+  close();const s=active={...options,data:options.cached||null};panel(s);
   if(s.client.channel){
+   // Establish the event boundary before taking the first snapshot. This avoids
+   // two opening reads without losing a save in the subscribe/read gap.
+   // One bounded fallback keeps cached/REST balances usable if the live socket
+   // is slow. A later successful subscription then needs its own catch-up read.
+   s.openingTimer=setTimeout(()=>{s.openingTimer=null;if(active===s){s.openingRead=true;void refresh(s)}},400);
    s.channel=s.client.channel('working-funds-'+s.owner)
-    .on('postgres_changes',{event:'*',schema:'public',table:'workspace_fund_revision379',filter:'owner_id=eq.'+s.owner},()=>refresh(s))
-    .subscribe(status=>{if(active!==s)return;if(status==='SUBSCRIBED')void refresh(s);else if(['CLOSED','TIMED_OUT','CHANNEL_ERROR'].includes(status)){s.failed=true;panel(s)}});
-  }
+    .on('postgres_changes',{event:'*',schema:'public',table:'workspace_fund_revision379',filter:'owner_id=eq.'+s.owner},()=>{if(s.subscribed)void refresh(s)})
+    .subscribe(status=>{if(active!==s)return;if(status==='SUBSCRIBED'){if(s.subscribed)return;s.subscribed=true;clearTimeout(s.openingTimer);s.openingTimer=null;s.openingRead=true;void refresh(s);}else if(['CLOSED','TIMED_OUT','CHANNEL_ERROR'].includes(status)){s.subscribed=false;clearTimeout(s.openingTimer);s.openingTimer=null;s.failed=true;panel(s);if(!s.openingRead){s.openingRead=true;void refresh(s)}}});
+  }else void refresh(s);
  }
  document.addEventListener('visibilitychange',()=>{if(document.hidden){close()}else window.dispatchEvent(new Event('standing-visible379'))});
  window.addEventListener('online',()=>{if(active)void refresh(active)});
@@ -2093,6 +2099,25 @@ if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',re
   const day=new Date(now);day.setHours(0,lo,0,0);const base=Math.max(+day,+start),slot=base+Math.floor((+now-base)/(interval*60000))*interval*60000;
   return slot>=+start&&slot<=+now?new Date(slot).toISOString():null;
  }
+ // Find the next configured time directly. Do not wake every 30 seconds to ask
+ // whether a reminder is due. The existing device-timezone and daily-window rules stay.
+ function nextReminder(t,now=new Date()){
+  if(t.is_template1438||config(t).archived1443||!progress(t).next)return null;
+  const c=config(t),start=new Date(c.reminderAt),interval=Number(c.reminderEvery)||0;
+  if(!c.reminderAt||Number.isNaN(+start))return null;
+  if(!interval)return start>now?+start:null;
+  if(interval<0)return null;
+  const minutes=value=>{const [h,m]=value.split(':').map(Number);return h*60+m;};
+  const lo=minutes(c.windowStart||'08:00'),hi=minutes(c.windowEnd||'18:00');
+  if(!Number.isFinite(lo)||!Number.isFinite(hi)||lo>hi)return null;
+  const day=new Date(Math.max(+now,+start));day.setHours(0,0,0,0);
+  const opening=new Date(day);opening.setMinutes(lo);
+  const end=new Date(day);end.setMinutes(hi);
+  const base=Math.max(+opening,+start),step=interval*60000;
+  const next=base>now?base:base+(Math.floor((+now-base)/step)+1)*step;
+  if(next<=end)return next;
+  day.setDate(day.getDate()+1);day.setMinutes(lo);return +day;
+ }
  function details(t){const p=progress(t),c=config(t);return `${p.done}/${p.total} completed · ${p.percent}%${p.next?' · Next: '+p.next:''}${c.dueAt?' · Due '+format(c.dueAt):t.due_date?' · Due '+formatAppDate(t.due_date):''}`;}
  function notices(){return state().todos.filter(t=>!!reminderSlot(t)).map(t=>({type:'To-do reminder',title:t.title,detail:details(t),target:'transactions-recurring',todoId:t.id}));}
  const busy=new Set();
@@ -2120,6 +2145,7 @@ if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',re
  async function remove(t){if(!t||busy.has(t.id))return;const owner=liveProfile?.id,client=ojmDb;if(!await ui117.confirm('Delete this to-do list and its completion history?'))return;if(liveProfile?.id!==owner||ojmDb!==client)return;busy.add(t.id);try{let q=ojmDb.from('workspace_todos136').delete().eq('id',t.id).eq('owner_id',owner);if(t.updated_at)q=q.eq('updated_at',t.updated_at);const r=await q.select('id');if(r.error)throw r.error;if(!r.data?.length)throw Error('This to-do changed in another window. Reload before deleting.');if(liveProfile?.id===owner&&ojmDb===client)await workflow136.loadTodos();}catch(e){if(liveProfile?.id===owner&&ojmDb===client)showCenterStatus(e.message+(/Archive completed|Recorded step|Completed steps/.test(e.message)?' Run setup/INSTALL-EDITABLE-TODOS-v143.35.sql once.':''),true)}finally{busy.delete(t.id)}}
 
  function render(){
+  tick();
   const root=$('transactions-recurring');if(!root)return;let host=$('todos136');if(!host){host=document.createElement('section');host.id='todos136';host.className='je-card';root.append(host)}
   host.classList.add('todo-workflows1438');const opened=new Set([...host.querySelectorAll('details[open][id]')].map(n=>n.id));
   const tasks=state().todos;const setupMessage=starterOwner===liveProfile?.id&&starterClient===ojmDb?starterStatus:'';if(root.classList.contains('active'))queueMicrotask(prepareStarters);
@@ -2151,13 +2177,31 @@ if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',re
    }catch(err){error.textContent=err.message+( /todo_config1438|is_template1438|schema cache/.test(err.message)?' Run setup/INSTALL-TODO-v142.18.sql once.':'');}finally{button.disabled=false;}
   };
  }
- function tick(){if(!liveProfile||!document.getElementById('loginGate')?.classList.contains('is-authenticated'))return;for(const t of state().todos){const slot=reminderSlot(t);if(!slot)continue;const key='ojm-todo-reminder1438:'+liveProfile.id+':'+t.id;try{if(localStorage.getItem(key)===slot)continue;localStorage.setItem(key,slot)}catch{continue}showAppNotification('To-do reminder: '+t.title,details(t),false);break}}
+ function tick(){
+  window.activity477?.cancel('todo-reminders');
+  if(document.hidden||!liveProfile||state().todoLoadedOwner14335!==liveProfile.id||!document.getElementById('loginGate')?.classList.contains('is-authenticated'))return;
+  const now=new Date(),due=[];let next=Infinity;
+  for(const t of state().todos){
+   const at=nextReminder(t,now);if(at!==null)next=Math.min(next,at);
+   const slot=reminderSlot(t,now);if(!slot)continue;
+   const key='ojm-todo-reminder1438:'+liveProfile.id+':'+t.id;
+   try{if(localStorage.getItem(key)===slot)continue;localStorage.setItem(key,slot);}catch{continue;}
+   due.push(t);
+  }
+  if(due.length){
+   window.refreshNotices1443?.();
+   if(due.length===1)showAppNotification('To-do reminder: '+due[0].title,details(due[0]),false);
+   else showAppNotification(due.length+' to-do reminders are due',due.slice(0,3).map(t=>t.title).join(' · ')+'. Open the notification bell to review all reminders.',false);
+  }
+  if(Number.isFinite(next))window.activity477?.at('todo-reminders',next,tick);
+ }
  function noticeHTML(n){const t=state().todos.find(t=>t.id===n.todoId);if(!t)return '';return `<details class="todo-notice1443" data-notice1443="${esc(t.id)}"><summary><strong>${esc(t.title)}</strong><small>${esc(details(t))}</small></summary>${(t.steps||[]).map((s,i)=>`<label><input type="checkbox" data-notice-step1443="${i}" data-task="${esc(t.id)}" ${s.done?'checked':''} ${busy.has(t.id)||!s.done&&t.sequential&&t.steps.slice(0,i).some(x=>!x.done)?'disabled':''}><span>${esc(s.text)}</span></label>`).join('')}</details>`;}
  function bindNotices(root){root.querySelectorAll('[data-notice-step1443]').forEach(n=>n.onchange=async()=>{const t=state().todos.find(t=>t.id===n.dataset.task);const checked=n.checked;n.disabled=true;try{await complete(t,Number(n.dataset.noticeStep1443),checked)}finally{window.refreshNotices1443?.()}});}
- window.todos1438={noticeHTML,bindNotices,render,edit,templates,prepareStarters,remove,progress,nextOccurrence,reminderSlot,notices,complete};window.getTodoNotices136=notices;
- function ready(){render();setInterval(tick,30000);window.addEventListener('focus',tick);window.addEventListener('online',()=>{if($('transactions-recurring')?.classList.contains('active'))prepareStarters(true)});document.addEventListener('click',e=>{const b=e.target.closest('[data-todo-target1438]');if(!b)return;setTimeout(()=>{const n=$('todo1438-'+b.dataset.todoTarget1438);if(n){window.workspace14337?.showTodos();n.open=true;n.scrollIntoView({behavior:'smooth',block:'center'})}},100)});}
+ window.todos1438={noticeHTML,bindNotices,render,edit,templates,prepareStarters,remove,progress,nextOccurrence,reminderSlot,nextReminder,notices,complete};window.getTodoNotices136=notices;
+ function ready(){render();for(const event of ['focus','account-access477','workspace-opened421'])window.addEventListener(event,tick);document.addEventListener('visibilitychange',tick);window.addEventListener('online',()=>{if($('transactions-recurring')?.classList.contains('active'))prepareStarters(true)});document.addEventListener('click',e=>{const b=e.target.closest('[data-todo-target1438]');if(!b)return;setTimeout(()=>{const n=$('todo1438-'+b.dataset.todoTarget1438);if(n){window.workspace14337?.showTodos();n.open=true;n.scrollIntoView({behavior:'smooth',block:'center'})}},100)});}
  if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',ready,{once:true});else ready();
-})();
+})()
+;
 ;
 /* scripts/workspace1439.js */
 /* Shared presentation rules. Account data, permissions and posting remain unchanged. */
@@ -2863,7 +2907,7 @@ function ready(){
  document.addEventListener('submit',e=>{const target=modalTargets[e.target.closest('.modal-backdrop')?.id];if(target&&!can(target,'edit')){e.preventDefault();e.stopImmediatePropagation();deny()}},true);
  const switchBefore=window.switchTab;window.switchTab=function(target,...args){if(!window.canAccessAppTarget(target)){deny();return false}return switchBefore.call(this,target,...args)};
  // Close editors and clear the visible protected panel when permission is revoked.
- let signature='';function refresh(){if(window.permissions1441?.reconnecting)return;const next=JSON.stringify([window.permissions1441?.verified,typeof liveProfile==='undefined'?null:liveProfile,typeof livePermission==='undefined'?null:livePermission]);if(next===signature)return;signature=next;
+ let signature='';function refresh(){if(window.permissions1441?.reconnecting)return;const next=JSON.stringify([window.permissions1441?.verified,typeof liveProfile==='undefined'?null:liveProfile,typeof livePermission==='undefined'?null:livePermission]);if(next===signature)return;signature=next;window.activity477?.accessChanged();
   for(const [id,target] of Object.entries(modalTargets)){const node=document.getElementById(id);if(node&&!can(target,'edit'))window.closeModal(id)}
   const active=document.querySelector('.tab-content.active'),target=window.access113.currentTarget();
   if(active&&!can(target)){active.classList.remove('active');const fallback=typeof firstPermittedAppTarget==='function'?firstPermittedAppTarget():'';if(fallback){if(fallback.startsWith('sec-'))scrollToAccountModule(fallback);else window.switchTab(fallback)}}
@@ -3653,7 +3697,7 @@ function install(){const host=$('settings-backup113');if(!host||host.dataset.dat
  $('archiveDownload129').onclick=async()=>{if(!admin()||!prepared||preparedOwner!==liveProfile.id)return;const p=prepared,owner=preparedOwner,version=generation,client=ojmDb;try{const blob=await archiveXlsx129.create(p);if(!admin()||owner!==liveProfile.id||version!==generation||ojmDb!==client)throw Error('Selection changed.');const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='oonjai-archive-'+(p.from||'all-time')+'.xlsx';try{const delivered=await (window.exportCenter14337?exportCenter14337.fromLink(a):a.click());if(delivered===false)throw Error('The export was not prepared. Try again.')}finally{setTimeout(()=>URL.revokeObjectURL(url),3000)}}catch(e){if(admin()&&owner===liveProfile?.id&&ojmDb===client&&version===generation)status('archiveStatus14232',e.message,true)}};
 }
 function accessChanged(){if(window.permissions1441?.reconnecting)return;if(!admin()||contextClient!==ojmDb||preparedOwner&&preparedOwner!==liveProfile?.id){contextClient=ojmDb;prepared=null;preparedOwner='';generation++;}}
-function ready(){install();window.addEventListener('page113',accessChanged);setInterval(accessChanged,500)}
+function ready(){install();window.addEventListener('page113',accessChanged);window.addEventListener('account-access477',accessChanged);window.addEventListener('pageshow',accessChanged)}
 window.dataTools14232={prepare,snapshot,verifyPassword};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();})();
 ;
 /* scripts/save-notices14234.js */

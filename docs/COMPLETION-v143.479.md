@@ -1,4 +1,4 @@
-# Scanner batches and upload transport — 143.478
+# Scanner batches and upload transport — 143.479
 
 Photos collected before one explicit save remain together in a single bookmarked
 PDF. Page groups retain separate entry-ID links. A successful linked save closes
