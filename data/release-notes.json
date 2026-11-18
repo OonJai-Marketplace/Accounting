@@ -1,6 +1,9 @@
 {
-  "version": "143.481",
+  "version": "143.482",
   "changes": [
+    "Utilization reports keep one funding summary. A single receipt no longer repeats Total received; multiple receipts retain their currency totals.",
+    "Removed the Cash movements section and automatic explanatory paragraphs. Available after exchange, Total used, Remaining funding and references remain.",
+    "Only optional Additional information is printed. Historical record notes remain saved, with financial amounts and journal IDs unchanged.",
     "Account Balances remembers measured widths on this device; refresh and reopening reuse them without measuring the same columns again.",
     "The Account Balances window fits the displayed columns and stays aligned to the right.",
     "One Filter button contains Period, Currency view, Columns and Edit accounts. Refresh and Close remain on the header.",

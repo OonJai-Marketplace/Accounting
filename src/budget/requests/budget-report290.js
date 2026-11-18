@@ -232,40 +232,14 @@ window.BudgetReport290 = (() => {
   return '<div class="data-table82"><table '+marker+' style="width:100%;border-collapse:collapse"><thead><tr>'+heading+'</tr></thead><tbody>'+
    rows.map(r=>tr(r,false)).join('')+'</tbody>'+(totals.length?'<tfoot>'+totals.map(r=>tr(r,true)).join('')+'</tfoot>':'')+'</table></div>';
  }
- function physicalCashSummary(d){
-  const totals=balances(d),codes=cashCodes(d),rows=[];
-  const cols=(name,value)=>[name,...codes.map(c=>value(c)==null?'—':amountHtml(c,value(c)))];
-  const key=(name,k)=>[name,...codes.map(c=>['cashSpent','beforeReturn'].includes(k)&&(d.movements||[]).some(m=>m.currency===c&&m.cashUnconfirmed)?'Payment details pending':amountHtml(c,totals.get(c)?.[k]||0))];
-  const ref=s=>s?'<br><small>'+esc(s)+'</small>':'';
-  for(const [i,m] of d.movements.entries()){
-   if(kind(m)!=='receipt')continue;
-   rows.push(cols(esc(m.account||'Receipt')+ref(m.reference),c=>c===m.currency?Number(m.inflow):null));
-  }
-  rows.push(key('Total received','receipt'));
-  for(const [i,f] of (d.conversions||[]).entries()){
-   const received=conversionAmount(f);
-   const base=f.target==='USD'?f.target:f.currency;
-   const quote=base===f.currency?f.target:f.currency;
-   const rate=base===f.currency?received/f.amount:f.amount/received;
-   rows.push(cols('Exchange'+ref(formatAppRate(rate)+' '+quote+' / '+base+(f.evidence||f.reference?' · '+(f.evidence||f.reference):'')),
-    c=>c===f.currency?-Number(f.amount):c===f.target?received:null));
-  }
-  for(const [i,m] of d.movements.entries()){
-   const type=kind(m);
-   if(['borrow','repay','coverage'].includes(type))rows.push(cols(esc(labels[type])+ref(m.reference),c=>c===m.currency?Number(m.inflow||0)-Number(m.outflow||0):null));
-  }
-  rows.push(cols('Available to distribute',c=>{const t=totals.get(c);return t?t.receipt+t.coverage+t.borrow-t.repay+t.convertedIn-t.convertedOut:0;}));
-  rows.push(key('Total distributed','cashSpent'));
-  const closing=[key('Cash remaining','beforeReturn')];
-  return summaryTable(['Source / activity',...codes],rows,closing,'data-cash-summary');
- }
  function cashSummary(d){
   const totals=balances(d),codes=cashCodes(d),rows=[];
   const cols=(label,value)=>[label,...codes.map(c=>value(c)==null?'—':amountHtml(c,value(c)))];
   const key=(label,k)=>cols(label,c=>totals.get(c)?.[k]||0);
   const ref=s=>s?'<br><small>'+esc(s)+'</small>':'';
-  for(const m of d.movements||[])if(kind(m)==='receipt')rows.push(cols(esc(m.account||'Receipt')+ref(m.reference),c=>c===m.currency?Number(m.inflow):null));
-  rows.push(key('Total received','receipt'));
+  const receipts=(d.movements||[]).filter(m=>kind(m)==='receipt');
+  for(const m of receipts)rows.push(cols(esc(m.account||'Receipt')+ref(m.reference),c=>c===m.currency?Number(m.inflow):null));
+  if(receipts.length>1)rows.push(key('Total received','receipt'));
   for(const f of d.conversions||[]){
    const received=conversionAmount(f),rate=received/Number(f.amount);
    rows.push(cols('Exchange · '+esc(f.currency)+' → '+esc(f.target)+ref(formatAppRate(rate)+' '+f.target+' / '+f.currency)+ref(f.evidence||f.reference),
@@ -277,8 +251,7 @@ window.BudgetReport290 = (() => {
   }
   rows.push(key('Available after exchange','fundAvailable'));
   rows.push(key('Total used','allocated'));
-  return summaryTable(['Funding source / activity',...codes],rows,[key('Remaining funding','fundRemaining')],'data-cash-summary')+
-   '<details class="worksheet-details"><summary>Cash movements</summary>'+physicalCashSummary(d)+'</details>';
+  return summaryTable(['Funding source / activity',...codes],rows,[key('Remaining funding','fundRemaining')],'data-cash-summary');
  }
  function requestSummary(d,editable=false){
   const sum=new Map(),funded=new Map();
@@ -316,7 +289,7 @@ window.BudgetReport290 = (() => {
   return summaryTable(['Category','Item',...codes,'Reference',...(editable?['Action']:[])],rows,[total],'data-disbursements');
  }
  function summary(d){
-  return section82('Funding summary',cashSummary(d))+section82('Budget request summary',requestSummary(d))+section82('Disbursement breakdown',disbursements(d))+'<p class="fund-payroll-protocol">Salary: earned gross after absence and late deductions, before employee deductions and advance recovery. PIT: employer 50%. SSO: employer 6%. USD exchanged out and LAK received are shown separately. Used and remaining stay in each transaction’s currency; exchanges are not expenses. Remaining is before cash handover.</p>';
+  return section82('Funding summary',cashSummary(d))+section82('Budget request summary',requestSummary(d))+section82('Disbursement breakdown',disbursements(d));
  }
  function movementRows(d){
   return d.movements.map(m=>{
@@ -331,7 +304,7 @@ window.BudgetReport290 = (() => {
   if(d.mode!=='utilization')return window.budgetWorkflow14316.requestHTML(d);
   const refs=[d.requestDate290?'Request date: '+esc(formatAppDate(d.requestDate290)):'',d.receiptReference290?'Reference: '+esc(d.receiptReference290):'',journalReference?'Utilization journal: '+esc(journalReference):''].filter(Boolean).join(' · ');
   return '<h1 style="text-align:center">'+title+'</h1><p><strong>'+esc(d.purpose)+'</strong></p><p>'+esc(period(d))+' · '+esc(formatAppDate(d.date))+
-   (d.status==='finalized'?' · <span data-final-status>Finalized</span>':'')+(refs?'<br>'+refs:'')+'</p>'+summary(d)+(d.notes&&print?'<p>'+esc(d.notes)+'</p>':'')+signature(d);
+   (d.status==='finalized'?' · <span data-final-status>Finalized</span>':'')+(refs?'<br>'+refs:'')+'</p>'+summary(d)+(String(d.printNotes290||'').trim()?'<p data-budget-additional-information><strong>Additional information</strong><br>'+esc(d.printNotes290.trim()).replace(/\r?\n/g,'<br>')+'</p>':'')+signature(d);
  }
- return {title,compare,cashPaid,fundingAmountLines,expenseAmount,itemName,physicalCashSummary,equivalentField,reportRate,requestCurrency,valueIn,amountText,currencyAmount,amountHtml,amountLines,orderedUnits,items,period,layout,recalculate,signature,report,kind,labels,summary,cashSummary,requestSummary,disbursements,fundedTotal,balances,conversionAmount,outstanding,movementRows,movementHeaders,forLine,fundingLabels,fundingKey,lineFunding};
+ return {title,compare,cashPaid,fundingAmountLines,expenseAmount,itemName,equivalentField,reportRate,requestCurrency,valueIn,amountText,currencyAmount,amountHtml,amountLines,orderedUnits,items,period,layout,recalculate,signature,report,kind,labels,summary,cashSummary,requestSummary,disbursements,fundedTotal,balances,conversionAmount,outstanding,movementRows,movementHeaders,forLine,fundingLabels,fundingKey,lineFunding};
 })();

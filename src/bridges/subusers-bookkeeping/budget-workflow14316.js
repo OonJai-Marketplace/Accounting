@@ -72,7 +72,7 @@ async function closeFundEditor(){
 function newUtilization(){
  const today=today82();
  return {kind:'finance',mode:'utilization',status:'draft',budgetMonth290:today.slice(0,7),
-  date:today,purpose:'',recipient:'',lines:[],movements:[],conversions:[],notes:''};
+  date:today,purpose:'',recipient:'',lines:[],movements:[],conversions:[],notes:'',printNotes290:''};
 }
 function showFunds(open=true){
  guard();if(busy)return;
@@ -498,12 +498,12 @@ function renderAllocation(){
   field82('Report date','date',d.date,'date','required')+field82('Reference','receiptReference290',d.receiptReference290||'')+
   field82('Recipient','recipient',d.recipient,'text','required')+field82('Purpose','purpose',d.purpose,'text','required')+
   (d.requestId14316?'':field82('Budget month','budgetMonth290',d.budgetMonth290||String(d.date).slice(0,7),'month','required'))+
-  '<label>Report notes<textarea name="notes" rows="3">'+esc(d.notes)+'</textarea></label></div></form>';
+  '<label style="grid-column:1/-1">Additional information (optional, printed)<textarea name="printNotes290" rows="2">'+esc(d.printNotes290||'')+'</textarea></label>'+
+  '<label>Record notes (not printed)<textarea name="notes" rows="3">'+esc(d.notes)+'</textarea></label></div></form>';
  host.innerHTML='<header class="worksheet-header"><h3>'+esc(d.purpose||'Unlinked utilization report')+'</h3><span>'+rowHeader+'</span></header>'+
   section82('Funding summary','<div data-fund-summary></div>',cashActions)+
   section82('Budget request summary',report.requestSummary(d,true))+
   section82('Disbursement breakdown',report.disbursements(d,true),'<button type="button" data-activity="spend">Add row</button>')+
-  '<p class="fund-payroll-protocol">Salary: earned gross after absence and late deductions. PIT: employer 50%. SSO: employer 6%. Used and remaining stay in each transaction’s currency. Exchange out reduces its source currency; exact proceeds add to the received currency. Remaining is before cash handover.</p>'+
   '<details class="worksheet-details" '+(d.requestId14316?'':'open')+'><summary>Report details</summary>'+header+'<div data-journal-ref></div>'+postControl(allocationRecord)+
   (supplements(allocationRecord).length?button('Combine requests','combineRequests()'):'')+'</details>';
  showJournalReference(host,allocationRecord);
@@ -828,7 +828,7 @@ function postControl(record){
  return record&&!record._pending14333&&access113.can('journal','post')?'<button type="button" data-prepare-budget title="Prepare an editable journal; posting remains a separate action">Post Transaction</button>':'';
 }
 function editorData(d){
- return JSON.stringify([d.date,d.budgetMonth290,d.receiptReference290||'',d.recipient||'',d.purpose||'',d.notes||'',d.movements||[],d.conversions||[],d.lines.map((l,i)=>report.lineFunding(d,l,i))]);
+ return JSON.stringify([d.date,d.budgetMonth290,d.receiptReference290||'',d.recipient||'',d.purpose||'',d.notes||'',d.printNotes290||'',d.movements||[],d.conversions||[],d.lines.map((l,i)=>report.lineFunding(d,l,i))]);
 }
 function showJournalReference(host,record){
  const field=host.querySelector('[data-journal-ref]'),post=field.closest('[role=dialog]').querySelector('[data-prepare-budget]');
@@ -1113,7 +1113,7 @@ async function showReport(r){
   const {root}=budgetDialog(utilization?report.title:'Budget request',html+'<div data-journal-ref></div>');
   root.classList.add('fund-popup326','budget-report-preview');
   const canEditWording=isFinal(r)||(!utilization&&(r.budget_report_wording||budgetRows().some(x=>x.data.requestId14316===id)));
-  reportToolbar(root,(canEditWording?'<button type="button" data-edit-wording>Wording</button>':'')+(utilization?'<button type="button" data-payroll-protocol>Payroll amounts</button>':'')+'<button type="button" data-print-record>Print</button>'+(utilization?postControl(r):''));
+  reportToolbar(root,(canEditWording?'<button type="button" data-edit-wording>'+(utilization?'Additional information':'Wording')+'</button>':'')+(utilization?'<button type="button" data-payroll-protocol>Payroll amounts</button>':'')+'<button type="button" data-print-record>Print</button>'+(utilization?postControl(r):''));
   root.querySelectorAll('[contenteditable]').forEach(n=>n.removeAttribute('contenteditable'));
   const payroll=root.querySelector('[data-payroll-protocol]');
   if(payroll)payroll.onclick=()=>reviewPayroll(id,root);
@@ -1125,7 +1125,7 @@ async function showReport(r){
   if(utilization){
    showJournalReference(root,r);
    if(d.notes){const details=document.createElement('details');details.className='worksheet-details';
-    details.innerHTML='<summary>Report notes</summary><p>'+esc(d.notes)+'</p>';root.querySelector('[data-journal-ref]').before(details);}
+    details.innerHTML='<summary>Record notes (not printed)</summary><p>'+esc(d.notes)+'</p>';root.querySelector('[data-journal-ref]').before(details);}
   }
 }
 

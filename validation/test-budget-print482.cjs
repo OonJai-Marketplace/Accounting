@@ -1,0 +1,33 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const escape=s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;');
+const ctx=vm.createContext({window:{},structuredClone,escapeHtml:escape,formatAppNumber:n=>Number(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}),formatAppRate:String,formatAppDate:String,currencySymbolV6:c=>({USD:'$',LAK:'₭',THB:'฿'}[c]||c),section82:(title,html)=>'<section><h2>'+title+'</h2>'+html+'</section>',liveProfile:{},ReportSignatories275:{signatureHtml277:()=>'<div data-print-signatures>Prepared by</div>'}});
+vm.runInContext(fs.readFileSync('src/budget/requests/budget-report290.js','utf8'),ctx);
+ctx.BudgetReport290=ctx.window.BudgetReport290;
+vm.runInContext(fs.readFileSync('src/budget/requests/report-wording.js','utf8')+';window.wording=BudgetReportWording;',ctx);
+const r=ctx.window.BudgetReport290,w=ctx.window.wording;
+const d={mode:'utilization',date:'2026-11-18',budgetMonth290:'2026-05',status:'finalized',purpose:'Operating support',preparedBy:'Manager',notes:'Historical reconstruction and every transaction repeated in prose.',lines:[{key117:'salary',description:'Salary',category:'Personnel',currency:'USD',amount:1000}],movements:[{type290:'receipt',currency:'USD',inflow:1000,account:'Owner',reference:'OJM990001'},{type290:'spend',currency:'USD',outflow:600,cashDistributed:580,budgetKey117:'salary',reference:'OJM990002'},{type290:'spend',currency:'LAK',outflow:6100000,cashDistributed:6000000,destination290:'Local cost',reference:'OJM990003'}],conversions:[{currency:'USD',target:'LAK',amount:300,targetAmount290:6300000,evidence:'OJM990004'}]};
+const original=JSON.stringify(d),numbers=JSON.stringify([...r.balances(d)]);
+for(const print of [false,true]){
+ const html=r.report(d,'OJM990005',print);
+ assert.equal((html.match(/data-cash-summary/g)||[]).length,1);
+ assert.doesNotMatch(html,/Total received|Cash movements|Total distributed|Cash remaining|fund-payroll-protocol|Historical reconstruction|Additional information/);
+ for(const label of ['Available after exchange','Total used','Remaining funding','Budget request summary','Disbursement breakdown'])assert(html.includes(label));
+ for(const ref of ['OJM990001','OJM990002','OJM990003','OJM990004','OJM990005'])assert(html.includes(ref));
+ assert(html.includes('₭ 6,100,000.00'));assert(!html.includes('₭ 6,000,000.00'));
+ assert(html.includes('$ 100.00'));assert(html.includes('₭ 200,000.00'));
+ assert(html.includes('data-print-signatures'));
+}
+const multi=structuredClone(d);multi.movements.unshift({type290:'receipt',currency:'USD',inflow:50,account:'Owner',reference:'OJM990006'},{type290:'receipt',currency:'THB',inflow:200,account:'Owner',reference:'OJM990007'});
+const summary=r.cashSummary(multi);assert.equal((summary.match(/Total received/g)||[]).length,1);assert(summary.includes('$ 1,050.00'));assert(summary.includes('฿ 200.00'));
+const empty=structuredClone(d);empty.movements=empty.movements.filter(m=>m.type290!=='receipt');assert.doesNotMatch(r.cashSummary(empty),/Total received/);
+d.printNotes290='Delivery expected Friday.\nKeep <original> receipt.';
+assert.match(r.report(d,'',true),/Delivery expected Friday\.<br>Keep &lt;original&gt; receipt\./);
+const record={id:'synthetic',version:2,data:structuredClone(d),budget_report_wording:{report_version:2,revision:1,notes:'Approved supplementary note.',descriptions:{}}};
+const saved=w.data(record);assert.equal(saved.printNotes290,'Approved supplementary note.');assert.equal(saved.notes,d.notes);assert.match(r.report(saved,'',true),/Approved supplementary note/);
+record.budget_report_wording.notes='';assert.doesNotMatch(r.report(w.data(record),'',true),/Additional information/);
+record.budget_report_wording.notes='Gross payroll includes employee deductions. Only the employer portion of PIT and social security adds to fund used. Cash balances use board disbursements in the original currencies.';
+assert.doesNotMatch(r.report(w.data(record),'',true),/Gross payroll|Cash balances/);
+record.budget_report_wording.report_version=1;assert.equal(w.data(record),record.data,'stale wording never overrides a new financial snapshot');
+const request={version:1,data:{mode:'request',notes:'Old request note'},budget_report_wording:{report_version:1,notes:'New request note',descriptions:{}}};assert.equal(w.data(request).notes,'New request note');
+delete d.printNotes290;assert.equal(JSON.stringify(d),original);assert.equal(JSON.stringify([...r.balances(d)]),numbers);
+console.log('PASS one funding summary, single/multiple/cross-currency receipts, no cash section or automatic notes, explicit additional information, wording versions, references/signatures and unchanged financial data.');

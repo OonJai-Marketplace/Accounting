@@ -1,11 +1,13 @@
 // Wording revisions apply to a single saved snapshot. All numeric fields come from that snapshot.
 const BudgetReportWording=(()=>{
+ const oldProtocol='Gross payroll includes employee deductions. Only the employer portion of PIT and social security adds to fund used. Cash balances use board disbursements in the original currencies.';
  const select='*,budget_report_wording(report_version,revision,notes,descriptions)';
  function data(record){
   const source=record.data,wording=record.budget_report_wording;
   if(!wording||wording.report_version!==record.version)return source;
   const d=structuredClone(source);
-  d.notes=wording.notes;
+  if(source.mode==='utilization')d.printNotes290=wording.notes.trim()===oldProtocol?'':wording.notes;
+  else d.notes=wording.notes;
   (d.movements||[]).forEach((m,i)=>{
    if(Object.hasOwn(wording.descriptions,i)){
     // Earlier reports used the original source and description to identify coverage.
@@ -26,7 +28,9 @@ const BudgetReportWording=(()=>{
   const descriptions=(d.movements||[]).map((m,i)=>
    '<label>'+esc([BudgetReport290.labels[BudgetReport290.kind(m)],m.reference,m.destination290||m.account].filter(Boolean).join(' · '))+
    '<textarea rows="2" data-description="'+i+'">'+esc(m.description290)+'</textarea></label>').join('');
-  const {root}=dialog('Edit report wording','<form><label>Report notes<textarea rows="4" name="notes">'+esc(d.notes)+'</textarea></label>'+
+  const utilization=d.mode==='utilization';
+  const {root}=dialog(utilization?'Additional information':'Edit report wording','<form><label>'+
+   (utilization?'Additional information (optional, printed)':'Report notes')+'<textarea rows="4" name="notes">'+esc(utilization?d.printNotes290||'':d.notes)+'</textarea></label>'+
    (descriptions?'<details><summary>Movement descriptions</summary>'+descriptions+'</details>':'')+
    '<div role="status"></div><button type="submit">Save wording</button></form>');
   const form=root.querySelector('form'),status=form.querySelector('[role=status]');

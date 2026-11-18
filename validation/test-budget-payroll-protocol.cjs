@@ -19,7 +19,8 @@ d.movements.push({type290:'spend',currency:'LAK',outflow:220000,ownerCurrency:'U
 assert.equal(r.balances(d).get('USD').allocated,416,'Owner equivalent must not re-denominate a native LAK expense');
 assert.equal(r.balances(d).get('LAK').allocated,220000);
 d.movements.push({type290:'spend',currency:'LAK',outflow:500000,cashDistributed:0,cashUnconfirmed:true,budgetKey117:'salary'});
-assert.match(r.physicalCashSummary(d),/Payment details pending/,'Missing payment details must never look like verified zero cash');
+assert.doesNotMatch(r.cashSummary(d),/Cash movements|Total distributed|Cash remaining/,'Cash payment details are retained in data, not repeated in the utilization summary');
+assert.equal(d.movements.at(-1).cashUnconfirmed,true,'Missing payment status remains in the record');
 assert.match(r.fundingAmountLines(['USD'],()=>null),/USD unconfirmed/);
 assert.equal(r.balances(d).get('USD').fundRemaining,0);
 assert.equal(r.balances(d).get('LAK').fundRemaining,-720000,'LAK costs stay in LAK even without an exchange');

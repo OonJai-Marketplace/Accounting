@@ -717,3 +717,12 @@ funds for active non-administrator users; exclude income, equity, liabilities,
 clearing/bridge, prepaid and reconciliation-difference accounts. Negative balances
 remain permitted and never block saving or posting. Clear false saved notices,
 retain one notice per user and no repeat event for an unchanged genuine shortage.
+
+Utilization printing, 2026-11-18 phase three: remove Cash movements entirely; do not
+replace it with a cash/cost explanation. One receipt has no duplicate Total received
+row; multiple receipts retain one total per currency. Keep exchanges, Available
+after exchange, Total used, Remaining funding and table references. Omit automatic
+protocol paragraphs and historical reconstruction notes from printing. Only explicit
+optional Additional information is printed; original record notes remain saved.
+Preserve financial values, cash evidence, finalized status and journal IDs. Phase
+four account retirement is being handled separately.

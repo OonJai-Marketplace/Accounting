@@ -302,40 +302,14 @@ window.BudgetReport290 = (() => {
   return '<div class="data-table82"><table '+marker+' style="width:100%;border-collapse:collapse"><thead><tr>'+heading+'</tr></thead><tbody>'+
    rows.map(r=>tr(r,false)).join('')+'</tbody>'+(totals.length?'<tfoot>'+totals.map(r=>tr(r,true)).join('')+'</tfoot>':'')+'</table></div>';
  }
- function physicalCashSummary(d){
-  const totals=balances(d),codes=cashCodes(d),rows=[];
-  const cols=(name,value)=>[name,...codes.map(c=>value(c)==null?'—':amountHtml(c,value(c)))];
-  const key=(name,k)=>[name,...codes.map(c=>['cashSpent','beforeReturn'].includes(k)&&(d.movements||[]).some(m=>m.currency===c&&m.cashUnconfirmed)?'Payment details pending':amountHtml(c,totals.get(c)?.[k]||0))];
-  const ref=s=>s?'<br><small>'+esc(s)+'</small>':'';
-  for(const [i,m] of d.movements.entries()){
-   if(kind(m)!=='receipt')continue;
-   rows.push(cols(esc(m.account||'Receipt')+ref(m.reference),c=>c===m.currency?Number(m.inflow):null));
-  }
-  rows.push(key('Total received','receipt'));
-  for(const [i,f] of (d.conversions||[]).entries()){
-   const received=conversionAmount(f);
-   const base=f.target==='USD'?f.target:f.currency;
-   const quote=base===f.currency?f.target:f.currency;
-   const rate=base===f.currency?received/f.amount:f.amount/received;
-   rows.push(cols('Exchange'+ref(formatAppRate(rate)+' '+quote+' / '+base+(f.evidence||f.reference?' · '+(f.evidence||f.reference):'')),
-    c=>c===f.currency?-Number(f.amount):c===f.target?received:null));
-  }
-  for(const [i,m] of d.movements.entries()){
-   const type=kind(m);
-   if(['borrow','repay','coverage'].includes(type))rows.push(cols(esc(labels[type])+ref(m.reference),c=>c===m.currency?Number(m.inflow||0)-Number(m.outflow||0):null));
-  }
-  rows.push(cols('Available to distribute',c=>{const t=totals.get(c);return t?t.receipt+t.coverage+t.borrow-t.repay+t.convertedIn-t.convertedOut:0;}));
-  rows.push(key('Total distributed','cashSpent'));
-  const closing=[key('Cash remaining','beforeReturn')];
-  return summaryTable(['Source / activity',...codes],rows,closing,'data-cash-summary');
- }
  function cashSummary(d){
   const totals=balances(d),codes=cashCodes(d),rows=[];
   const cols=(label,value)=>[label,...codes.map(c=>value(c)==null?'—':amountHtml(c,value(c)))];
   const key=(label,k)=>cols(label,c=>totals.get(c)?.[k]||0);
   const ref=s=>s?'<br><small>'+esc(s)+'</small>':'';
-  for(const m of d.movements||[])if(kind(m)==='receipt')rows.push(cols(esc(m.account||'Receipt')+ref(m.reference),c=>c===m.currency?Number(m.inflow):null));
-  rows.push(key('Total received','receipt'));
+  const receipts=(d.movements||[]).filter(m=>kind(m)==='receipt');
+  for(const m of receipts)rows.push(cols(esc(m.account||'Receipt')+ref(m.reference),c=>c===m.currency?Number(m.inflow):null));
+  if(receipts.length>1)rows.push(key('Total received','receipt'));
   for(const f of d.conversions||[]){
    const received=conversionAmount(f),rate=received/Number(f.amount);
    rows.push(cols('Exchange · '+esc(f.currency)+' → '+esc(f.target)+ref(formatAppRate(rate)+' '+f.target+' / '+f.currency)+ref(f.evidence||f.reference),
@@ -347,8 +321,7 @@ window.BudgetReport290 = (() => {
   }
   rows.push(key('Available after exchange','fundAvailable'));
   rows.push(key('Total used','allocated'));
-  return summaryTable(['Funding source / activity',...codes],rows,[key('Remaining funding','fundRemaining')],'data-cash-summary')+
-   '<details class="worksheet-details"><summary>Cash movements</summary>'+physicalCashSummary(d)+'</details>';
+  return summaryTable(['Funding source / activity',...codes],rows,[key('Remaining funding','fundRemaining')],'data-cash-summary');
  }
  function requestSummary(d,editable=false){
   const sum=new Map(),funded=new Map();
@@ -386,7 +359,7 @@ window.BudgetReport290 = (() => {
   return summaryTable(['Category','Item',...codes,'Reference',...(editable?['Action']:[])],rows,[total],'data-disbursements');
  }
  function summary(d){
-  return section82('Funding summary',cashSummary(d))+section82('Budget request summary',requestSummary(d))+section82('Disbursement breakdown',disbursements(d))+'<p class="fund-payroll-protocol">Salary: earned gross after absence and late deductions, before employee deductions and advance recovery. PIT: employer 50%. SSO: employer 6%. USD exchanged out and LAK received are shown separately. Used and remaining stay in each transaction’s currency; exchanges are not expenses. Remaining is before cash handover.</p>';
+  return section82('Funding summary',cashSummary(d))+section82('Budget request summary',requestSummary(d))+section82('Disbursement breakdown',disbursements(d));
  }
  function movementRows(d){
   return d.movements.map(m=>{
@@ -401,9 +374,9 @@ window.BudgetReport290 = (() => {
   if(d.mode!=='utilization')return window.budgetWorkflow14316.requestHTML(d);
   const refs=[d.requestDate290?'Request date: '+esc(formatAppDate(d.requestDate290)):'',d.receiptReference290?'Reference: '+esc(d.receiptReference290):'',journalReference?'Utilization journal: '+esc(journalReference):''].filter(Boolean).join(' · ');
   return '<h1 style="text-align:center">'+title+'</h1><p><strong>'+esc(d.purpose)+'</strong></p><p>'+esc(period(d))+' · '+esc(formatAppDate(d.date))+
-   (d.status==='finalized'?' · <span data-final-status>Finalized</span>':'')+(refs?'<br>'+refs:'')+'</p>'+summary(d)+(d.notes&&print?'<p>'+esc(d.notes)+'</p>':'')+signature(d);
+   (d.status==='finalized'?' · <span data-final-status>Finalized</span>':'')+(refs?'<br>'+refs:'')+'</p>'+summary(d)+(String(d.printNotes290||'').trim()?'<p data-budget-additional-information><strong>Additional information</strong><br>'+esc(d.printNotes290.trim()).replace(/\r?\n/g,'<br>')+'</p>':'')+signature(d);
  }
- return {title,compare,cashPaid,fundingAmountLines,expenseAmount,itemName,physicalCashSummary,equivalentField,reportRate,requestCurrency,valueIn,amountText,currencyAmount,amountHtml,amountLines,orderedUnits,items,period,layout,recalculate,signature,report,kind,labels,summary,cashSummary,requestSummary,disbursements,fundedTotal,balances,conversionAmount,outstanding,movementRows,movementHeaders,forLine,fundingLabels,fundingKey,lineFunding};
+ return {title,compare,cashPaid,fundingAmountLines,expenseAmount,itemName,equivalentField,reportRate,requestCurrency,valueIn,amountText,currencyAmount,amountHtml,amountLines,orderedUnits,items,period,layout,recalculate,signature,report,kind,labels,summary,cashSummary,requestSummary,disbursements,fundedTotal,balances,conversionAmount,outstanding,movementRows,movementHeaders,forLine,fundingLabels,fundingKey,lineFunding};
 })();
 /* Prepare owner support in its actual currencies; the journal editor owns posting. */
 window.BudgetSupportEquity=(()=>{
@@ -699,12 +672,14 @@ const BudgetOwnerBalance=(()=>{
 })();
 // Wording revisions apply to a single saved snapshot. All numeric fields come from that snapshot.
 const BudgetReportWording=(()=>{
+ const oldProtocol='Gross payroll includes employee deductions. Only the employer portion of PIT and social security adds to fund used. Cash balances use board disbursements in the original currencies.';
  const select='*,budget_report_wording(report_version,revision,notes,descriptions)';
  function data(record){
   const source=record.data,wording=record.budget_report_wording;
   if(!wording||wording.report_version!==record.version)return source;
   const d=structuredClone(source);
-  d.notes=wording.notes;
+  if(source.mode==='utilization')d.printNotes290=wording.notes.trim()===oldProtocol?'':wording.notes;
+  else d.notes=wording.notes;
   (d.movements||[]).forEach((m,i)=>{
    if(Object.hasOwn(wording.descriptions,i)){
     // Earlier reports used the original source and description to identify coverage.
@@ -725,7 +700,9 @@ const BudgetReportWording=(()=>{
   const descriptions=(d.movements||[]).map((m,i)=>
    '<label>'+esc([BudgetReport290.labels[BudgetReport290.kind(m)],m.reference,m.destination290||m.account].filter(Boolean).join(' · '))+
    '<textarea rows="2" data-description="'+i+'">'+esc(m.description290)+'</textarea></label>').join('');
-  const {root}=dialog('Edit report wording','<form><label>Report notes<textarea rows="4" name="notes">'+esc(d.notes)+'</textarea></label>'+
+  const utilization=d.mode==='utilization';
+  const {root}=dialog(utilization?'Additional information':'Edit report wording','<form><label>'+
+   (utilization?'Additional information (optional, printed)':'Report notes')+'<textarea rows="4" name="notes">'+esc(utilization?d.printNotes290||'':d.notes)+'</textarea></label>'+
    (descriptions?'<details><summary>Movement descriptions</summary>'+descriptions+'</details>':'')+
    '<div role="status"></div><button type="submit">Save wording</button></form>');
   const form=root.querySelector('form'),status=form.querySelector('[role=status]');
@@ -902,7 +879,7 @@ async function closeFundEditor(){
 function newUtilization(){
  const today=today82();
  return {kind:'finance',mode:'utilization',status:'draft',budgetMonth290:today.slice(0,7),
-  date:today,purpose:'',recipient:'',lines:[],movements:[],conversions:[],notes:''};
+  date:today,purpose:'',recipient:'',lines:[],movements:[],conversions:[],notes:'',printNotes290:''};
 }
 function showFunds(open=true){
  guard();if(busy)return;
@@ -1328,12 +1305,12 @@ function renderAllocation(){
   field82('Report date','date',d.date,'date','required')+field82('Reference','receiptReference290',d.receiptReference290||'')+
   field82('Recipient','recipient',d.recipient,'text','required')+field82('Purpose','purpose',d.purpose,'text','required')+
   (d.requestId14316?'':field82('Budget month','budgetMonth290',d.budgetMonth290||String(d.date).slice(0,7),'month','required'))+
-  '<label>Report notes<textarea name="notes" rows="3">'+esc(d.notes)+'</textarea></label></div></form>';
+  '<label style="grid-column:1/-1">Additional information (optional, printed)<textarea name="printNotes290" rows="2">'+esc(d.printNotes290||'')+'</textarea></label>'+
+  '<label>Record notes (not printed)<textarea name="notes" rows="3">'+esc(d.notes)+'</textarea></label></div></form>';
  host.innerHTML='<header class="worksheet-header"><h3>'+esc(d.purpose||'Unlinked utilization report')+'</h3><span>'+rowHeader+'</span></header>'+
   section82('Funding summary','<div data-fund-summary></div>',cashActions)+
   section82('Budget request summary',report.requestSummary(d,true))+
   section82('Disbursement breakdown',report.disbursements(d,true),'<button type="button" data-activity="spend">Add row</button>')+
-  '<p class="fund-payroll-protocol">Salary: earned gross after absence and late deductions. PIT: employer 50%. SSO: employer 6%. Used and remaining stay in each transaction’s currency. Exchange out reduces its source currency; exact proceeds add to the received currency. Remaining is before cash handover.</p>'+
   '<details class="worksheet-details" '+(d.requestId14316?'':'open')+'><summary>Report details</summary>'+header+'<div data-journal-ref></div>'+postControl(allocationRecord)+
   (supplements(allocationRecord).length?button('Combine requests','combineRequests()'):'')+'</details>';
  showJournalReference(host,allocationRecord);
@@ -1658,7 +1635,7 @@ function postControl(record){
  return record&&!record._pending14333&&access113.can('journal','post')?'<button type="button" data-prepare-budget title="Prepare an editable journal; posting remains a separate action">Post Transaction</button>':'';
 }
 function editorData(d){
- return JSON.stringify([d.date,d.budgetMonth290,d.receiptReference290||'',d.recipient||'',d.purpose||'',d.notes||'',d.movements||[],d.conversions||[],d.lines.map((l,i)=>report.lineFunding(d,l,i))]);
+ return JSON.stringify([d.date,d.budgetMonth290,d.receiptReference290||'',d.recipient||'',d.purpose||'',d.notes||'',d.printNotes290||'',d.movements||[],d.conversions||[],d.lines.map((l,i)=>report.lineFunding(d,l,i))]);
 }
 function showJournalReference(host,record){
  const field=host.querySelector('[data-journal-ref]'),post=field.closest('[role=dialog]').querySelector('[data-prepare-budget]');
@@ -1943,7 +1920,7 @@ async function showReport(r){
   const {root}=budgetDialog(utilization?report.title:'Budget request',html+'<div data-journal-ref></div>');
   root.classList.add('fund-popup326','budget-report-preview');
   const canEditWording=isFinal(r)||(!utilization&&(r.budget_report_wording||budgetRows().some(x=>x.data.requestId14316===id)));
-  reportToolbar(root,(canEditWording?'<button type="button" data-edit-wording>Wording</button>':'')+(utilization?'<button type="button" data-payroll-protocol>Payroll amounts</button>':'')+'<button type="button" data-print-record>Print</button>'+(utilization?postControl(r):''));
+  reportToolbar(root,(canEditWording?'<button type="button" data-edit-wording>'+(utilization?'Additional information':'Wording')+'</button>':'')+(utilization?'<button type="button" data-payroll-protocol>Payroll amounts</button>':'')+'<button type="button" data-print-record>Print</button>'+(utilization?postControl(r):''));
   root.querySelectorAll('[contenteditable]').forEach(n=>n.removeAttribute('contenteditable'));
   const payroll=root.querySelector('[data-payroll-protocol]');
   if(payroll)payroll.onclick=()=>reviewPayroll(id,root);
@@ -1955,7 +1932,7 @@ async function showReport(r){
   if(utilization){
    showJournalReference(root,r);
    if(d.notes){const details=document.createElement('details');details.className='worksheet-details';
-    details.innerHTML='<summary>Report notes</summary><p>'+esc(d.notes)+'</p>';root.querySelector('[data-journal-ref]').before(details);}
+    details.innerHTML='<summary>Record notes (not printed)</summary><p>'+esc(d.notes)+'</p>';root.querySelector('[data-journal-ref]').before(details);}
   }
 }
 
