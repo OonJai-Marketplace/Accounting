@@ -10,14 +10,15 @@ function monthlyTrialPreferences(){
 function saveMonthlyTrialPreferences(prefs){
  try{localStorage.setItem(monthlyTrialPreferenceKey(),JSON.stringify(prefs))}catch{showCenterStatus('Could not save the comparison settings on this device.',true)}
 }
-function monthlyTrialColumnControl(value){
- return '<label>Columns<select data-plain14285 name="trialColumns"><option value="full">Debit, Credit, Balance</option><option value="balance"'+(value==='balance'?' selected':'')+'>Balance only</option></select></label>';
+function monthlyTrialColumnControl(value,compact=false){
+ return (compact?'':'<label>Columns')+'<select aria-label="Columns" data-plain14285 name="trialColumns"><option value="full">Debit, Credit, Balance</option><option value="balance"'+(value==='balance'?' selected':'')+'>Balance only</option></select>'+(compact?'':'</label>');
 }
 function monthlyTrialParent(account,currency){
  return currency===account.currency&&(account.isPosting===false||account.is_posting===false||/^(NA|N\/A|PARENT|__PARENT__)$/i.test(currency));
 }
 function monthlyTrialLabel(account,unit){
- return [account.code,account.name,unit].filter(Boolean).join(' · ');
+ const namedUnit=String(account.name||'').trim().split(/[\s·–—()\/-]+/).filter(Boolean).at(-1);
+ return [account.code,account.name,namedUnit?.toUpperCase()===unit?null:unit].filter(Boolean).join(' · ');
 }
 function monthlyTrialChoices(entries){
  const choices=new Map(),byId=new Map(),byCode=new Map(),byName=new Map();
@@ -107,11 +108,12 @@ function monthlyTrialModel(entries,months,options){
    });
   }
  }
+ const rowAccounts=[];
  const values=ordered.flatMap(row=>{
   if(row.headingOnly){
    const units=byParent.get(row.account.code);
-   if(!units?.size)return [[monthlyTrialLabel(row.account,'Parent account'),...Array(months.length*subheads.length).fill('')]];
-   return [...units].sort(([a],[b])=>a.localeCompare(b)).map(([unit,series])=>[monthlyTrialLabel(row.account,'Subtotal · '+unit),...series.flatMap(cells)]);
+   if(!units?.size){rowAccounts.push(row.account);return [[monthlyTrialLabel(row.account,'Parent account'),...Array(months.length*subheads.length).fill('')]];}
+   return [...units].sort(([a],[b])=>a.localeCompare(b)).map(([unit,series])=>{rowAccounts.push(row.account);return [monthlyTrialLabel(row.account,'Subtotal · '+unit),...series.flatMap(cells)]});
   }
   const unit=base?'LAK':row.currency;
   if(!totals.has(unit))totals.set(unit,months.map(empty));
@@ -121,11 +123,12 @@ function monthlyTrialModel(entries,months,options){
    sum.missingTurnover||=t.missingTurnover;sum.missingBalance||=t.missingBalance;
    return cells(t);
   });
+  rowAccounts.push(row.account);
   return [[monthlyTrialLabel(row.account,row.currency),...amounts]];
  });
  const totalRows=[...totals].map(([unit,list])=>[(selected?'Selected total':'Total')+' · '+unit,...list.flatMap(cells)]);
  return {monthlyTrial:true,months,subheads,headers:['Accounts',...months.flatMap(m=>subheads.map(h=>summaryPeriod14331.monthLabel(m)+' '+h))],
-  values:values.concat(totalRows),totalCount:totalRows.length,currency:base?'LAK equivalent':'Original currencies',metrics:[],note:''};
+  rowAccounts,values:values.concat(totalRows),totalCount:totalRows.length,currency:base?'LAK equivalent':'Original currencies',metrics:[],note:''};
 }
 
 function monthlyTrialReportModel(){
@@ -134,15 +137,25 @@ function monthlyTrialReportModel(){
  if(!entries)throw Error('The posted journal for this comparison has not finished loading.');
  return monthlyTrialModel(entries,months,{...monthlyTrialPreferences(),from:s.from,to:s.to,currency:s.currency,basis:s.basis,direction:reportSort143153('tb').direction});
 }
-function monthlyTrialTable(model,print=false){
+function monthlyTrialTable(model,print=false,groupCategories=false){
  const {months,subheads,values,totalCount}=model,width=subheads.length,span=print?(width===1?5:2):months.length,tables=[];
  if(!values.length)return '<p class="r79-note">No accounts match this selection.</p>';
  for(let first=0;first<months.length;first+=span){
   const part=months.slice(first,first+span),labels=part.map((m,i)=>'<th colspan="'+width+'" scope="colgroup"'+(model.rateDates?' data-as-of="'+re79(model.rateDates[first+i])+'"':'')+'><span>'+re79(model.rateDates?formatAppDate(model.rateDates[first+i]):summaryPeriod14331.monthLabel(m))+'</span></th>').join('');
   const headers=part.map(()=>subheads.map((h,j)=>'<th scope="col"'+(j===0?' class="month-start"':'')+'>'+h+'</th>').join('')).join('');
-  const rowHTML=row=>'<tr><th scope="row" title="'+re79(row[0])+'">'+re79(row[0])+'</th>'+row.slice(1+first*width,1+(first+part.length)*width).map((value,j)=>'<td'+(j%width===0?' class="month-start"':'')+'>'+re79(value)+'</td>').join('')+'</tr>';
+  const rowHTML=(row,account)=>'<tr'+(groupCategories&&account&&monthlyTrialParent(account,account.currency)?' class="trial-parent"':'')+'><th scope="row" title="'+re79(row[0])+'">'+re79(row[0])+'</th>'+row.slice(1+first*width,1+(first+part.length)*width).map((value,j)=>'<td'+(j%width===0?' class="month-start"':'')+'>'+re79(value)+'</td>').join('')+'</tr>';
   const split=values.length-totalCount;
-  tables.push('<table class="monthly-trial-table" aria-label="Monthly comparative trial balance" data-own-pager14383="1"><thead><tr><th scope="col" rowspan="2">Accounts</th>'+labels+'</tr><tr>'+headers+'</tr></thead><tbody>'+values.slice(0,split).map(rowHTML).join('')+'</tbody><tfoot>'+values.slice(split).map(rowHTML).join('')+'</tfoot></table>');
+  let body=values.slice(0,split).map(row=>rowHTML(row)).join('');
+  if(groupCategories){
+   const categories=[['ASSET','Assets'],['LIABILITY','Liabilities'],['EQUITY','Equity'],['INCOME','Income'],['EXPENSE','Expenses'],['DRAWING','Drawings'],['OTHER','Other accounts'],['SYSTEM','System']],groups=new Map();
+   values.slice(0,split).forEach((row,i)=>{
+    const account=model.rowAccounts?.[i],raw=String(account?.isTechnical||account?.is_technical?'SYSTEM':account?.type||account?.baseType||account?.account_type||'OTHER').toUpperCase();
+    const type=raw==='REVENUE'?'INCOME':categories.some(([key])=>key===raw)?raw:'OTHER';
+    if(!groups.has(type))groups.set(type,[]);groups.get(type).push({row,account});
+   });
+   body=categories.filter(([key])=>groups.has(key)).map(([key,label])=>'<tr class="trial-category"><th colspan="'+(1+part.length*width)+'"><span>'+label+'</span></th></tr>'+groups.get(key).map(({row,account})=>rowHTML(row,account)).join('')).join('');
+  }
+  tables.push('<table class="monthly-trial-table" aria-label="Monthly comparative trial balance" data-own-pager14383="1"><thead><tr><th scope="col" rowspan="2">Accounts</th>'+labels+'</tr><tr>'+headers+'</tr></thead><tbody>'+body+'</tbody><tfoot>'+values.slice(split).map(row=>rowHTML(row)).join('')+'</tfoot></table>');
  }
  return print?tables.join(''):'<div class="monthly-trial-scroll">'+tables.join('')+'</div>';
 }
@@ -151,15 +164,17 @@ function openMonthlyTrialBalance(panel,scope){
  const dialog=panel.closest('dialog'),header=dialog.querySelector('header'),close=header.querySelector('.close');
  close.classList.add('je-btn','je-btn-secondary');close.textContent='Close';
  const prefs=monthlyTrialPreferences(),calendar=summaryPeriod14331;
- const basisControl='<label>Currency view<select data-plain14285 name="trialBasis"><option value="original">Original currencies</option><option value="reporting">Reporting · LAK</option></select></label>';
- close.insertAdjacentHTML('beforebegin','<button type="button" class="je-btn je-btn-secondary" data-period aria-haspopup="dialog">Period</button>'+basisControl+monthlyTrialColumnControl(prefs.columns)+'<div data-accounts></div><button type="button" class="je-btn je-btn-secondary" data-refresh>Refresh</button>');
+ const basisControl='<select aria-label="Currency view" data-plain14285 name="trialBasis"><option value="original">Original currencies</option><option value="reporting">Reporting · LAK</option></select>';
+ const toolbar=document.createElement('div');toolbar.className='monthly-trial-tools';
+ toolbar.innerHTML='<button type="button" class="je-btn je-btn-secondary" data-period aria-haspopup="dialog">Period</button>'+basisControl+monthlyTrialColumnControl(prefs.columns,true)+'<div data-accounts></div><button type="button" class="je-btn je-btn-secondary" data-refresh>Refresh</button>';
+ toolbar.append(close);header.append(toolbar);
  const period=header.querySelector('[data-period]'),columns=header.querySelector('[name=trialColumns]'),accountPicker=header.querySelector('[data-accounts]');
  const basis=header.querySelector('[name=trialBasis]');basis.value=prefs.basis;
  const status=document.createElement('small');header.querySelector('h2').append(status);
  let entries,months,allMonths;
  function draw(){
   period.textContent=calendar.label(months);period.setAttribute('aria-label','Period · '+period.textContent);
-  panel.innerHTML=monthlyTrialTable(monthlyTrialModel(entries,months,prefs));
+  panel.innerHTML=monthlyTrialTable(monthlyTrialModel(entries,months,prefs),false,true);
  }
  async function load(refresh,check=true){
   const request=scope.begin();

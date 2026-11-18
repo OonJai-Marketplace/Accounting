@@ -6930,7 +6930,7 @@ const reportingAmounts = (() => {
   const values=[...groupedRows.values()].sort(order).map(r=>[groupLabel(r.account),...cellsByMonth(r)]);
   const parentValues=[...parentRows.values()].sort(order).map(r=>[label(r.account)+' · Subtotal · LAK',...cellsByMonth(r)]);
   const detail=[...contributions.values()].sort(order).map(r=>[groupLabel(r.target)+' / '+label(r.account),...cellsByMonth(r)]);
-  return {monthlyTrial:true,months,subheads,headers:['Accounts',...ends.flatMap(end=>subheads.map(h=>end+' '+h))],values:[...values,...parentValues,...detail,[options.accounts?'Selected total · LAK':'Total · LAK',...monthlyTotals.flat()]],totalCount:1,currency:'Reporting Amount · LAK',metrics:[],rateDates:ends,note:'Each column uses the book rate at its closing date. Currency contributions are included in the reporting-account totals.'};
+  return {monthlyTrial:true,months,subheads,rowAccounts:[...[...groupedRows.values()].sort(order),...[...parentRows.values()].sort(order),...[...contributions.values()].sort(order)].map(r=>r.account),headers:['Accounts',...ends.flatMap(end=>subheads.map(h=>end+' '+h))],values:[...values,...parentValues,...detail,[options.accounts?'Selected total · LAK':'Total · LAK',...monthlyTotals.flat()]],totalCount:1,currency:'Reporting Amount · LAK',metrics:[],rateDates:ends,note:'Each column uses the book rate at its closing date. Currency contributions are included in the reporting-account totals.'};
  }
  return {model,comparison,links,evidence,open};
 })();

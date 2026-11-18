@@ -1,6 +1,9 @@
 {
-  "version": "143.472",
+  "version": "143.473",
   "changes": [
+    "Account balances uses regular account-name text, with bold parent headings and clear category separators from Assets through System.",
+    "Account balances omits a repeated currency when the account name already includes it.",
+    "The two display dropdowns have no visible labels and fit their longest option; Refresh and Close sit alongside the controls in one compact row.",
     "Fund utilization Save and Finalize retain a durable device copy, then send in the background so you can continue working.",
     "Each report has one notification showing Saving, Finalizing, confirmed completion or a retry-needed warning, with Open report / Retry.",
     "Retries reuse the original report, version and contents; timeouts and conflicts preserve the saved copy without duplicating or overwriting records.",

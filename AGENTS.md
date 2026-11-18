@@ -626,3 +626,10 @@ journal entries or releasing numbers. This supersedes older red/green criteria.
 Dashboard, 2026-11-18: horizontal tabs precede the banner in every Home/Overview
 view. Each graph remembers its own type and daily/weekly/monthly grouping.
 Budget Request month picker has no upper label; its empty option is Month filter.
+
+Account balances shortcut, 2026-11-18: regular posting-account names are not bold.
+Use visible category separators from Assets through System and emphasize parent
+headings/subtotals. Avoid repeating a currency already in an account name. Keep
+the two display dropdowns, without visible Currency view / Columns labels, sized
+to their longest option. Period, dropdowns, account picker, Refresh and Close
+belong in one compact controls row. Preserve amounts, selections and report logic.
