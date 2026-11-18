@@ -3905,7 +3905,12 @@
         "source": "src/budget/requests/utilization-journal.js"
       },
       {
-        "source": "src/bridges/subusers-bookkeeping/budget-workflow14316.js"
+        "source": "src/bridges/subusers-bookkeeping/budget-workflow14316.js",
+        "suffix": "\n;\n"
+      },
+      {
+        "source": "src/budget/requests/budget-save-status472.js",
+        "suffix": "\n"
       }
     ],
     "scripts/reconciliation14345.js": [

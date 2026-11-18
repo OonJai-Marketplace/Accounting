@@ -4707,6 +4707,7 @@ body .header-notices104 #headerNoticeList104>button:hover{background:#edf6ee}
 body .header-notices104 #headerNoticeList104>button strong{font-size:10px;color:#007659}
 body .header-notices104 #headerNoticeList104>button span{font-size:12px}
 body .header-notices104 #headerNoticeList104>button small{font-size:10px;color:#5b7060}
+body .header-notices104 #headerNoticeList104>button .notice-action472{font-weight:600;text-decoration:underline;margin-top:4px}
 body .header-notices104 #headerNoticeList104>p{padding:10px;font-size:12px}
 @media(max-width:700px){body #transactionsHeading98 .sidebar-user-copy{display:none!important}body #transactionsHeading98 .header-account-trigger{padding:3px!important;min-width:44px!important}body #transactionsHeading98 .header-notices104{right:0}}
 @media print{body #transactionsHeading98{display:none!important}}

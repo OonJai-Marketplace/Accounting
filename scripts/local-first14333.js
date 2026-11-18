@@ -7,6 +7,74 @@ const key=(id,name)=>scope()+((name.startsWith('snapshot:')||name==='journal-out
 const canonical=v=>JSON.stringify(v,(_,x)=>x&&typeof x==='object'&&!Array.isArray(x)?Object.fromEntries(Object.entries(x).sort(([a],[b])=>a.localeCompare(b))):x);
 let database,owner='',jobs=[],error='',errorKind='',notice='',running=false,refreshTimer,readyJob,workWindow='',syncChain=null;
 const tableNames={employees:'payroll_employees',leaves:'payroll_leave_records',runs:'payroll_runs',reports:'operational_reports',documents:'company_documents105'};
+const budgetFlights=new Map(),sendingBudget=new Set();
+const isBudget=(kind,data)=>kind==='reports'&&data?.kind==='finance'&&data.mode==='utilization';
+function budgetSave(recordId){
+ const job=[...jobs].reverse().find(j=>j.actor===actor()&&j.row.id===recordId&&isBudget(j.kind,j.row.data)&&j.status!=='resolved');
+ if(!job)return null;
+ const confirmed=job.status==='synced'&&matchesSaveReceipt(job,job.receipt),finalizing=job.row.data.status==='finalized';
+ const sending=sendingBudget.has(job.actor+':'+job.id),failed=['uncertain','blocked','conflict'].includes(job.status);
+ const status=confirmed?(finalizing?'Finalized':'Saved'):sending?(finalizing?'Finalizing…':'Saving…'):failed?(finalizing?'Finalization needs retry':'Save needs retry'):navigator.onLine===false?'Waiting for connection':'Waiting to send';
+ return {job:structuredClone(job),confirmed,finalizing,sending,failed,status,
+  detail:confirmed?'Confirmed by the database.':sending?'Your copy is saved on this device. You can continue working.':job.message||'Your copy is saved on this device. Open this report and select Retry save when connected.'};
+}
+function budgetNotices(){
+ const ids=[...new Set(jobs.filter(j=>j.actor===actor()&&isBudget(j.kind,j.row.data)&&!j.retired14333&&j.status!=='resolved'&&(j.status!=='synced'||j.budgetNotify472)).map(j=>j.row.id))];
+ return ids.map(id=>{
+  const s=budgetSave(id),d=s.job.row.data,month=window.syncRecords284?.month(d.budgetMonth290||d.date)||d.budgetMonth290||d.date||'';
+  return {noticeId:'budget-save:'+id,groupKey:'budget-save:'+id,type:'Fund utilization',title:[month,d.purpose,s.status].filter(Boolean).join(' · '),detail:s.detail,
+   target:'transactions-budget14313',budgetReportId:id,actionLabel:s.confirmed?'Open report':'Open report / Retry',critical:s.failed,persistent:!s.confirmed};
+ });
+}
+// One delivery per explicit action. No polling or automatic budget retry loop.
+function deliverBudget(jobId,{retrySave=false}={}){
+ const id=actor(),client=ojmDb,k=id+':'+jobId;
+ if(budgetFlights.has(k))return;
+ sendingBudget.add(k);changed();
+ const task=Promise.resolve().then(()=>{assertActor(id);if(client!==ojmDb)throw Error('Connection changed before saving.');return retrySave?retry(jobId):sync({targetId:jobId});}).then(async()=>{
+  if(actor()!==id||client!==ojmDb)return;
+  const job=jobs.find(j=>j.id===jobId);
+  if(job?.status==='pending')await updateJob(id,jobId,{status:'uncertain',message:'This save is waiting for an earlier saved request or connection. Retry it, or review the related request in Data Check.'});
+ }).catch(async e=>{
+  if(actor()!==id||client!==ojmDb)return;
+  const job=jobs.find(j=>j.id===jobId);
+  if(job&&!['synced','resolved'].includes(job.status))await updateJob(id,jobId,{status:'uncertain',message:e.message||'Save interrupted. Retry this saved request.'});
+ }).catch(()=>{}).finally(()=>{budgetFlights.delete(k);sendingBudget.delete(k);if(actor()===id)changed();});
+ budgetFlights.set(k,task);
+}
+async function retryBudget(recordId){
+ const id=actor();await initialize();assertActor(id);
+ if(liveProfile?.role!=='admin'||window.workspaceRequest138?.target)throw Error('Return to your own administrator workspace before retrying.');
+ const s=budgetSave(recordId);if(!s)throw Error('This saved request is no longer available.');
+ if(s.confirmed||s.sending)return;
+ if(navigator.onLine===false)throw Error('Reconnect before retrying. Your saved copy is retained.');
+ deliverBudget(s.job.id,{retrySave:true});
+}
+async function sendBudget(client,job){
+ const controller=new AbortController();let timer;
+ try{
+  const send=async()=>{
+   // Preserve the existing duplicate-linked-report check, but outside the editor's wait.
+   if(job.baseVersion===null&&job.row.data.requestId14316){
+    let lookup=client.from('operational_reports').select('id').eq('budget_request_id14316',job.row.data.requestId14316)
+     .eq('data->>kind','finance').eq('data->>mode','utilization').neq('id',job.row.id).limit(1);
+    if(lookup.setHeader)lookup=lookup.setHeader('x-ojm-database-only','1');
+    if(lookup.abortSignal)lookup=lookup.abortSignal(controller.signal);
+    const found=await lookup;if(found.error)throw found.error;
+    if(found.data?.length)throw Object.assign(Error('This budget request already has a utilization report. Open Budget Requests to review the existing report.'),{code:'LOCAL_CONFLICT'});
+   }
+   if(controller.signal.aborted)throw Object.assign(Error('Save interrupted. Retry the retained request.'),{code:'TIMEOUT_BUDGET'});
+   assertActor(job.actor);if(client!==ojmDb||window.workspaceRequest138?.target)throw Error('Workspace or connection changed before saving.');
+   let request=client.rpc('save_budget_utilization',{p_report:job.row.id,p_base_version:job.baseVersion,p_data:job.row.data});
+   if(request.setHeader)request=request.setHeader('x-ojm-database-only','1');
+   if(request.abortSignal)request=request.abortSignal(controller.signal);
+   return await request;
+  };
+  return await Promise.race([send(),new Promise((_,reject)=>{timer=setTimeout(()=>{
+   reject(Object.assign(Error('Database confirmation timed out. Retry this saved request; its original reference is retained.'),{code:'TIMEOUT_BUDGET'}));controller.abort();
+  },30000);})]);
+ }finally{clearTimeout(timer);}
+}
 function db(){return database??=new Promise((resolve,reject)=>{let done=false;const r=indexedDB.open('ojm-local14333',1),fail=e=>{if(done)return;done=true;clearTimeout(timer);reject(e)},timer=setTimeout(()=>fail(Error('Device storage could not open within 8 seconds.')),8000);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains('state'))r.result.createObjectStore('state')};r.onsuccess=()=>{if(done){r.result.close();return}done=true;clearTimeout(timer);r.result.onversionchange=()=>{r.result.close();database=null};resolve(r.result)};r.onerror=r.onblocked=()=>fail(r.error||Error('Device storage blocked.'))}).catch(e=>{database=null;throw e})}
 async function edit(id,name,update){
  const storageKey=key(id,name),d=await db();
@@ -80,7 +148,7 @@ function backgroundRecord(kind,data){
  return kind==='employees'||kind==='documents';
 }
 async function saveWork(kind,data,record,payload,{createId}={}){const id=actor(),client=ojmDb;const current=()=>{assertActor(id);if(ojmDb!==client)throw Error('Connection changed while saving. Reopen the workspace.')};await initialize();current();if(!id||liveProfile.role!=='admin'||window.workspaceRequest138?.target)throw Error('Return to your own administrator workspace before saving.');const rowId=record?.id||createId||crypto.randomUUID(),at=new Date().toISOString();
- let job={id:crypto.randomUUID(),actor:id,kind,table:tableNames[kind],row:{...(record||{}),...structuredClone(payload),id:rowId,created_at:record?.created_at||at,updated_at:at,updated_by:id},baseVersion:record?Number(record.version):null,status:'pending',created:at};
+ let job={id:crypto.randomUUID(),actor:id,kind,table:tableNames[kind],row:{...(record||{}),...structuredClone(payload),id:rowId,created_at:record?.created_at||at,updated_at:at,updated_by:id},baseVersion:record?Number(record.version):null,status:'pending',created:at,...(isBudget(kind,data)?{budgetNotify472:true}:{})};
  if(!job.table||!Number.isInteger(job.row.version)||job.row.version<1)throw Error('The record version is invalid. Reload before saving.');
  let saved;
  try{const list=await edit(id,'outbox',rows=>{rows||=[];
@@ -88,9 +156,10 @@ async function saveWork(kind,data,record,payload,{createId}={}){const id=actor()
   const retry=[...rows].reverse().find(j=>j.kind===kind&&!['synced','resolved'].includes(j.status)&&j.baseVersion===job.baseVersion&&(record||createId?j.row.id===rowId:kind==='runs'&&payload.status==='finalized')&&Object.keys(payload).every(k=>canonical(j.row[k])===canonical(payload[k])));
   if(retry){job=retry;return rows;}
   if(!record&&kind==='runs'&&payload.status==='finalized'&&rows.some(j=>j.kind==='runs'&&j.baseVersion===null&&j.row.data?.month===data.month&&!['synced','resolved'].includes(j.status)))throw Error('This payroll has an earlier unconfirmed save. Confirm or resolve it in Data Checking before saving changed figures. Your editor is retained.');
-  const previous=[...rows].reverse().find(j=>j.row.id===rowId&&!['synced','resolved'].includes(j.status));if(previous&&previous.row.version!==job.baseVersion)throw Error('Another tab changed this device record. Reload before saving.');return [...rows,job]});current();jobs=list;saved={...structuredClone(job.row),_pending14333:true};Work82[kind]=[saved,...(Work82[kind]||[]).filter(r=>r.id!==job.row.id)];error='';errorKind='';changed();schedule();
+  const previous=[...rows].reverse().find(j=>j.row.id===rowId&&!['synced','resolved'].includes(j.status));if(previous&&previous.row.version!==job.baseVersion)throw Error('Another tab changed this device record. Reload before saving.');if(previous&&isBudget(kind,data)&&previous.row.data.status==='finalized')throw Error('Finalization is awaiting confirmation. Open the report notification to retry the saved request.');return [...rows,job]});current();jobs=list;saved={...structuredClone(job.row),_pending14333:true};Work82[kind]=[saved,...(Work82[kind]||[]).filter(r=>r.id!==job.row.id)];error='';errorKind='';changed();if(!isBudget(kind,data))schedule();
  }catch(e){if(actor()===id){error=e.message;errorKind='write';changed()}throw e}
  // Explicit saves attempt their own upload now; offline recovery keeps the existing contract.
+ if(isBudget(kind,data)){if(navigator.onLine!==false)deliverBudget(job.id);return saved;}
  if(navigator.onLine!==false&&!window.offline14239?.offline()){const upload=sync({targetId:job.id,draftsOnly:backgroundRecord(kind,data)});if(backgroundRecord(kind,data)){void upload.catch(()=>{});return saved;}await upload;current();const confirmed=jobs.find(j=>j.id===job.id);if(confirmed?.status==='synced'&&confirmed.receipt)return confirmed.receipt;}
  return saved;
 }
@@ -108,8 +177,7 @@ async function syncOnce283({automatic=false,targetId=null,draftsOnly=false}={}){
  try{
  const same=r=>matchesSaveReceipt(j,r);let saved;
  if(j.kind==='reports'&&j.row.data.kind==='finance'&&j.row.data.mode==='utilization'){
-  const request=client.rpc('save_budget_utilization',{p_report:j.row.id,p_base_version:j.baseVersion,p_data:j.row.data});
-  const result=await (request.setHeader?request.setHeader('x-ojm-database-only','1'):request);current();
+  const result=await sendBudget(client,j);current();
   if(result.error)throw Object.assign(Error(result.error.message),result.error,{code:['40001','23505'].includes(result.error.code)?'LOCAL_CONFLICT':result.error.code});
   saved=result.data;
   if(!same(saved))throw Object.assign(Error('The save receipt was not confirmed. The original reference is retained.'),{code:'NETWORK_RECEIPT'});
@@ -230,7 +298,7 @@ function ready(){
  });
  window.addEventListener('save-state14234',()=>{projectJournal()});
 }
-window.localFirst14333={refreshWork,resumeDrafts:()=>sync({draftsOnly:true}),queueSignal:name=>key(actor(),name)+':changed',verifyCleanup,async storageBytes(){const id=actor(),normal=key(id,''),reset=key(id,'snapshot:').slice(0,-9);if(!id)throw Error('Sign in to measure saved data');return window.offline14239.measureStore(await db(),'state',k=>k.startsWith(normal)||k.startsWith(reset));},pruneYears:pruneYears14341,checkStorage,storageError(message){error=message;errorKind='write';changed()},mainLoad,mainSave,mainFinish,signature:()=>[error,notice,jobs.map(j=>[j.id,j.status,j.message])],get syncing(){return running},documents:rows=>latestRows('documents',rows),saveDocument:async(data,record)=>({data:[await saveWork('documents',data,record,{data,version:record?record.version+1:1})],error:null}),setNotice(value){notice=value;changed()},initialize,invalidateConfirmed,loadDocuments,loadDocument,saveWork,sync:(options={})=>!options.coordinated&&window.idleSync14341?.run?idleSync14341.run(!!options.automatic):sync(options),snapshot,staffFunds,confirmJournalReceipts,projectJournal,findings,retry,assess,state:()=>({jobs:structuredClone(jobs),error,running}),edit,canonical};
+window.localFirst14333={budgetSave,budgetNotices,retryBudget,refreshWork,resumeDrafts:()=>sync({draftsOnly:true}),queueSignal:name=>key(actor(),name)+':changed',verifyCleanup,async storageBytes(){const id=actor(),normal=key(id,''),reset=key(id,'snapshot:').slice(0,-9);if(!id)throw Error('Sign in to measure saved data');return window.offline14239.measureStore(await db(),'state',k=>k.startsWith(normal)||k.startsWith(reset));},pruneYears:pruneYears14341,checkStorage,storageError(message){error=message;errorKind='write';changed()},mainLoad,mainSave,mainFinish,signature:()=>[error,notice,jobs.map(j=>[j.id,j.status,j.message])],get syncing(){return running},documents:rows=>latestRows('documents',rows),saveDocument:async(data,record)=>({data:[await saveWork('documents',data,record,{data,version:record?record.version+1:1})],error:null}),setNotice(value){notice=value;changed()},initialize,invalidateConfirmed,loadDocuments,loadDocument,saveWork,sync:(options={})=>!options.coordinated&&window.idleSync14341?.run?idleSync14341.run(!!options.automatic):sync(options),snapshot,staffFunds,confirmJournalReceipts,projectJournal,findings,retry,assess,state:()=>({jobs:structuredClone(jobs),error,running}),edit,canonical};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
 })();
 

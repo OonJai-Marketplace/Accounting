@@ -18,7 +18,7 @@ function budgetRows(){
 }
 function budgetMonthRows(rows,month){return month?rows.filter(r=>budgetMonth(r)===month):rows;}
 
-const isFinal=r=>r?.data?.mode==='utilization'&&r.data.status==='finalized';
+const isFinal=r=>!r?._pending14333&&r?.data?.mode==='utilization'&&r.data.status==='finalized';
 function rememberFinal(record){
  if(!isFinal(record))return;
  confirmedFinals.set(record.id,record);
@@ -29,7 +29,7 @@ function rememberFinal(record){
 function checkListedDrafts(rows,notice){
  if(window.offline14239?.offline()||!document.querySelector('#transactions-budget14313.active'))return;
  const visit=checkedOnVisit,check=context(),client=ojmDb;
- const ids=rows.filter(r=>r.data.mode==='utilization'&&!isFinal(r)&&!visit.has(r.id)).map(r=>r.id);
+ const ids=rows.filter(r=>r.data.mode==='utilization'&&!r._pending14333&&!isFinal(r)&&!visit.has(r.id)).map(r=>r.id);
  for(let i=0;i<ids.length;i+=60){
   const batch=ids.slice(i,i+60);batch.forEach(id=>visit.add(id));
   (async()=>{
@@ -154,8 +154,9 @@ function renderRequest(notice=''){
   const codes=report.orderedUnits(balances.keys());
   const amounts=key=>report.fundingAmountLines(codes,c=>balances.get(c)[key]);
   const remaining=amounts('fundRemaining');
-  return [esc(report.period(r.data)),'<span class="fund-register-purpose" title="'+esc(r.data.purpose)+'">'+esc(r.data.purpose)+'</span>',esc(r.data.status||'Draft'),amounts('requested'),amounts('approved'),amounts('receipt'),amounts('convertedOut'),amounts('convertedIn'),amounts('allocated'),remaining,
-   button(isFinal(r)?'View':'Edit',`openAllocation(${JSON.stringify(r.id)})`)];
+  const save=window.localFirst14333?.budgetSave(r.id);
+  return [esc(report.period(r.data)),'<span class="fund-register-purpose" title="'+esc(r.data.purpose)+'">'+esc(r.data.purpose)+'</span>',esc(r._pending14333?(save?.status||'Waiting for confirmation'):r.data.status||'Draft'),amounts('requested'),amounts('approved'),amounts('receipt'),amounts('convertedOut'),amounts('convertedIn'),amounts('allocated'),remaining,
+   button(r._pending14333?'Save status':isFinal(r)?'View':'Edit',`openAllocation(${JSON.stringify(r.id)})`)];
  });
  const content=section82('Saved budget requests',table82(['Month','Recipient','Purpose','Requested','Action'],requestRows).replace('<table>','<table id="savedBudgetRequests" class="budget-saved-table">'))+
   section82('Fund utilization reports',utilizationRegister(reports,utilization));
@@ -388,6 +389,7 @@ async function startAllocation(id){
   const r=await editableRecord(id);check();if(request!==allocationRequest14370)return;
   if(r.data.mode==='utilization')throw Error('Choose an original budget request.');
   const child=await linkedUtilization(id);check();if(request!==allocationRequest14370)return;
+  if(child?._pending14333)return window.budgetSaveStatus472.open(child.id);
   if(isFinal(child)){showFinal(child);return;}
   if(sameParent&&(!child||child.id===allocationRecord?.id&&child.version===allocationRecord?.version)){
    selectedParent=id;if(!fundPopup?.isConnected)presentFundEditor();return;
@@ -406,6 +408,7 @@ async function startAllocation(id){
 async function openAllocation(id){
  try{
   const check=context();if(busy)throw Error('Wait for the budget save to finish.');
+  if(window.localFirst14333?.budgetSave(id)&&!window.localFirst14333.budgetSave(id).confirmed)return window.budgetSaveStatus472.open(id);
   const request=++allocationRequest14370,r=await editableRecord(id);check();if(request!==allocationRequest14370)return;
   if(isFinal(r))return showFinal(r);
   if(r.data.mode!=='utilization')return view(id);
@@ -822,14 +825,14 @@ function saveConversion(f){
  }catch(e){showCenterStatus(e.message,true)}
 }
 function postControl(record){
- return record&&access113.can('journal','post')?'<button type="button" data-prepare-budget title="Open in Post Transaction">Journal</button>':'';
+ return record&&!record._pending14333&&access113.can('journal','post')?'<button type="button" data-prepare-budget title="Open in Post Transaction">Journal</button>':'';
 }
 function editorData(d){
  return JSON.stringify([d.date,d.budgetMonth290,d.receiptReference290||'',d.recipient||'',d.purpose||'',d.notes||'',d.movements||[],d.conversions||[],d.lines.map((l,i)=>report.lineFunding(d,l,i))]);
 }
 function showJournalReference(host,record){
  const field=host.querySelector('[data-journal-ref]'),post=field.closest('[role=dialog]').querySelector('[data-prepare-budget]');
- if(!record)return;
+ if(!record||record._pending14333)return;
  if(post)post.onclick=()=>prepareSummary(record,host,post);
  const check=context();
  journal.lookup(record.id).then(link=>{
@@ -954,7 +957,7 @@ function chooseRequest(offerNewRequest=false){
  const saved=budgetRows().filter(r=>r.data.mode==='utilization');
  const entries=requests().map(r=>[esc(report.period(r.data)),esc(r.data.purpose),canLinkRequest(r)?
   button('Link to this draft',`linkRequest(${JSON.stringify(r.id)})`):button('Use request',`startAllocation(${JSON.stringify(r.id)})`)]);
- const reports=saved.map(r=>[esc(report.period(r.data)),esc(r.data.purpose),esc(r.data.status||'Draft'),button(r.data.status==='finalized'?'View':'Edit',`openAllocation(${JSON.stringify(r.id)})`)]);
+ const reports=saved.map(r=>[esc(report.period(r.data)),esc(r.data.purpose),esc(r._pending14333?(window.localFirst14333?.budgetSave(r.id)?.status||'Waiting for confirmation'):r.data.status||'Draft'),button(r._pending14333?'Save status':isFinal(r)?'View':'Edit',`openAllocation(${JSON.stringify(r.id)})`)]);
  const {root}=budgetDialog('Requests and saved reports',
 
   section82('Budget requests',table82(['Month','Purpose','Action'],entries))+
@@ -1001,15 +1004,38 @@ async function confirmAllocationFinalization(d){
   '<p><strong>'+esc(negative)+'</strong></p><p>You can finalize with this negative monthly balance, including when payments use funds from previous months. USD and LAK balances remain separate.</p><p>This saved report becomes read-only in History. Journal posting is a separate step.</p>',
   [{label:'Cancel',value:false},{label:'Finalize anyway',value:true,primary:true}]);
 }
-async function saveAllocation(finalize){const check=context(),record=allocationRecord,selection=allocationRequest14370,controls=[];if(busy)return;busy=true;try{if(confirmedFinals.has(record?.id))throw Error('This utilization report has already been finalized. Select View to review it.');if(!record?.data.requestId14316&&allocation?.requestId14316){
- const saved=await linkedUtilization(allocation.requestId14316);check();if(selection!==allocationRequest14370)return;
- if(saved){rememberFinal(saved);if(document.querySelector('#transactions-budget14313.active'))renderRequest();
-  throw Error(isFinal(saved)?'This request already has a finalized utilization report. Select View to review it.':'This request already has a saved utilization draft. Select Edit to open it.');}
- }if(!headerValid())return;applySpending();const d=clone(allocation);validateAllocation(d,finalize);for(const node of fundPopup?.querySelectorAll('input,select,textarea,button:not([data-dismiss])')||[]){controls.push([node,node.disabled]);node.disabled=true}if(finalize&&!await confirmAllocationFinalization(d))return;check();if(selection!==allocationRequest14370)return;delete d.document14316;d.kind='finance';d.mode='utilization';d.status=finalize?'finalized':'draft';d.preparedBy=liveProfile.full_name||liveProfile.email;d.preparedRole290=liveProfile.job_title||livePermission?.job_title||'Prepared by';d.finalizedAt14316=finalize?new Date().toISOString():null;const r=await saveWork82('reports',d,record);check();if(finalize&&r._pending14333)throw Error('Finalization is waiting for database confirmation. The editor is retained; use Sync Now in Data Check to confirm this saved request.');if(selection!==allocationRequest14370)return;Work82.reports=[r,...Work82.reports.filter(old=>old.id!==r.id)];allocationRecord=r;allocation=clone(r.data);if(finalize){rememberFinal(r);allocation=null;allocationRecord=null;clearFundPopup()}else{renderAllocation();}if(document.querySelector('#transactions-budget14313.active'))renderRequest();const negative=negativeAllocationBalances(d);showCenterStatus((r._pending14333?'Fund allocation: Saved on this device. Use Sync Now when connected.':finalize?'Fund allocation finalized.':'Fund allocation saved.')+(negative&&!finalize?' Warning: negative remaining balance — '+negative+'.':''))}catch(e){showCenterStatus(e.message,true)}finally{for(const [node,disabled]of controls)node.disabled=disabled;busy=false}}
+async function saveAllocation(finalize){
+ const check=context(),record=allocationRecord,selection=allocationRequest14370,controls=[];
+ if(busy)return;busy=true;
+ try{
+  if(confirmedFinals.has(record?.id)||record?.data.status==='finalized')throw Error('This report is finalized or awaiting finalization. Open its notification to review the save.');
+  if(!headerValid())return;
+  applySpending();const d=clone(allocation);validateAllocation(d,finalize);
+  for(const node of fundPopup?.querySelectorAll('input,select,textarea,button:not([data-dismiss])')||[]){controls.push([node,node.disabled]);node.disabled=true;}
+  if(finalize&&!await confirmAllocationFinalization(d))return;
+  check();if(selection!==allocationRequest14370)return;
+  delete d.document14316;d.kind='finance';d.mode='utilization';d.status=finalize?'finalized':'draft';
+  d.preparedBy=liveProfile.full_name||liveProfile.email;d.preparedRole290=liveProfile.job_title||livePermission?.job_title||'Prepared by';
+  d.finalizedAt14316=finalize?new Date().toISOString():null;
+  // The atomic server save validates linked versions; delivery retains the new-report duplicate check.
+  // Retain the local identity before releasing the editor; never wait for a network preflight here.
+  const r=await saveWork82('reports',d,record);check();
+  if(selection!==allocationRequest14370)return;
+  const confirmed=Work82.reports.find(row=>row.id===r.id&&row.version===r.version&&!row._pending14333);
+  const saved=confirmed||r;
+  checkedOnVisit.add(saved.id);
+  Work82.reports=[saved,...Work82.reports.filter(old=>old.id!==saved.id)];allocationRecord=saved;allocation=clone(saved.data);
+  if(finalize){if(!saved._pending14333)rememberFinal(saved);clearFundPopup();}else renderAllocation();
+  if(document.querySelector('#transactions-budget14313.active'))renderRequest();
+  const negative=negativeAllocationBalances(d);
+  showCenterStatus((saved._pending14333?(finalize?'Finalization queued.':'Save queued.')+' Your copy is saved on this device; follow progress or retry from Notifications.':finalize?'Fund allocation finalized.':'Fund allocation saved.')+(negative&&!finalize?' Warning: negative remaining balance — '+negative+'.':''));
+ }catch(e){showCenterStatus(e.message,true);}
+ finally{for(const [node,disabled]of controls)node.disabled=disabled;busy=false;}
+}
 function budgetDialog(title,html,save=false){const pending=ui108.modal(title,html,save?[{label:'Cancel',value:false},{label:'Save',value:true,primary:true}]:[{label:'Close',value:false}]);const root=document.querySelector('.ui-overlay108:last-child');root.querySelector('.ui-dialog108').classList.add('budget-dialog14313');return {pending,root}}
 function renderFinalization(){if(liveProfile?.role!=='admin')return;if(finalTab==='funds')finalTab='submitted';const panel=document.getElementById('user-entry-review');if(!panel)return;let bar=panel.querySelector('#finalizationSwitch14316');if(!bar){bar=document.createElement('div');bar.id='finalizationSwitch14316';bar.className='workflow-switch14316';bar.innerHTML=button('Submitted Entries',"finalization('submitted')")+button('Reconciliation',"finalization('reconciliation')");panel.prepend(bar)}let fund=panel.querySelector('#fundAllocation14316');if(!fund){fund=document.createElement('section');fund.id='fundAllocation14316';panel.append(fund)}window.workspace14337?.mountReconciliation(panel);for(const child of panel.children)if(!child.matches('#finalizationSwitch14316,#fundAllocation14316,#reconciliationWork14337,.area-banner113,.module-header,#categoryTabShell'))child.hidden=finalTab!=='submitted';const rec=panel.querySelector('#reconciliationWork14337');if(rec)rec.hidden=finalTab!=='reconciliation';fund.hidden=finalTab!=='funds';bar.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-pressed',String(['submitted','reconciliation'][i]===finalTab)));panel.querySelectorAll('[onclick*=toggleSubmissionHistory]').forEach(b=>b.remove());if(bar.children[1])bar.children[1].hidden=!access113.can('report-reconciliation');if(finalTab==='funds')fund.innerHTML=button('Open budget utilization','showFunds()');if(finalTab==='reconciliation')void renderReconciliationList71()}
 function finalization(tab){if(tab==='reconciliation'&&!access113.can('report-reconciliation'))return showCenterStatus('Reconciliation access is required.',true);if(tab==='funds'&&(liveProfile?.role!=='admin'||!access113.can('transactions-budget14313')))return showCenterStatus('Budget Request access is required for Fund Allocation.',true);if(tab==='funds')tab='submitted';finalTab=tab;window.workspace14337?.closeReconciliationHistory();renderFinalization()}
-function renderHistory(){const budgetAllowed=liveProfile?.role==='admin'&&!!access113.can('transactions-budget14313')&&Work82.owner===liveProfile.id;const submissionAllowed=!!access113.can('user-entry-review');if(historyTab==='budget'&&!(liveProfile?.role==='admin'&&access113.can('transactions-budget14313'))||historyTab==='submitted'&&!submissionAllowed)historyTab='journal';const panel=document.getElementById('transactions-all');if(!panel)return;let bar=panel.querySelector('#historySwitch14316');if(!bar){const journal=document.createElement('div');journal.id='journalHistory14316';for(const child of [...panel.children])if(!child.matches('.area-banner113,.module-header,#categoryTabShell'))journal.append(child);panel.append(journal);bar=document.createElement('div');bar.id='historySwitch14316';bar.className='workflow-switch14316';bar.innerHTML=button('Journal',"history('journal')")+button('Submitted Entries',"history('submitted')")+button('Budget Requests',"history('budget')");journal.before(bar);const budget=document.createElement('section');budget.id='budgetHistory14316';panel.append(budget)}bar.querySelectorAll('button').forEach((b,i)=>b.hidden=i===1&&!submissionAllowed||i===2&&!budgetAllowed);const submission=document.getElementById('userEntryHistoryPanel');if(submission&&submission.parentElement!==panel){panel.append(submission);submission.querySelectorAll('[onclick*=toggleSubmissionHistory]').forEach(b=>b.remove())}document.getElementById('journalHistory14316').hidden=historyTab!=='journal';if(submission)submission.hidden=historyTab!=='submitted';const budget=document.getElementById('budgetHistory14316');budget.hidden=historyTab!=='budget';bar.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-pressed',String(['journal','submitted','budget'][i]===historyTab)));const historyRecords=budgetAllowed?budgetRows():[];const month=historyMonth14341.choose('budget',historyRecords.map(budgetMonth));if(historyTab!=='budget')return;budget.innerHTML=historyMonth14341.control('budget',month)+historyMonth14341.summary([['Budget Records',budgetMonthRows(historyRecords,month).length]])+section82('Budget Request History',table82(['Date','Purpose','Record','Status','Action'],budgetMonthRows(historyRecords,month).map(r=>[esc(formatAppDate(r.data.date)),esc(r.data.purpose),r.data.mode==='utilization'?'Fund allocation':'Budget request',esc(r.data.status||'Saved'),button('View',`view(${JSON.stringify(r.id)})`)+(r.data.mode!=='utilization'?button('Editor',`openRequest(${JSON.stringify(r.id)})`):r.data.status!=='finalized'?button('Continue',`openAllocation(${JSON.stringify(r.id)})`):'')+button('Delete',`remove(${JSON.stringify(r.id)})`)])));historyMonth14341.bind(budget,'budget',renderHistory,true)}
+function renderHistory(){const budgetAllowed=liveProfile?.role==='admin'&&!!access113.can('transactions-budget14313')&&Work82.owner===liveProfile.id;const submissionAllowed=!!access113.can('user-entry-review');if(historyTab==='budget'&&!(liveProfile?.role==='admin'&&access113.can('transactions-budget14313'))||historyTab==='submitted'&&!submissionAllowed)historyTab='journal';const panel=document.getElementById('transactions-all');if(!panel)return;let bar=panel.querySelector('#historySwitch14316');if(!bar){const journal=document.createElement('div');journal.id='journalHistory14316';for(const child of [...panel.children])if(!child.matches('.area-banner113,.module-header,#categoryTabShell'))journal.append(child);panel.append(journal);bar=document.createElement('div');bar.id='historySwitch14316';bar.className='workflow-switch14316';bar.innerHTML=button('Journal',"history('journal')")+button('Submitted Entries',"history('submitted')")+button('Budget Requests',"history('budget')");journal.before(bar);const budget=document.createElement('section');budget.id='budgetHistory14316';panel.append(budget)}bar.querySelectorAll('button').forEach((b,i)=>b.hidden=i===1&&!submissionAllowed||i===2&&!budgetAllowed);const submission=document.getElementById('userEntryHistoryPanel');if(submission&&submission.parentElement!==panel){panel.append(submission);submission.querySelectorAll('[onclick*=toggleSubmissionHistory]').forEach(b=>b.remove())}document.getElementById('journalHistory14316').hidden=historyTab!=='journal';if(submission)submission.hidden=historyTab!=='submitted';const budget=document.getElementById('budgetHistory14316');budget.hidden=historyTab!=='budget';bar.querySelectorAll('button').forEach((b,i)=>b.setAttribute('aria-pressed',String(['journal','submitted','budget'][i]===historyTab)));const historyRecords=budgetAllowed?budgetRows():[];const month=historyMonth14341.choose('budget',historyRecords.map(budgetMonth));if(historyTab!=='budget')return;budget.innerHTML=historyMonth14341.control('budget',month)+historyMonth14341.summary([['Budget Records',budgetMonthRows(historyRecords,month).length]])+section82('Budget Request History',table82(['Date','Purpose','Record','Status','Action'],budgetMonthRows(historyRecords,month).map(r=>[esc(formatAppDate(r.data.date)),esc(r.data.purpose),r.data.mode==='utilization'?'Fund allocation':'Budget request',esc(r._pending14333?(window.localFirst14333?.budgetSave(r.id)?.status||'Waiting for confirmation'):r.data.status||'Saved'),button('View',`view(${JSON.stringify(r.id)})`)+(r.data.mode!=='utilization'?button('Editor',`openRequest(${JSON.stringify(r.id)})`):r.data.status!=='finalized'?button('Continue',`openAllocation(${JSON.stringify(r.id)})`):'')+button('Delete',`remove(${JSON.stringify(r.id)})`)])));historyMonth14341.bind(budget,'budget',renderHistory,true)}
 function history(tab){historyTab=tab;renderHistory();if(tab==='submitted')window.renderUserEntryReview?.();if(tab==='budget')(window.startup14257?.isPrepared('payroll')?Promise.resolve():loadWork82()).then(renderHistory)}
 function payrollDraftClean(id){
  const host=fundPopup?.querySelector('#budgetFunds290');
@@ -1072,6 +1098,7 @@ async function showFinal(record){
  return showReport(record);
 }
 async function view(id){
+ if(window.localFirst14333?.budgetSave(id)&&!window.localFirst14333.budgetSave(id).confirmed)return window.budgetSaveStatus472.open(id);
  try{const r=await editableRecord(id);if(isFinal(r))await showFinal(r);else await showReport(r);}catch(e){showCenterStatus(e.message,true)}
 }
 function cacheWording(record){
@@ -1104,18 +1131,19 @@ async function showReport(r){
 
 async function printRecord(id,dialog){
  try{
+  if(window.localFirst14333?.budgetSave(id)&&!window.localFirst14333.budgetSave(id).confirmed)return window.budgetSaveStatus472.open(id);
   const r=await live(id);
   const d=BudgetReportWording.data(r);
   if(d.mode==='utilization')return await printUtilization(d,r,dialog);
   return await print82('Budget Request',documentWorkspace105.sanitize(d.document14316?.html||financeHtml82(d)),d.date);
  }catch(e){showCenterStatus(e.message,true)}
 }
-async function remove(id){try{const check=context(),client=ojmDb;const r=await live(id);const children=Work82.reports.filter(x=>x.data.requestId14316===id);if(!await ui117.confirm('Delete this '+(r.data.mode==='utilization'?'allocation':'request and all linked allocations')+'? The saved document and shared link will also be removed.'))return;check();const out=await client.rpc('delete_budget14316',{p_id:id,p_version:r.version});check();if(out.error)throw Error(out.error.code==='PGRST202'?'Install INSTALL-BUDGET-LIFECYCLE-v143.16.sql before deleting a linked budget record.':out.error.message);const removed=new Set(out.data?.deletedIds||[id,...children.map(x=>x.id)]);Work82.reports=Work82.reports.filter(x=>!removed.has(x.id));if(removed.has(allocationRecord?.id)||removed.has(allocation?.requestId14316)){allocation=null;allocationRecord=null}if(removed.has(Work82.reportRecord?.id)){Work82.reportRecord=null;Work82.report=null}renderHistory();showCenterStatus('Budget transaction deleted.')}catch(e){showCenterStatus(e.message,true)}}
+async function remove(id){try{const check=context(),client=ojmDb;if(Work82.reports.some(r=>(r.id===id||r.data.requestId14316===id)&&r._pending14333))throw Error('A save for this report is awaiting confirmation. Open its notification before deleting.');const r=await live(id);const children=Work82.reports.filter(x=>x.data.requestId14316===id);if(!await ui117.confirm('Delete this '+(r.data.mode==='utilization'?'allocation':'request and all linked allocations')+'? The saved document and shared link will also be removed.'))return;check();const out=await client.rpc('delete_budget14316',{p_id:id,p_version:r.version});check();if(out.error)throw Error(out.error.code==='PGRST202'?'Install INSTALL-BUDGET-LIFECYCLE-v143.16.sql before deleting a linked budget record.':out.error.message);const removed=new Set(out.data?.deletedIds||[id,...children.map(x=>x.id)]);Work82.reports=Work82.reports.filter(x=>!removed.has(x.id));if(removed.has(allocationRecord?.id)||removed.has(allocation?.requestId14316)){allocation=null;allocationRecord=null}if(removed.has(Work82.reportRecord?.id)){Work82.reportRecord=null;Work82.report=null}renderHistory();showCenterStatus('Budget transaction deleted.')}catch(e){showCenterStatus(e.message,true)}}
 const switchBefore=window.switchTab;window.switchTab=function(id,...args){if(id==='transactions-budget14313')checkedOnVisit=new Set();captureFund();return switchBefore.call(this,id,...args)};
 const renderBefore=window.renderWork82;window.renderWork82=function(...args){const out=renderBefore.apply(this,args);if(document.querySelector('#user-entry-review.active'))renderFinalization();if(document.querySelector('#transactions-all.active'))renderHistory();return out};
 const deleteBefore=window.deleteWork108;window.deleteWork108=function(kind,id){return kind==='reports'&&Work82.reports.find(r=>r.id===id)?.data.kind==='finance'?remove(id):deleteBefore(kind,id)};
 const openBefore=window.openOperational82;window.openOperational82=function(id){const r=Work82.reports.find(r=>r.id===id);return r?.data.kind==='finance'?(r.data.mode==='utilization'?openAllocation(id):openRequest(id)):openBefore(id)};
-window.budgetWorkflow14316={get finalTab(){return finalTab},get historyTab(){return historyTab},prepareHistory:renderHistory,prepareFinalization:renderFinalization,renderRequest,reviewPayroll,newRequest,editRequest,requestData,refreshCategories,templateApplied,printPicker,requestHTML,showFunds,combineRequests,saveDocument,requireSaved,decorateEditor,openRequest,startAllocation,openAllocation,chooseRequest,linkRequest,importHistory,saveAllocation,previewAllocation,newUnlinked,removeMovement,removeConversion,finalization,history,view,printRecord,remove,parseDocument,recalculate,validDate14317,editMovement,editConversion,openFundingEditor};
+window.budgetWorkflow14316={refreshSaveStatus(){if(!busy&&actor===liveProfile?.id&&actorClient===ojmDb&&document.querySelector('#transactions-budget14313.active'))renderRequest();},get finalTab(){return finalTab},get historyTab(){return historyTab},prepareHistory:renderHistory,prepareFinalization:renderFinalization,renderRequest,reviewPayroll,newRequest,editRequest,requestData,refreshCategories,templateApplied,printPicker,requestHTML,showFunds,combineRequests,saveDocument,requireSaved,decorateEditor,openRequest,startAllocation,openAllocation,chooseRequest,linkRequest,importHistory,saveAllocation,previewAllocation,newUnlinked,removeMovement,removeConversion,finalization,history,view,printRecord,remove,parseDocument,recalculate,validDate14317,editMovement,editConversion,openFundingEditor};
 window.addEventListener('transactions-reset14316',e=>{if(e.detail.scopes.includes('reports')){confirmedFinals.clear();checkedOnVisit=new Set();selectedParent='';if(requestEditor){requestEditor.root.resolve108(false);requestEditor=null;}allocation=null;allocationRecord=null;clearFundPopup();Work82.reports=[];Work82.report=null;Work82.reportRecord=null;Object.assign(Finance82,{mode:'request',date:today82(),recipient:'',purpose:'',notes:'',lines:[],movements:[],conversions:[]});renderHistory()}});
 function checkPopupAccess(){
  if(requestEditor&&(liveProfile?.id!==actor||ojmDb!==actorClient||liveProfile?.role!=='admin'||!access113.can('transactions-budget14313')||!document.getElementById('loginGate')?.classList.contains('is-authenticated'))){requestEditor.root.resolve108(false);requestEditor=null;}

@@ -10,7 +10,7 @@ function harness(data,answer=true){
   formatAppNumber:n=>Number(n).toFixed(2),
   CurrencyStore:{currencies:[{code:'USD'},{code:'LAK'}]},
   BudgetOwnerBalance:{validateShare:()=>{}},
-  context:()=>()=>{},confirmedFinals:new Map(),allocationRecord:{id:'report',version:4,data},
+  context:()=>()=>{},checkedOnVisit:new Set(),confirmedFinals:new Map(),allocationRecord:{id:'report',version:4,data},
   allocationRequest14370:1,busy:false,allocation:structuredClone(data),
   clone:structuredClone,headerValid:()=>true,applySpending:()=>{},
   fundPopup:{querySelectorAll:()=>[control]},
@@ -55,5 +55,15 @@ const april={date:'2026-04-30',lines:[],movements:[movement('receipt','USD',100)
  const both=structuredClone(april);both.movements[2].inflow=10;
  h=harness(both);await h.ctx.saveAllocation(true);assert.match(h.calls.dialogs[0].html,/USD \(20.00\), LAK \(99,990.00\)/);
  assert.equal(h.calls.saved.length,1);
+ for(const finalize of [false,true]){
+  h=harness(positive);let finalized=0,closed=0;
+  h.ctx.rememberFinal=()=>finalized++;h.ctx.clearFundPopup=()=>closed++;
+  h.ctx.saveWork82=async(table,d)=>({id:'report',version:5,data:d,_pending14333:true});
+  await h.ctx.saveAllocation(finalize);
+  assert.equal(finalized,0,'Pending finalization cannot enter confirmed finals');
+  assert.equal(closed,finalize?1:0);assert(h.ctx.Work82.reports[0]._pending14333);
+  assert.match(h.calls.statuses[0].message,/queued.*Notifications/);assert(!h.calls.statuses[0].error);
+ }
+ console.log('PASS pending Save and Finalize release controls without claiming database confirmation.');
  console.log('PASS: negative USD/positive LAK, both negative, confirm/cancel, draft warning, normal finalize, invalid-input guards and unchanged currency amounts.');
 })().catch(e=>{console.error(e);process.exitCode=1;});
