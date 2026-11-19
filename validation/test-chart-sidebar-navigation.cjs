@@ -39,7 +39,7 @@ const createFixture = require('./phase0-browser-fixture.cjs');
    return {headers:edges(table.tHead.rows[0]), cells:edges(first), rowDisplay:getComputedStyle(first).display,
     skip:getComputedStyle(first).contentVisibility};
   });
-  assert.equal(layout.skip, 'auto', JSON.stringify(layout));
+  assert.equal(layout.skip, 'visible', JSON.stringify(layout));
   layout.headers.forEach((x,i) => assert(Math.abs(x-layout.cells[i])<2, JSON.stringify(layout)));
   await rows.last().scrollIntoViewIfNeeded();
   await rows.last().focus();

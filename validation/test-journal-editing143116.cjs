@@ -62,10 +62,10 @@ const reports=fixture();Object.assign(reports,{Accounts69:{},JournalModule:{entr
 Object.defineProperty(Object.getPrototypeOf(reports.document.createElement('tr')),'cells',{get(){return this.querySelectorAll('td,th')}});
 reports.run('src/shared/formatting/numbers.js');reports.run('src/reports/financial/reports-desktop-v79.js');
 const valuation={currency:'Recorded valuation detail',headers:['Account','Original balance','LAK value','Rate'],values:[['Bank','100 USD','2,140,000.00','21,400 LAK / USD']],metrics:[],note:''};
-reports.ForeignFunds14386={hierarchy:rows=>rows,select:rows=>rows,reportDetails:()=>valuation};
+reports.ForeignFunds14386={presentation:name=>({text:name,name,depth:0}),label:(_,content)=>content,hierarchy:rows=>rows,select:rows=>rows,reportDetails:()=>valuation};
 reports.reportData79=()=>[{currency:'LAK',sourceCurrency:'USD',key:'bank',account:{name:'Bank',type:'ASSET'},opening:0,debit:214000000,credit:0,closing:214000000,original:{closing:10000},lines:[{id:'OJM260001',date:'2025-12-31',dr:214000000,cr:0,book_rate_lak:21400,originalCurrency:'USD',memo:'Opening money',originalIndex:0}]}];
 reports.run('src/reports/financial/reports-v118.js');
 const gl=reports.reportModel79('gl');assert.equal(gl[0].values[0][2],'Bank');assert.equal(gl[0].values[0][4],'21,400');assert.equal(gl[0].values[0].at(-1),'2,140,000.00 DR');assert.deepEqual(gl[1],valuation,'supplemental detail remains intact');
-const table=reports.reportTable79(gl[0].headers,gl[0].values,'LAK');assert.ok(table.includes('--report-id-width143116:calc(11ch + 16px)'));assert.ok(table.includes('data-account="Bank"'));assert.ok(table.includes('data-ledger-column143108="description"'));
+const table=reports.reportTable79(gl[0].headers,gl[0].values,'LAK');assert.ok(table.includes('data-ledger-column143108="id"'));assert.ok(table.includes('data-account="Bank"'));assert.ok(table.includes('data-ledger-column143108="description"'));
 const tb=reports.reportModel79('tb')[0],tbHtml=reports.reportTable79(tb.headers,tb.values,'LAK');assert.ok(tbHtml.includes('trial-columns143116'));assert.equal((tbHtml.match(/<th data-trial-column143116="amount"/g)||[]).length,4);assert.ok(tbHtml.includes('data-trial-column143116="account"'));
 console.log('PASS: grouped saved rates, clean account labels, running direction, untouched valuation detail and semantic ledger/trial-balance widths.');

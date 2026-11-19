@@ -18,16 +18,15 @@ function parentIndex(){
   cache.set(account.code,parents);return parents;
  };
 }
-function descendants(rows,parent){
- const parents=parentIndex();
+function descendants(rows,parent,parents=parentIndex()){
  return rows.filter(r=>posting(r.account)&&parents(r.account).some(p=>p.code===parent.code));
 }
 function select(rows,key){if(!key)return rows;const parent=AccountingStore.accounts.find(a=>!posting(a)&&accountKey69(a)===key);return parent?descendants(rows,parent):rows.filter(r=>r.key===key);}
 function hierarchy(rows,compare){
  if(compare)rows=[...rows].sort(compare);
  // Subtotals are display rows only. Financial metrics always use the leaf rows.
- const leaves=rows.filter(r=>posting(r.account)),parents=AccountingStore.accounts.filter(a=>!posting(a)).sort(compare?(a,b)=>compare({account:a},{account:b}):()=>0),result=[],emitted=new Set();
- function emit(parent,depth,path){if(path.has(parent.code))return;const children=descendants(leaves,parent);if(!children.length)return;const next=new Set(path).add(parent.code),total={...children[0],account:{...parent,name:'\u00a0'.repeat(depth*3)+parent.name+' — subtotal'},lines:[],isSubtotal14386:true};for(const k of ['opening','debit','credit','closing','baseOpening','baseDebit','baseCredit','baseClosing','missingRates'])total[k]=children.reduce((n,r)=>n+num(r[k]),0);result.push(total);for(const p of parents.filter(a=>a.parentCode===parent.code))emit(p,depth+1,next);for(const r of children.filter(r=>r.account.parentCode===parent.code)){if(emitted.has(r.key))continue;emitted.add(r.key);result.push({...r,account:{...r.account,name:'\u00a0'.repeat((depth+1)*3)+r.account.name}})}}
+ const leaves=rows.filter(r=>posting(r.account)),parents=AccountingStore.accounts.filter(a=>!posting(a)).sort(compare?(a,b)=>compare({account:a},{account:b}):()=>0),result=[],emitted=new Set(), ancestry=parentIndex();
+ function emit(parent,depth,path){if(path.has(parent.code))return;const children=descendants(leaves,parent,ancestry);if(!children.length)return;const next=new Set(path).add(parent.code),total={...children[0],account:{...parent,name:'\u00a0'.repeat(depth*3)+parent.name+' — subtotal'},lines:[],isSubtotal14386:true};for(const k of ['opening','debit','credit','closing','baseOpening','baseDebit','baseCredit','baseClosing','missingRates'])total[k]=children.reduce((n,r)=>n+num(r[k]),0);result.push(total);for(const p of parents.filter(a=>a.parentCode===parent.code))emit(p,depth+1,next);for(const r of children.filter(r=>r.account.parentCode===parent.code)){if(emitted.has(r.key))continue;emitted.add(r.key);result.push({...r,account:{...r.account,name:'\u00a0'.repeat((depth+1)*3)+r.account.name}})}}
  for(const p of parents.filter(p=>!parents.some(a=>a.code===p.parentCode)))emit(p,0,new Set());
  for(const r of leaves)if(!emitted.has(r.key))result.push(r);
  return result;
@@ -41,11 +40,11 @@ function presentation(value){
  const prefix=raw.match(/^\u00a0+/);if(prefix)depth=Math.ceil(prefix[0].length/3);
  return {text,name:account?.name||name,depth,subtotal:/(?: — subtotal| \(subtotal\))$/.test(text)||!!account&&!posting(account)||/^Total\s/i.test(text)};
 }
-function label(value,content){const p=presentation(value);return '<span class="account-indent143185" style="display:block;margin-left:'+p.depth*24+'px">'+(content??esc(p.text))+'</span>';}
+function label(value,content,p=presentation(value)){return '<span class="account-indent143185" style="display:block;margin-left:'+p.depth*24+'px">'+(content??esc(p.text))+'</span>';}
 function average(r){const o=original(r);if(!tracked(r.account))return '—';if(r.missingRates)return 'Valuation incomplete';if(!o.closing)return r.baseClosing?'Residual LAK value — review':'—';const rate=r.baseClosing/o.closing;if(!Number.isFinite(rate)||rate<=0)return 'Valuation mismatch — review';if(o.closing<0&&(r.account.baseType||r.account.type)==='ASSET'&&!r.account.isTechnical&&(!r.account.purpose||r.account.purpose==='regular'))return 'Negative balance — review';return rateText(rate)+' LAK / '+(r.sourceCurrency||r.currency);}
 function detailRows(rows){
- const leaves=rows.filter(r=>posting(r.account)),values=[];
- for(const p of AccountingStore.accounts.filter(a=>!posting(a))){const children=descendants(leaves,p).filter(r=>{const o=original(r);return o.opening||o.debit||o.credit});if(!children.length)continue;const currencies=new Map();for(const r of children){const c=r.sourceCurrency||r.currency;currencies.set(c,(currencies.get(c)||0)+original(r).closing)}const missing=children.reduce((n,r)=>n+r.missingRates,0);values.push([p.code+' — '+p.name+' (subtotal)',[...currencies].map(([c,v])=>c+' '+balanceText69(v)).join('; '),missing?'Valuation incomplete':balanceText69(children.reduce((n,r)=>n+r.baseClosing,0)),currencies.size===1&&children.every(r=>tracked(r.account))&&!missing&&[...currencies.values()][0]!==0&&children.reduce((n,r)=>n+r.baseClosing,0)/[...currencies.values()][0]>0?rateText(children.reduce((n,r)=>n+r.baseClosing,0)/[...currencies.values()][0])+' LAK / '+[...currencies.keys()][0]:'Separate child rates']);
+ const leaves=rows.filter(r=>posting(r.account)),values=[],ancestry=parentIndex();
+ for(const p of AccountingStore.accounts.filter(a=>!posting(a))){const children=descendants(leaves,p,ancestry).filter(r=>{const o=original(r);return o.opening||o.debit||o.credit});if(!children.length)continue;const currencies=new Map();for(const r of children){const c=r.sourceCurrency||r.currency;currencies.set(c,(currencies.get(c)||0)+original(r).closing)}const missing=children.reduce((n,r)=>n+r.missingRates,0);values.push([p.code+' — '+p.name+' (subtotal)',[...currencies].map(([c,v])=>c+' '+balanceText69(v)).join('; '),missing?'Valuation incomplete':balanceText69(children.reduce((n,r)=>n+r.baseClosing,0)),currencies.size===1&&children.every(r=>tracked(r.account))&&!missing&&[...currencies.values()][0]!==0&&children.reduce((n,r)=>n+r.baseClosing,0)/[...currencies.values()][0]>0?rateText(children.reduce((n,r)=>n+r.baseClosing,0)/[...currencies.values()][0])+' LAK / '+[...currencies.keys()][0]:'Separate child rates']);
  for(const r of children)values.push([r.account.code+' — '+r.account.name,(r.sourceCurrency||r.currency)+' '+balanceText69(original(r).closing),r.missingRates?'Valuation incomplete':balanceText69(r.baseClosing),average(r)]);
  }
  for(const r of leaves.filter(r=>tracked(r.account)&&!r.account.parentCode))values.push([r.account.code+' — '+r.account.name,(r.sourceCurrency||r.currency)+' '+balanceText69(original(r).closing),r.missingRates?'Valuation incomplete':balanceText69(r.baseClosing),average(r)]);

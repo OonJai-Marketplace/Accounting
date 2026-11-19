@@ -140,7 +140,7 @@ const reportingAmounts = (() => {
    metric('Difference',total(grouped,'closing'));
   }else for(const f of fields)metric(f[0].toUpperCase()+f.slice(1),total(grouped,f));
   const note='Average book rates as of '+formatAppDate(to)+'. Each source account uses its posted year-to-date LAK carrying value divided by its original balance. '+(withheld.length?'Totals requiring review: '+withheld.join(', ')+'. ':'')+'Review affected amounts in the currency contributions below.';
-  const result=[{currency,headers:['Reporting account','Classification',...(kind==='bs'?[]:performance?['Period debit','Period credit']:['Opening balance','Period debit','Period credit']),...(yearOpening?['Year-opening change']:[]),performance?'Net amount':'Closing balance'],values:summary,metrics,note}];
+  const result=[{currency,rowAccounts:kind==='tb'?displayRows.map(g=>g.account):undefined,headers:['Reporting account','Classification',...(kind==='bs'?[]:performance?['Period debit','Period credit']:['Opening balance','Period debit','Period credit']),...(yearOpening?['Year-opening change']:[]),performance?'Net amount':'Closing balance'],values:summary,metrics,note}];
   result.push({currency:'Currency contributions · LAK',headers:['Reporting account','Source account','Currency','Original '+(performance?'net':'balance'),'Average book rate','Rate date','LAK contribution'],values:grouped.flatMap(g=>g.parts.map(p=>[groupLabel(g.account),label(p.row.account),p.row.currency,amount(net(p.row.account,p.row)),p.rate.rate?p.rate.rate.toLocaleString(appNumberLocale(),{maximumFractionDigits:10})+' LAK/'+p.row.currency:p.rate.issue,to,amount(net(p.row.account,p))])),metrics:[],note:'These rows explain the reporting-account totals above. Each source is counted once.'});
   if(kind==='gl'||kind==='activity')result.push(ledger(items,to));
   const parents=parentGroups(items).filter(g=>kind!=='bs'||!['REVENUE','EXPENSE'].includes(type(g.account)));
@@ -208,6 +208,15 @@ const reportingAmounts = (() => {
 const Reports79={kind:'pl',trialView:'standard',mode:'monthly',month:Accounts69.month,year:Accounts69.year,quarter:Accounts69.quarter,from:Accounts69.from,to:Accounts69.to,currency:'',basis:'LAK',account:'',query:'',notes:{},cash:[],payroll:[]};
 const reportNames79={pl:'Profit and Loss',bs:'Balance Sheet',cf:'Cash Flow',tb:'Trial Balance',gl:'General Ledger',activity:'Account Activity',expense:'Expense',payroll:'Payroll'};
 const re79=v=>escapeHtml(String(v??''));
+// A monthly comparison displays the individual months of one quarter or one year.
+function trialComparisonPeriod(s){
+ const anchor=/^\d{4}-\d{2}/.test(s.from||'')?s.from.slice(0,7):summaryPeriod14331.current();
+ const year=Number(anchor.slice(0,4)),q=Math.floor((Number(anchor.slice(5))-1)/3);
+ const all=summaryPeriod14331.yearMonths(year),annual=s.from===all[0]+'-01'&&s.to===summaryPeriod14331.end(all[11]);
+ const list=annual?all:all.slice(q*3,q*3+3);
+ if(s.mode===(annual?'yearly':'quarterly')&&s.from===list[0]+'-01'&&s.to===summaryPeriod14331.end(list.at(-1))&&!s.allMonths14331&&!s.selectedMonths14331?.length)return;
+ periodFilters14331.setPeriod(s,list,{mode:annual?'yearly':'quarterly'});
+}
 const reportBooks=(()=>{
  const monthOf=value=>String(value||'').slice(0,7);
  const closed=value=>['closed','locked'].includes(PeriodReview.periods[monthOf(value)]?.status);
@@ -262,7 +271,8 @@ const reportBooks=(()=>{
    if(periods.has(next))Object.assign(s,periods.get(next));
    previous=next;
   }
-  if(next==='activity'||next==='comparison')return true;
+  if(next==='comparison'){trialComparisonPeriod(s);return true}
+  if(next==='activity')return true;
   if(next==='history'&&!s.allMonths14331&&closedRange(s.from,s.to))return true;
   const month=next==='live'?workingMonth():closedMonths().at(-1);
   if(!month)return false;
@@ -276,7 +286,21 @@ const reportBooks=(()=>{
    periods.set(oldScope,before);previous=scope();
   }
  }
- return {applyFilters,closed,closedMonths,closedRange,workingMonth,scope,sync,reset,includes,selected,monthOptions,filterButton,bind,carryToActivity};
+ let warming=false;
+ function prepareOtherTrial(render){
+  if(warming||!window.workspaceViews14364?.preparing||!window.reportWindow143195?.cachedLedger())return;
+  const previousScope=previous,s={...Reports79},remembered=new Map(periods);
+  warming=true;
+  try{
+   const other=s.trialView==='comparative'?'standard':'comparative';
+   applyFilters({trialView:other});
+   render();
+  }finally{
+   Object.assign(Reports79,s);periods.clear();for(const [key,value] of remembered)periods.set(key,value);previous=previousScope;
+   try{render()}finally{warming=false}
+  }
+ }
+ return {comparisonPeriod:()=>periods.get('comparison'),prepareOtherTrial,get warming(){return warming},applyFilters,closed,closedMonths,closedRange,workingMonth,scope,sync,reset,includes,selected,monthOptions,filterButton,bind,carryToActivity};
 })();
 function reportRange79(){const r=Reports79;if(r.mode==='custom')return;let y=+r.year,m=1,n=12;if(r.mode==='monthly'){[y,m]=r.month.split('-').map(Number);n=1}if(r.mode==='quarterly'){m=(+r.quarter-1)*3+1;n=3}r.from=date71(y,m,1);const end=new Date(y,m-1+n,0);r.to=date71(end.getFullYear(),end.getMonth()+1,end.getDate())}
 let reportRenderCache14336=null;
@@ -381,13 +405,15 @@ function toggleReportFilters143153(button){
  const comparing=()=>trial&&form.trialView.value==='comparative';
  if(trial){
   const controls=dialog.querySelector('[data-trial-options]');
-  const syncType=()=>{controls.hidden=!comparing();periodButton.disabled=openBook&&!comparing();periodButton.setAttribute('aria-haspopup','dialog')};
+  const standardPeriod={...period};let wasComparison=false;
+  const syncType=()=>{if(comparing()){if(!wasComparison&&s.trialView!=='comparative')Object.assign(period,reportBooks.comparisonPeriod());trialComparisonPeriod(period);}else if(wasComparison){Object.assign(period,standardPeriod);}
+   wasComparison=comparing();periodButton.textContent=periodCaption();controls.hidden=!comparing();periodButton.disabled=openBook&&!comparing();periodButton.setAttribute('aria-haspopup','dialog')};
   form.trialView.onchange=syncType;syncType();
  }
  const historical=()=>!comparing()&&button.closest('.tab-content')?.id!=='report-open-tb'&&(kind==='tb'||reportBooks.scope()==='history');
  periodButton.onclick=()=>summaryPeriod14331.open(periodButton,periodFilters14331.selection(period),(values,meta)=>{
   periodFilters14331.setPeriod(period,values,meta);periodButton.textContent=periodCaption();
- },{mode:period.allMonths14331||period.selectedMonths14331?.length?'monthly':period.mode,from:period.from,to:period.to,custom:true,closedBooks:historical()});
+ },{mode:comparing()?period.mode:period.allMonths14331||period.selectedMonths14331?.length?'monthly':period.mode,from:period.from,to:period.to,custom:!comparing(),comparison:comparing(),closedBooks:historical()});
  form.by.onchange=()=>{form.direction.innerHTML=options(orders(form.by.value),form.direction.value)};
  form.basis.onchange=()=>accountChoices(ledger?form.account.value:'');
  function accountChoices(selected){
@@ -412,51 +438,16 @@ function compareReportAccounts143153(a,b){const direction=reportSort143153().dir
 function compareReportLines143153(a,b,kind){const sort=reportSort143153(kind),direction=sort.direction==='desc'?-1:1,date=String(a.date).localeCompare(String(b.date)),account=String(a.accountCode||'').localeCompare(String(b.accountCode||''),undefined,{numeric:true});return direction*(sort.by==='account'?(account||date):(date||account))||String(a.id).localeCompare(String(b.id),undefined,{numeric:true})||(a.originalIndex||0)-(b.originalIndex||0)}
 // The model and export paths retain every row. The scrolling ledger mounts
 // only nearby row groups so browser layout work stays bounded on tab changes.
-let ledgerRenderBlocks300=null;
-const ledgerScreens300=new WeakMap();
-function ledgerSpacer300(columns,height){
- return `<tr aria-hidden="true"><td colspan="${columns}" style="padding:0!important;border:0!important"><span style="display:block;height:${height}px!important"></span></td></tr>`;
-}
-function bindLedgerBlocks300(host,blocks){
- ledgerScreens300.get(host)?.disconnect();
- ledgerScreens300.delete(host);
- if(!blocks.length)return;
- const bodies=[...host.querySelectorAll('tbody[data-ledger-block300]')];
- function show(body){
-  const block=blocks[Number(body.dataset.ledgerBlock300)];
-  if(!block.mounted){body.innerHTML=block.html;block.mounted=true}
- }
- const observer=new IntersectionObserver(records=>{
-  if(!host.isConnected||!host.closest('.tab-content.active'))return;
-  for(const record of records){
-   const body=record.target,block=blocks[Number(body.dataset.ledgerBlock300)];
-   if(record.isIntersecting){show(body);continue}
-   if(!block.mounted||body.contains(document.activeElement)||!record.boundingClientRect.height)continue;
-   body.innerHTML=ledgerSpacer300(block.columns,record.boundingClientRect.height);block.mounted=false;
-  }
- },{rootMargin:'400px 0px'});
- bodies.forEach(body=>observer.observe(body));
- ledgerScreens300.set(host,{disconnect:()=>observer.disconnect(),expand:()=>{observer.disconnect();bodies.forEach(show)},resume:()=>bodies.forEach(body=>observer.observe(body))});
-}
-function activeLedger300(){return ledgerScreens300.get(document.querySelector(':is(#report-gl,#report-tb,#report-open-gl,#report-open-tb).active .r79'))}
-document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='f')activeLedger300()?.expand()},true);
-if(typeof window.addEventListener==='function'){
- window.addEventListener('beforeprint',()=>activeLedger300()?.expand());
- window.addEventListener('afterprint',()=>activeLedger300()?.resume());
- window.addEventListener('page113',()=>{for(const host of document.querySelectorAll(':is(#report-gl,#report-tb,#report-open-gl,#report-open-tb):not(.active) .r79'))ledgerScreens300.get(host)?.resume()});
-}
-
 function reportTable79(headers,rows,currency,print=false){
  const ledger=headers.includes('Entry ID'),trial=headers.includes('Period debit')&&headers.includes('Closing balance'),column=h=>({'Date':'date','Entry ID':'id','Account':'account','Description / Reference':'description','LAK rate':'rate','Classification':'classification','Original currency / net':'original'}[h]||'amount');
- // Measure all rows so column widths accommodate the complete report.
- const longest=(indices,min)=>rows.reduce((max,row)=>Math.max(max,...indices.map(i=>String(row[i]??'').length)),min);
- const idWidth=longest([headers.indexOf('Entry ID')],9)+2,amountWidth=longest(headers.flatMap((h,i)=>column(h)==='amount'?[i]:[]),12)+1;
- const widths=`--report-id-width143116:calc(${idWidth}ch + 16px);--report-amount-width143116:calc(${amountWidth}ch + 16px);--report-min-width143116:calc(${ledger?665+(headers.includes('LAK rate')?100:0):360+(headers.includes('Original currency / net')?170:0)}px + ${ledger?idWidth+3*amountWidth:5*amountWidth}ch + ${ledger?64:80}px)`;
  const attr=h=>ledger?'data-ledger-column143108="'+column(h)+'"':trial?'data-trial-column143116="'+column(h)+'"':'';
 
  const accountIndex=headers.findIndex(h=>h==='Account'||h==='Account / parent');
+ const labels=new Map();
  const renderRow=row=>{
-  const account=accountIndex>=0?(window.ForeignFunds14386?.presentation(row[accountIndex])||{text:String(row[accountIndex]).trim(),name:String(row[accountIndex]).trim(),subtotal:false}):null;
+  const raw=row[accountIndex];
+  if(accountIndex>=0&&!labels.has(raw))labels.set(raw,window.ForeignFunds14386?.presentation(raw)||{text:String(raw).trim(),name:String(raw).trim(),subtotal:false});
+  const account=labels.get(raw);
   return `<tr${account?.subtotal?' class="report-subtotal143185"':''}>${row.map((v,i)=>{
    const isAccount=i===accountIndex,value=isAccount?account.text:v;
    const reportGroup=headers[i]==='Reporting account',reportSource=headers[i]==='Source account';
@@ -465,24 +456,12 @@ function reportTable79(headers,rows,currency,print=false){
     const [side,...type]=String(v).split(' · ');
     content='<span class="balance-badge118" title="Closing balance side">'+re79(side)+'</span>'+re79(type.join(' · '));
    }
-   if(isAccount&&window.ForeignFunds14386)content=ForeignFunds14386.label(v,content);
+   if(isAccount&&window.ForeignFunds14386)content=ForeignFunds14386.label(v,content,account);
    return `<td ${attr(headers[i])}>${account?.subtotal?'<strong>'+content+'</strong>':content}</td>`;
   }).join('')}</tr>`;
  };
- const windowed=ledgerRenderBlocks300&&!print&&(ledger||trial||headers.includes('Average carrying rate'))&&rows.length>64;
- let body;
- if(windowed){
-  const groups=[];
-  for(let first=0;first<rows.length;first+=32){
-   const chunk=rows.slice(first,first+32),html=chunk.map(renderRow).join(''),mounted=first===0;
-   const index=ledgerRenderBlocks300.push({html,mounted,columns:headers.length})-1;
-   groups.push(`<tbody data-ledger-block300="${index}">${mounted?html:ledgerSpacer300(headers.length,chunk.length*29)}</tbody>`);
-  }
-  body=groups.join('');
- }else{
-  body='<tbody>'+(rows.map(renderRow).join('')||`<tr><td colspan="${headers.length}">No posted activity matches this selection.</td></tr>`)+'</tbody>';
- }
- return `<div class="r79-table"><table ${ledger?'class="ledger-columns143108" data-own-pager14383="1"':trial?'class="trial-columns143116"':headers.includes('Average carrying rate')?'class="valuation-columns"':''} ${ledger||trial?'style="'+widths+'"':''}><thead><tr>${headers.map(h=>`<th ${attr(h)}>${re79(h)}</th>`).join('')}</tr></thead>${body}</table></div>`}
+ const body='<tbody>'+(rows.map(renderRow).join('')||`<tr><td colspan="${headers.length}">No posted activity matches this selection.</td></tr>`)+'</tbody>';
+ return `<div class="r79-table"><table ${ledger?'class="ledger-columns143108" data-own-pager14383="1"':trial?'class="trial-columns143116"':headers.includes('Average carrying rate')?'class="valuation-columns"':''}><thead><tr>${headers.map(h=>`<th ${attr(h)}>${re79(h)}</th>`).join('')}</tr></thead>${body}</table></div>`}
 
 function reportHierarchy14383(rows){
  return window.ForeignFunds14386?ForeignFunds14386.hierarchy(rows,compareReportAccounts143153):[...rows].sort(compareReportAccounts143153);
@@ -511,7 +490,7 @@ function reportModel79(kind,oldest=false){
  if(Reports79.basis==='LAK'){const missing=reportData79().filter(r=>r.missingRates);if(missing.length)return [{currency:'LAK — incomplete',headers:['Account','Original currency','Missing rate records'],values:missing.map(r=>[r.account.name,r.sourceCurrency,r.missingRates]),metrics:[],note:'LAK totals are withheld until missing exchange rates are supplied. Original-currency records remain available. No exchange rate has been guessed.'}];}
  const data=reportData79(),groups=[];const sum=(rows,f)=>rows.reduce((s,r)=>s+f(r),0),type=(rows,t)=>rows.filter(r=>String(r.account.baseType||r.account.type).toUpperCase()===t),active=r=>r.opening||r.debit||r.credit||(kind==='tb'&&r.closing);
  for(const currency of [...new Set(data.map(r=>r.currency))].sort()){
- const all=data.filter(r=>r.currency===currency),rows=all.filter(active);let headers=[],values=[],metrics=[],note='';
+ const all=data.filter(r=>r.currency===currency),rows=all.filter(active);let rowAccounts,headers=[],values=[],metrics=[],note='';
  if(kind==='pl'||kind==='expense'){
  const rev=type(rows,'REVENUE'),exp=type(rows,'EXPENSE'),income=sum(rev,r=>r.credit-r.debit),cost=sum(exp,r=>r.debit-r.credit);
  headers=['Classification','Account','Debit','Credit','Net amount'];values=reportHierarchy14383(kind==='expense'?exp:[...rev,...exp]).map(r=>[r.account.type,r.account.name,money69(r.debit),money69(r.credit),money69(r.account.type==='REVENUE'?r.credit-r.debit:r.debit-r.credit)]);
@@ -522,7 +501,7 @@ function reportModel79(kind,oldest=false){
  headers=['Classification','Account','Closing amount'];values=['ASSET','LIABILITY','EQUITY'].flatMap(t=>reportHierarchy14383(type(rows,t)).map(r=>[t,r.account.name,money69(t==='ASSET'?r.closing:-r.closing)]));values.push(['EQUITY','Unclosed accumulated result',money69(earnings)]);metrics=[['Assets',assets],['Liabilities + equity + result',liabilities+equity+earnings],['Difference',assets-liabilities-equity-earnings]];
  note=balanceExplanation143154(currency,assets,liabilities,equity,earnings);
  }else if(kind==='tb'){
- const ordered=reportHierarchy14383(rows);headers=['Account','Classification','Opening balance','Period debit','Period credit','Closing balance'];values=ordered.map(r=>[r.account.name,(r.closing>0?'DR · ':r.closing<0?'CR · ':'— · ')+r.account.type,balanceText69(r.opening),money69(r.debit),money69(r.credit),money69(r.closing)]);const dr=sum(rows,r=>Math.max(r.closing,0)),cr=sum(rows,r=>Math.max(-r.closing,0));metrics=[['Closing debit',dr],['Closing credit',cr],['Difference',dr-cr]];note='Equal totals check arithmetic; they do not confirm that every entry is complete or correctly classified.';
+ const ordered=reportHierarchy14383(rows);rowAccounts=ordered.map(r=>r.account);headers=['Account','Classification','Opening balance','Period debit','Period credit','Closing balance'];values=ordered.map(r=>[r.account.name,(r.closing>0?'DR · ':r.closing<0?'CR · ':'— · ')+r.account.type,balanceText69(r.opening),money69(r.debit),money69(r.credit),money69(r.closing)]);const dr=sum(rows,r=>Math.max(r.closing,0)),cr=sum(rows,r=>Math.max(-r.closing,0));metrics=[['Closing debit',dr],['Closing credit',cr],['Difference',dr-cr]];note='Equal totals check arithmetic; they do not confirm that every entry is complete or correctly classified.';
  if(Reports79.from.slice(0,4)!==Reports79.to.slice(0,4)){
   note+=' Opening and closing balances come from the first and last books. Period debits and credits exclude annual opening entries.';
   const carryChange=r=>r.closing-r.opening-r.debit+r.credit;
@@ -547,12 +526,12 @@ function reportModel79(kind,oldest=false){
 
  const unknown=all.filter(r=>active(r)&&!['ASSET','LIABILITY','EQUITY','REVENUE','EXPENSE','SYSTEM'].includes(String(r.account.type).toUpperCase()));if(unknown.length)note+=` Attention: ${unknown.length} account(s) have no recognized classification. Review the Trial Balance before relying on statements.`;
  if(Reports79.basis==='LAK'){note+=' LAK amounts use saved transaction/carrying rates. Original currencies are retained; mapping accounts are excluded from operating results.';if(!['gl','activity','bs','tb'].includes(kind)){const index=headers.indexOf('Account');if(index>=0){headers.splice(index+1,0,'Original currency / net');values=values.map(v=>{const row=rows.find(r=>r.account.name===String(v[index]).trim());return [...v.slice(0,index+1),row?row.sourceCurrency+' '+balanceText69(['pl','expense'].includes(kind)?row.original.debit-row.original.credit:row.original.closing):'Subtotal in LAK',...v.slice(index+1)]})}}}
- groups.push({currency,headers,values,metrics,note});
+ groups.push({currency,headers,values,metrics,note,rowAccounts});
  }
  if(window.ForeignFunds14386){const detail=ForeignFunds14386.reportDetails(data,kind);if(detail)groups.push(detail)}
  return groups;
 }
-function reportContent79(kind,oldest=false){const groups=reportModel79(kind,oldest);if(groups[0]?.monthlyTrial)return '<section class="r79-group"><h4>'+re79(groups[0].currency)+'</h4>'+monthlyTrialTable(groups[0],oldest)+'</section>';return groups.map(g=>`<section class="r79-group"><h4>${re79(g.currency)}${g.periodLabel?' · '+re79(g.periodLabel):''}</h4><div class="r79-metrics">${g.metrics.map(([label,value])=>`<div><small>${re79(label)}</small><strong class="${value<0?'r79-negative':''}">${money69(value)}</strong></div>`).join('')}</div>${reportTable79(g.headers,g.values,g.currency,oldest)}<p class="r79-note">${re79(g.note)}</p></section>`).join('')||'<p class="r79-note">No chart accounts or posted journal data are available yet.</p>'}
+function reportContent79(kind,oldest=false){const groups=reportModel79(kind,oldest);if(groups[0]?.monthlyTrial)return '<section class="r79-group"><h4>'+re79(groups[0].currency)+'</h4>'+monthlyTrialTable(groups[0],oldest,true)+'</section>';return groups.map(g=>`<section class="r79-group"><h4>${re79(g.currency)}${g.periodLabel?' · '+re79(g.periodLabel):''}</h4><div class="r79-metrics">${g.metrics.map(([label,value])=>`<div><small>${re79(label)}</small><strong class="${value<0?'r79-negative':''}">${money69(value)}</strong></div>`).join('')}</div>${kind==='tb'&&g.rowAccounts&&typeof standardTrialTable==='function'&&window.ForeignFunds14386?standardTrialTable(g,oldest):reportTable79(g.headers,g.values,g.currency,oldest)}<p class="r79-note">${re79(g.note)}</p></section>`).join('')||'<p class="r79-note">No chart accounts or posted journal data are available yet.</p>'}
 function reportHeader79(kind,pending=false){
  const s=Reports79,title=kind==='tb'&&s.trialView==='comparative'?'Monthly Comparative Trial Balance':reportNames79[kind];
  return `<header class="r79-header"><div><span class="r79-eyebrow">${reportBooks.scope()==='live'?'ACCOUNTS · OPEN BOOK':reportBooks.scope()==='history'?'REPORTS · CLOSED BOOKS':reportBooks.scope()==='comparison'?'POSTED JOURNAL':'ACCOUNTS · POSTED JOURNAL'}</span><h3>${title}</h3><p>${kind==='tb'?trialPeriodLabel79(s):s.selectedMonths14331?.length?'Selected months: '+s.selectedMonths14331.map(m=>summaryPeriod14331.monthLabel(m)).join(', '):s.allMonths14331?'All months':kind==='bs'?'Position as of '+formatAppDate(s.to):formatAppDate(s.from)+' – '+formatAppDate(s.to)} · ${reportBooks.scope()==='live'?'Prior balances carried forward':reportBooks.scope()==='history'?'Closed-book history':'Posted entries'}</p></div><div class="r79-actions">${['gl','activity'].includes(kind)?`<div class="r79-search143153 no-print"><label>Search<input type="search" placeholder="Date, ID, account or description" value="${re79(s.query)}" onchange="reportSet79('query',this.value)"></label></div>`:''}<button type="button" class="je-btn je-btn-secondary" aria-haspopup="dialog" onclick="toggleReportFilters143153(this)">Filter</button><button class="je-btn je-btn-secondary" onclick="reportWindow143195.refresh()">Refresh</button><button ${pending?'disabled ':''}class="je-btn je-btn-secondary" onclick="exportReport79('${kind}')" title="Export CSV">Export</button><button ${pending?'disabled ':''}class="je-btn je-btn-emerald" onclick="printDesktopReport79('${kind}')" title="Print or save PDF">Print</button></div></header>`;
@@ -564,12 +543,11 @@ function renderReports79(){
  const panel=document.querySelector('#report-'+kind+'.active,#report-open-'+kind+'.active');if(!panel)continue;let host=panel.querySelector('.r79');if(!host){if(!panel.querySelector('.r79-original')){const original=document.createElement('div');original.className='r79-original';for(const child of [...panel.childNodes])if(!child.matches?.('.area-banner113,#categoryTabShell,.module-header'))original.append(child);panel.append(original)}host=document.createElement('section');host.className='r79';panel.append(host)}
  Reports79.kind=kind;if(window.reportWindow143195?.reuse(host))continue;if(window.reportWindow143195&&!reportWindow143195.prepare(host))continue;const s=Reports79,isLedger=['gl','activity'].includes(kind);
  if(isLedger||kind==='cf'||kind==='payroll')reportFilterAccounts299.set(host,reportData79().map(r=>({key:r.key,account:r.account,currency:r.sourceCurrency||r.currency})));
- const blocks=['gl','tb'].includes(kind)&&typeof IntersectionObserver==='function'?[]:null;
- let content;
- try{ledgerRenderBlocks300=blocks;content=reportContent79(kind)}finally{ledgerRenderBlocks300=null}
- host.innerHTML=`${reportHeader79(kind)}<div class="r79-content">${content}</div><div class="r79-notes"><label>Report notes / findings <span>Optional · included when printing or exporting; kept for this session only</span><textarea rows="3" placeholder="Add context, supporting references or matters to review…" oninput="Reports79.notes['${kind}']=this.value">${re79(s.notes[kind]||'')}</textarea></label></div>`;
- if(blocks)bindLedgerBlocks300(host,blocks);
+ const content=reportContent79(kind);
+ host.innerHTML=`${reportHeader79(kind)}<div class="r79-content">${content}</div>${kind==='tb'?'':`<div class="r79-notes"><label>Report notes / findings <span>Optional · included when printing or exporting; kept for this session only</span><textarea rows="3" placeholder="Add context, supporting references or matters to review…" oninput="Reports79.notes['${kind}']=this.value">${re79(s.notes[kind]||'')}</textarea></label></div>`}`;
+ window.tableResize143117?.prepare?.(host);
  window.reportWindow143195?.rendered(host);
+ if(kind==='tb')reportBooks.prepareOtherTrial(renderReports79);
  }
  }finally{reportRenderCache14336=previousCache}
 }
@@ -590,5 +568,5 @@ const refreshBefore79=refreshAllTables;refreshAllTables=function(...args){const 
 matchMedia('(min-width:768px)').addEventListener('change',e=>{if(e.matches)renderReports79()});
 document.addEventListener('DOMContentLoaded',renderReports79);
 
-const logoutBefore79=logoutDemoUser;logoutDemoUser=async function(){reportSorts143153.clear();document.querySelectorAll('dialog.report-dialog299[open]').forEach(d=>d.close());Reports79.notes={};Reports79.cash=[];Reports79.payroll=[];Reports79.account='';Reports79.query='';Reports79.currency='';document.querySelectorAll('.r79,.r79-print-frame').forEach(n=>{ledgerScreens300.get(n)?.disconnect();n.remove()});return logoutBefore79()};
+const logoutBefore79=logoutDemoUser;logoutDemoUser=async function(){reportSorts143153.clear();document.querySelectorAll('dialog.report-dialog299[open]').forEach(d=>d.close());Reports79.notes={};Reports79.cash=[];Reports79.payroll=[];Reports79.account='';Reports79.query='';Reports79.currency='';document.querySelectorAll('.r79,.r79-print-frame').forEach(n=>n.remove());return logoutBefore79()};
 ;

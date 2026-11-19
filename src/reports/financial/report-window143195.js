@@ -21,7 +21,8 @@ function restoreFilters(){
   }catch{}
  }else if(entries!==rows){entries=rows;const content=JSON.stringify(rows);if(content!==entryContent){entryContent=content;reset()}}
 }
-function save(){if(reportBooks.scope()==='live')return;try{localStorage.setItem('ojm-report-filters143195:'+scope,JSON.stringify(Object.fromEntries(fields.map(k=>[k,Reports79[k]]))))}catch{}}
+let lastSavedFilters='';
+function save(){if(reportBooks.warming||reportBooks.scope()==='live')return;try{const value=JSON.stringify(Object.fromEntries(fields.map(k=>[k,Reports79[k]])));if(lastSavedFilters!==scope+value){localStorage.setItem('ojm-report-filters143195:'+scope,value);lastSavedFilters=scope+value}}catch{}}
 const range=(from,to)=>({from:Reports79.basis==='reporting'||reportBooks.scope()==='history'||from<to.slice(0,4)+'-01-01'?to.slice(0,4)+'-01-01':from,to});
 function periods(){const s=Reports79;let list;if(s.allMonths14331||reportBooks.scope()==='comparison')return [allPeriod];
  if(s.kind==='bs'&&window.reportPeriods118)list=reportPeriods118();
@@ -82,7 +83,27 @@ function signature(){
   kind==='tb'&&s.trialView==='comparative'?monthlyTrialPreferences('report'):null,selection,window.reportSort143153?.(kind),settings.system?.dateFormat,settings.system?.numberFormat,settings.accounting?.decimalPlaces,
   AccountingStore.accounts,AccountingStore.subAccounts,CurrencyStore.currencies,...periods().map(p=>available(p)?.revision)]);
 }
-function reuse(host){restoreFilters();if(!reportBooks.sync())return false;normalizeAll();return complete()&&renderedViews.get(host)===signature()}
+// Retain both prepared trial layouts. A changed report signature rebuilds that view.
+const trialViews=new WeakMap();
+function reuse(host){
+ restoreFilters();if(!reportBooks.sync())return false;normalizeAll();if(!complete())return false;
+ const key=signature();
+ if(renderedViews.get(host)===key)return true;
+ if(Reports79.kind!=='tb')return false;
+ const mode=Reports79.trialView==='comparative'?'comparative':'standard';
+ let views=trialViews.get(host);
+ if(!views||views.scope!==scope||views.generation!==generation){views={scope,generation};trialViews.set(host,views);}
+ if(views.active&&views.active!==mode&&renderedViews.has(host)){
+  const fragment=document.createDocumentFragment();
+  while(host.firstChild)fragment.append(host.firstChild);
+  views[views.active]={key:renderedViews.get(host),fragment};
+  renderedViews.delete(host);
+ }
+ views.active=mode;
+ const saved=views[mode];delete views[mode];
+ if(saved?.key!==key)return false;
+ host.replaceChildren(saved.fragment);renderedViews.set(host,key);return true;
+}
 function rendered(host){host.removeAttribute('aria-busy');renderedViews.set(host,signature());window.workspaceViews14364?.remember?.(active())}
 function prioritize(){const view=active(),wanted=new Set(periods().map(key));if(foreground&&(foreground.view!==view||foreground.selection!==[...wanted].join(',')))cancelForeground();for(const [k,task]of pending)if(!task.keep&&(!view.startsWith('report-')||!wanted.has(k))){task.controller.abort();pending.delete(k)}}
 function prepare(host){restoreFilters();if(!reportBooks.sync()){

@@ -740,3 +740,14 @@ Edit accounts. Comparative reports include all accounts matching their own curre
 filter and retain their own column choice. Put Columns beside Report type in the
 filter; comparative account names and headings need readable dark text against
 their pale backgrounds. Preserve source amounts and the shortcut's saved settings.
+
+
+Accounting tables, 2026-11-19: prepare General Ledger and Trial Balance at login.
+Keep report rows mounted while scrolling. Retain the prepared standard and
+comparative layouts. Comparative periods are calendar quarters or full years
+with individual months across the table. Use the quarter containing the selected
+month on first use. Group trial accounts by classification, emphasize parents,
+indent children, and keep the report in the page's vertical scroll. Trial Balance
+has no report-notes editor. Size data-table columns to their displayed contents,
+including formatted negative amounts. Reuse widths on return and preserve manual
+resizing and purpose-built calendar, editor and print layouts.

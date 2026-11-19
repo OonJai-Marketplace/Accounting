@@ -33,12 +33,16 @@ function monthlyTrialCurrencyCompare(a,b){
  const order=unit=>['LAK','USD','THB'].includes(unit)?['LAK','USD','THB'].indexOf(unit):unit?3:-1;
  return order(a)-order(b)||String(a).localeCompare(String(b));
 }
+const trialCategories=[['ASSET','Assets'],['LIABILITY','Liabilities'],['EQUITY','Equity'],['INCOME','Income'],['EXPENSE','Expenses'],['DRAWING','Drawings'],['OTHER','Other accounts'],['SYSTEM','System']];
+function trialCategory(account){
+ const type=String(window.AccountGroups14253?.type(account)||account?.type||account?.baseType||account?.account_type||'OTHER').toUpperCase();
+ return type==='REVENUE'?'INCOME':trialCategories.some(([key])=>key===type)?type:'OTHER';
+}
 function monthlyTrialPopupGroups(model){
- const categories=[['ASSET','Assets'],['LIABILITY','Liabilities'],['EQUITY','Equity'],['INCOME','Income'],['EXPENSE','Expenses'],['DRAWING','Drawings'],['OTHER','Other accounts'],['SYSTEM','System']],groups=new Map(),parents=ForeignFunds14386.parentIndex();
+ const groups=new Map(),parents=ForeignFunds14386.parentIndex();
  const compare=(a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true});
  model.values.slice(0,model.values.length-model.totalCount).forEach((row,i)=>{
-  const account=model.rowAccounts?.[i],raw=String(window.AccountGroups14253?.type(account)||(account?.isTechnical||account?.is_technical||account?.purpose&&account.purpose!=='regular'||account?.account_purpose&&account.account_purpose!=='regular'?'SYSTEM':account?.type||account?.baseType||account?.account_type||'OTHER')).toUpperCase();
-  const type=raw==='REVENUE'?'INCOME':categories.some(([key])=>key===raw)?raw:'OTHER';
+  const account=model.rowAccounts?.[i],type=trialCategory(account);
   const ancestors=account?parents(account).slice().reverse():[];
   const parent=account&&monthlyTrialParent(account,account.currency),unit=model.rowCurrencies?.[i]??(parent?'':account?.currency||'');
   const name=model.rateDates?monthlyTrialReadableName(row[0]).replace(/ · Subtotal · LAK$/,' · Subtotal'):account?monthlyTrialPopupLabel(account)+(parent&&row.slice(1).some(Boolean)?' · Subtotal':''):monthlyTrialReadableName(row[0]);
@@ -46,8 +50,8 @@ function monthlyTrialPopupGroups(model){
   if(!groups.has(type))groups.set(type,new Map());
   const units=groups.get(type);if(!units.has(unit))units.set(unit,[]);units.get(unit).push(item);
  });
- return categories.filter(([key])=>groups.has(key)).map(([key,label])=>({label,units:[...groups.get(key)].sort(([a],[b])=>monthlyTrialCurrencyCompare(a,b)).map(([unit,items])=>({unit,items:items.sort((a,b)=>{
-  for(let i=0;i<Math.min(a.path.length,b.path.length);i++){const difference=compare(a.path[i],b.path[i]);if(difference)return difference}
+ return trialCategories.filter(([key])=>groups.has(key)).map(([key,label])=>({label,units:[...groups.get(key)].sort(([a],[b])=>monthlyTrialCurrencyCompare(a,b)).map(([unit,items])=>({unit,items:items.sort((a,b)=>{
+  for(let i=0;i<Math.min(a.path.length,b.path.length);i++){const difference=compare(a.path[i],b.path[i]);if(difference)return model.direction==='desc'?-difference:difference}
   return a.path.length-b.path.length;
  })}))}));
 }
@@ -166,7 +170,8 @@ function monthlyTrialReportModel(){
  const s=Reports79,months=summaryPeriod14331.monthRange([s.from.slice(0,7),s.to.slice(0,7)]);
  const entries=reportWindow143195.cachedLedger();
  if(!entries)throw Error('The posted journal for this comparison has not finished loading.');
- return monthlyTrialModel(entries,months,{...monthlyTrialPreferences('report'),accounts:null,from:s.from,to:s.to,currency:s.currency,basis:s.basis,direction:reportSort143153('tb').direction});
+ const model=monthlyTrialModel(entries,months,{...monthlyTrialPreferences('report'),accounts:null,from:s.from,to:s.to,currency:s.currency,basis:s.basis,direction:reportSort143153('tb').direction});
+ model.direction=reportSort143153('tb').direction;return model;
 }
 function monthlyTrialTable(model,print=false,groupCategories=false){
  const {months,subheads,values,totalCount}=model,width=subheads.length,span=print?(width===1?5:2):months.length,tables=[];
@@ -189,6 +194,26 @@ function monthlyTrialTable(model,print=false,groupCategories=false){
   tables.push('<table class="monthly-trial-table" aria-label="Monthly comparative trial balance" data-own-pager14383="1"><thead><tr><th scope="col" rowspan="2">Accounts</th>'+labels+'</tr><tr>'+headers+'</tr></thead><tbody>'+body+'</tbody><tfoot>'+footer.map(row=>rowHTML(row)).join('')+'</tfoot></table>');
  }
  return print?tables.join(''):'<div class="monthly-trial-scroll">'+tables.join('')+'</div>';
+}
+
+// Keep categories and hierarchy in the screen table without altering the report's financial rows.
+function standardTrialTable(group,print=false){
+ const headers=group.headers,parents=ForeignFunds14386.parentIndex(),categories=new Map();
+ const reporting=headers[0]==='Reporting account';
+ group.values.forEach((row,i)=>{
+  const account=group.rowAccounts[i];if(!account)return;
+  const key=trialCategory(account);
+  if(!categories.has(key))categories.set(key,[]);
+  const parent=account.isPosting===false||account.is_posting===false;
+  const depth=parents(account).length;
+  const original=String(row[0]).trim(),name=original.replace(/ — subtotal$/,'');
+  const visible=monthlyTrialReadableName(original);
+  const link=print?re79(visible):'<button type="button" class="r79-link" data-account="'+re79(reporting?original:name)+'" data-currency="'+re79(group.currency)+'" onclick="'+(reporting?'reportingAmounts.open(this.dataset.account,true)':'reportAccount79(this.dataset.account,this.dataset.currency)')+'">'+re79(visible)+'</button>';
+  const label='<th scope="row"><span class="trial-account-label" style="padding-inline-start:'+depth*16+'px">'+link+'</span></th>';
+  categories.get(key).push('<tr'+(parent?' class="trial-parent"':'')+'>'+label+row.slice(1).map(v=>'<td>'+re79(v)+'</td>').join('')+'</tr>');
+ });
+ const section=trialCategories.filter(([key])=>categories.has(key)).map(([key,title])=>'<tr class="trial-category"><th colspan="'+headers.length+'">'+re79(title)+'</th></tr>'+categories.get(key).join('')).join('');
+ return '<div class="r79-table trial-report-scroll"><table class="standard-trial-table" data-own-pager14383="1"><thead><tr>'+headers.map(h=>'<th scope="col">'+re79(h)+'</th>').join('')+'</tr></thead><tbody>'+section+'</tbody></table></div>';
 }
 
 // Remember measured pixel widths per account label and month/field on this device.

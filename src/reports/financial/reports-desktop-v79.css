@@ -96,7 +96,20 @@ dialog.monthly-trial-dialog:has(.monthly-trial-filter[open]){min-height:min(350p
 .trial-account-picker label[hidden],.trial-filter-options[hidden]{display:none!important}
 .trial-account-list{max-height:32vh;overflow-y:auto}
 .monthly-trial-scroll{max-width:100%;min-height:0;overflow:auto;overscroll-behavior:contain}
-.r79-content .monthly-trial-scroll{max-height:72vh}
+.r79-content :is(.monthly-trial-scroll,.trial-report-scroll){max-height:none;overflow-x:auto;overscroll-behavior:auto}
+@media screen {
+ :is(#report-tb,#report-open-tb) .r79 .r79-content .r79-table{max-height:none!important;overscroll-behavior:auto!important}
+ html body :is(#report-tb,#report-open-tb) .r79 .r79-content :is(.standard-trial-table,.monthly-trial-table) tbody tr:not(.trial-parent):has(th[scope=row]) :is(th,td,button,span){font-weight:400!important;text-transform:none!important}
+ html body :is(#report-tb,#report-open-tb) .r79 .r79-content :is(.standard-trial-table,.monthly-trial-table) tbody tr.trial-parent :is(th,td,button,span){font-weight:700!important}
+ html body :is(#report-tb,#report-open-tb) .r79 .standard-trial-table :is(th,td){padding:4px 7px;text-align:right;white-space:nowrap}
+ html body :is(#report-tb,#report-open-tb) .r79 .standard-trial-table :is(th,td):nth-child(-n+2){text-align:left}
+ html body :is(#report-tb,#report-open-tb) .r79 .standard-trial-table .trial-category th{background:#174e3b!important;color:white!important;text-align:left!important;font-weight:700!important;padding:5px 7px}
+ html body :is(#report-tb,#report-open-tb) .r79 .monthly-trial-table thead th[scope=col]{text-align:right!important}
+ html body :is(#report-tb,#report-open-tb) .r79 :is(.standard-trial-table,.monthly-trial-table) th[scope=row] .trial-account-label{display:block;white-space:normal;overflow-wrap:break-word}
+ html body :is(#report-tb,#report-open-tb) .r79 .r79-content .standard-trial-table tbody th[scope=row]{background:#fffdf7!important;color:#173b32!important}
+ html body :is(#report-tb,#report-open-tb) .r79 .r79-content .standard-trial-table th[scope=row] button{white-space:normal;color:#075d42!important}
+ :is(#report-tb,#report-open-tb) .trial-account-label{display:inline-block}
+}
 html body .monthly-trial-scroll .monthly-trial-table{width:max-content;min-width:0;max-width:none;table-layout:auto;border-collapse:separate;border-spacing:0;font:12px/1.15 Arial,sans-serif;font-variant-numeric:tabular-nums;margin:0}
 html body .monthly-trial-table :is(th,td){width:auto;min-width:0;height:auto;padding:2px 4px;border:0;border-bottom:1px solid #dce5df;line-height:1.15;font-size:12px;text-align:right;white-space:nowrap}
 .monthly-trial-table thead{position:sticky;top:0;z-index:2}

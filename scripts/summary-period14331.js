@@ -55,7 +55,7 @@ function open(button,values,onChange,options={}){
  if(mode==='yearly')grid='<div class="oj-date-grid104 month">'+Array.from({length:12},(_,i)=>year-5+i).map(y=>'<button type="button" data-year="'+y+'" aria-pressed="'+(selected.size===12&&yearMonths(y).every(m=>selected.has(m)))+'">'+y+'</button>').join('')+'</div>';
  if(mode==='custom')grid='<div class="period-range14331"><label>From<input type="date" data-from value="'+(from||'')+'"></label><label>Through<input type="date" data-to value="'+(to||'')+'"></label></div>';
  const names={monthly:'Months',quarterly:'Quarters',yearly:'Years',custom:'Date range'};
- const modes=['monthly','quarterly','yearly',...(options.custom?['custom']:[])];
+ const modes=options.comparison?['quarterly','yearly']:['monthly','quarterly','yearly',...(options.custom?['custom']:[])];
  const tabs=modes.map(m=>'<button type="button" data-mode="'+m+'" aria-pressed="'+(mode===m)+'">'+names[m]+'</button>').join('');
  const navigation='<div class="oj-date-head104"><button type="button" data-step="-1" aria-label="Previous year">‹</button><strong>'+heading+'</strong><button type="button" data-step="1" aria-label="Next year">›</button></div>';
  const status=mode==='monthly'&&anchor?monthLabel(anchor)+' · Apply or choose an end month':mode==='monthly'&&!selected.size?'Choose a month':mode==='custom'?(from&&to?formatAppDate(from)+' – '+formatAppDate(to):'Choose both dates'):label([...selected]);
@@ -98,7 +98,12 @@ function open(button,values,onChange,options={}){
    return apply(months,'monthly');
   }
   apply(options.allMonthsYear?yearMonths(year):[],options.allMonthsYear?'yearly':'all');
- };panel.querySelector('[data-clear]').onclick=()=>{selected.clear();anchor=null;from=to='';redrawFocus('[data-clear]')};panel.querySelector('[data-apply]').onclick=()=>apply([...selected]);
+ };if(options.comparison){
+  const now=panel.querySelector('[data-now]');const annual=mode==='yearly';
+  now.textContent=annual?'This year':'This quarter';now.onclick=()=>{const m=current(),year=yearMonths(+m.slice(0,4)),q=Math.floor((Number(m.slice(5))-1)/3);apply(annual?year:year.slice(q*3,q*3+3),annual?'yearly':'quarterly')};
+  panel.querySelector('[data-all]').hidden=true;
+ }
+ panel.querySelector('[data-clear]').onclick=()=>{selected.clear();anchor=null;from=to='';redrawFocus('[data-clear]')};panel.querySelector('[data-apply]').onclick=()=>apply([...selected]);
  }
  draw();position();panel.querySelector('[aria-pressed=true], [data-month]')?.focus({preventScroll:true});panel.onkeydown=e=>{if(e.key==='Escape'){e.preventDefault();e.stopPropagation();close(true)}if(e.key==='Tab'){const list=[...panel.querySelectorAll('button:not(:disabled),input:not(:disabled)')],index=list.indexOf(document.activeElement);if(e.shiftKey&&index<=0){e.preventDefault();list.at(-1).focus()}else if(!e.shiftKey&&index===list.length-1){e.preventDefault();list[0].focus()}}};
 }

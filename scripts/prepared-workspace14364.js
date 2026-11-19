@@ -64,7 +64,7 @@ async function build(initial=true){if(pendingBuild)return pendingBuild;const who
   for(const id of targets){if(!initial&&window.idleSync14341&&!idleSync14341.allowed())break;if(actor()!==who||client()!==db)throw Error('Account changed while preparing screens.');if(!initial&&valid(id))continue;
    const fn=renderer(id);if(!fn)continue;
    preparingTarget=id;const node=document.getElementById(id),prior=[...document.querySelectorAll('.tab-content.active')];const swapped=!node.classList.contains('active');if(swapped){prior.forEach(n=>n.classList.remove('active'));node.classList.add('active');}restore(id);
-   let result;try{rendering=true;result=window.preparedViews14340?.withPreparation?preparedViews14340.withPreparation(fn):fn();if(result?.then)result=await result;}
+   let result;try{rendering=true;result=window.preparedViews14340?.withPreparation?preparedViews14340.withPreparation(fn):fn();if(result?.then)result=await result;if(initial&&result!==false)window.tableResize143117?.prepare?.(node);}
    catch(error){prepared.delete(id);console.warn('Screen will load on opening:',id,error.message);continue;}
    finally{rendering=false;if(swapped&&current()===id&&actor()===who&&client()===db){node.classList.remove('active');prior.forEach(n=>n.classList.add('active'));}holdPayroll(current());}
    if(result===false){prepared.delete(id);continue;}if(actor()!==who||client()!==db)throw Error('Account changed while preparing screens.');prepared.set(id,signature(id));
