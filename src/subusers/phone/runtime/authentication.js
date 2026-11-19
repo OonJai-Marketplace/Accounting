@@ -21,10 +21,18 @@
         let mirrored; try { mirrored=JSON.parse(localStorage.getItem(mirrorKey(owner))); } catch {}
         S.draft=normalizeDraft(mirrored || data.draft || {});
         if(queue().some(q=>q.key===S.draft.requestKey))S.draft=blankDraft();
-        touch();if(new URL(window.location.href).searchParams.get('scan')==='1'&&permission('sub-users-workspace')){window.location.replace('scan.html?capture=1');return;}$('loginForm').hidden=true;$('workspace').hidden=false;paintConnection();render();drawUsers();
+        touch();$('loginForm').hidden=true;$('workspace').hidden=false;paintConnection();render();drawUsers();
         if(!data.savedAt)await refresh();
         if(current(owner,epoch)&&navigator.onLine&&(data.savedAt||queue().length))void resumePhone();
-        if(current(owner,epoch))window.phoneLogin210?.finish();
+        if(current(owner,epoch)){
+          window.phoneLogin210?.finish();
+          const url=new URL(window.location.href);
+          if(url.searchParams.get('scan')==='1'){
+            url.searchParams.delete('scan');
+            history.replaceState(history.state,'',url.href);
+            showScanUnavailable();
+          }
+        }
       } catch(e) { if(current(owner,epoch)){window.phoneLogin210?.finish();notice(e.message,true);$('workspace').innerHTML=empty('Device storage could not open. Retry opening your workspace.')+action('reopen','Retry', '',true)+action('signout','Sign out');$('loginForm').hidden=true;$('workspace').hidden=false;} }
     })().finally(()=>{if(enterJob===job)enterJob=null;});enterJob=job;return job;
   }

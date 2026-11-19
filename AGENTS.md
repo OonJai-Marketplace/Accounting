@@ -751,3 +751,7 @@ indent children, and keep the report in the page's vertical scroll. Trial Balanc
 has no report-notes editor. Size data-table columns to their displayed contents,
 including formatted negative amounts. Reuse widths on return and preserve manual
 resizing and purpose-built calendar, editor and print layouts.
+
+Phone receipt scanning is paused as of 2026-11-19. Keep Scan visible with the
+“Feature unavailable. Coming soon.” notice. Preserve saved scan drafts, viewing
+of linked receipts, and desktop/tablet scanning.

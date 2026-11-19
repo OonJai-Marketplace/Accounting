@@ -1,14 +1,29 @@
 const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');
 const read=p=>fs.readFileSync(p,'utf8');
 (async()=>{
- const S={owner:'self',actor:'self',epoch:1,page:'post',draft:{memo:'Unsaved receipt',amount:'125000'}},calls=[];
- let saveResolve,saveReject;
- const ctx={S,permission:()=>true,clearTimeout(){},draftTimer:null,persist:()=>new Promise((r,j)=>{saveResolve=r;saveReject=j}),structuredClone,current:(o,e)=>S.owner===o&&S.epoch===e,saveMirror:()=>calls.push('mirror'),rememberLocation:()=>calls.push('location'),touch(){},location:{assign:u=>calls.push(u)}};
+ const S={owner:'self',actor:'self',draft:{memo:'Unsaved receipt',amount:'125000'}},messages=[],menu={hidden:false};
+ const ctx={S,permission:()=>true,$:id=>{assert.equal(id,'accountMenu');return menu;},notice:message=>messages.push(message)};
  vm.createContext(ctx);vm.runInContext(read('src/subusers/phone/runtime/navigation-and-dialogs.js').split('  function navigate')[0],ctx);
- const opening=ctx.openScanner209();assert.deepEqual(calls,[]);saveResolve();await opening;assert.deepEqual(calls,['mirror','location','scan.html?capture=1']);
- calls.length=0;const fail=ctx.openScanner209();saveReject(Error('Disk full'));await assert.rejects(fail,/Disk full/);assert.deepEqual(calls,[],'failed draft save must not navigate');
- const changed=ctx.openScanner209();S.actor=S.owner='other';S.epoch++;saveResolve();await changed;assert.deepEqual(calls,[],'account change cancels navigation');
- console.log('PASS scanner navigation awaits durable journal draft, preserves location, blocks storage failure and account switch');
+ ctx.showScanUnavailable();assert.deepEqual(messages,['Feature unavailable. Coming soon.']);assert.ok(menu.hidden);
+ assert.deepEqual(S.draft,{memo:'Unsaved receipt',amount:'125000'});
+ assert.match(read('src/subusers/phone/runtime/actions.js'),/name==='scan'\|\|name==='scan-settings'\)return showScanUnavailable/);
+ assert.match(read('src/subusers/phone/runtime/authentication.js'),/url.searchParams.delete\('scan'\);[\s\S]*?showScanUnavailable\(\);/);
+ assert.match(read('phone.html'),/aria-label="Scan receipts"/);
+ const html=read('scan.html'),boot=html.match(/<script>([\s\S]*?)<\/script>/)[1];
+ const shell=html.replace(/<template[^>]*>[\s\S]*?<\/template>/g,'');
+ assert.match(shell,/Feature unavailable\. Coming soon\./);
+ assert.doesNotMatch(shell,/<input\b|<script[^>]+src=/);
+ for(const ua of ['Android 13; Mobile','iPhone','iPod']){
+   vm.runInNewContext(boot,{navigator:{userAgent:ua}}); // A phone must never access the capture DOM or append scripts.
+ }
+ vm.runInNewContext(boot,{navigator:{userAgent:'',userAgentData:{mobile:true}}});
+ for(const ua of ['iPad','Android tablet','Macintosh','Windows NT']){
+   const loaded=[],assets=[...html.matchAll(/<script src="([^"]+)"/g)].map(match=>({src:match[1]}));
+   const document={getElementById:id=>id==='scanUnavailable'?{replaceWith:()=>loaded.push('workspace')}:{content:{cloneNode:()=>({}),querySelectorAll:()=>assets}},createElement:()=>({}),head:{append:s=>{assert.equal(s.async,false);loaded.push(s.src);}}};
+   vm.runInNewContext(boot,{navigator:{userAgent:ua},document});
+   assert.deepEqual(loaded,['workspace',...assets.map(s=>s.src)]);assert.ok(loaded.some(s=>s.includes('receipt-scanner202.js')));
+ }
+ console.log('PASS phone notice, in-place draft preservation, direct-link gating, tablet and desktop scanner dependency order');
  let resolveMedia,stops=0,drawn=false;const listeners={},w={};
  const camera={window:w,document:{hidden:false,createElement:()=>({getContext:()=>({drawImage(){drawn=true}}),toDataURL:()=> 'data:image/jpeg;base64,photo'})},navigator:{mediaDevices:{getUserMedia:()=>new Promise(r=>resolveMedia=r)}},Error};w.addEventListener=(k,fn)=>listeners[k]=fn;
  vm.createContext(camera);vm.runInContext(read('src/documents/scanner/camera209.js'),camera);const C=w.ReceiptCamera209;

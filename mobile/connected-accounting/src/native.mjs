@@ -19,7 +19,9 @@ if (Capacitor.isNativePlatform()) {
       if (!location.pathname.endsWith('/scan.html')) location.replace('scan.html?capture=0');
     }
   });
-  void Scanner.prepare().catch(() => {});
+  const ua = navigator.userAgent || '';
+  const phone = navigator.userAgentData?.mobile === true || /iPhone|iPod/i.test(ua) || (/Android/i.test(ua) && /Mobile/i.test(ua));
+  if (!phone) void Scanner.prepare().catch(() => {});
   void App.addListener('appUrlOpen', async ({url}) => {
     const u=new URL(url);if(u.protocol!=='oonjai-accounting-preview:'||u.hostname!=='scan')return;
     await Browser.close().catch(()=>{});location.replace('scan.html?settings=1'+(u.search?'&'+u.search.slice(1):''));
@@ -54,6 +56,7 @@ if (Capacitor.isNativePlatform()) {
       finally { await Filesystem.deleteFile({path,directory:Directory.Cache}).catch(()=>{}); }
     },
     async scan(context) {
+      if (phone) throw Error('Feature unavailable. Coming soon.');
       await restored;
       if (active) throw Error('The document scanner is already open.');
       const previous = await this.recover();

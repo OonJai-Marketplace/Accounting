@@ -20,7 +20,7 @@ let creations=0;
 const context={...validation,...ids,Request,Response,URLSearchParams,AbortSignal,crypto,console,Deno:{env:{get:()=> 'https://fixture.test'},serve(){}},createClient:()=>++creations===1?admin:user,fetch:async()=>new Response(JSON.stringify({id:'drive123456789',sha256Checksum:driveSaved?'a'.repeat(64):'wrong'}),{status:200})};
 vm.createContext(context);
 const source=stripTypeScriptTypes(fs.readFileSync('supabase/functions/scanner-integration/index.ts','utf8').replace(/^import .*;\n/gm,'').replace('export async function handler','async function handler'))+'\nglobalThis.handler215=handler;';vm.runInContext(source,context);
-const invoke=async body=>{const r=await context.handler215(new Request('https://fixture.test',{method:'POST',headers:{Origin:origin,authorization:'Bearer fixture'},body:JSON.stringify(body)}));assert.equal(r.headers.get('Access-Control-Allow-Origin'),origin);return {status:r.status,data:await r.json()};};
+const invoke=async (body,headers={})=>{const r=await context.handler215(new Request('https://fixture.test',{method:'POST',headers:{Origin:origin,authorization:'Bearer fixture',...headers},body:JSON.stringify(body)}));assert.equal(r.headers.get('Access-Control-Allow-Origin'),origin);return {status:r.status,data:await r.json()};};
 let r=await invoke({action:'ids',scan,groups:[{type:'journal',label:'OJM26-0010'}]});assert.equal(r.data.ids[0].available,true);
 canEdit=false;records.staff_journal_lines=[{id:page,staff_journal_id:group,workspace_entry_no:'OJM26-0010',owner_id:'another-owner'}];r=await invoke({action:'ids',scan,groups:[{type:'journal',label:'OJM26-0010'}]});assert.equal(r.data.ids[0].available,false,'another user’s staff IDs are excluded');
 records.staff_journal_lines[0].owner_id=owner;r=await invoke({action:'ids',scan,groups:[{type:'journal',label:'OJM26-0010'}]});assert.equal(r.data.ids[0].available,true);canEdit=true;
@@ -58,3 +58,16 @@ for(const deniedOrigin of ['https://restaurant.oonjai.invalid','http://accountin
  const denied=await context.handler215(new Request('https://fixture.test',{method:'OPTIONS',headers:{Origin:deniedOrigin}}));assert.equal(denied.status,403);assert.notEqual(denied.headers.get('Access-Control-Allow-Origin'),deniedOrigin);
 }
 console.log('PASS exact native/workspace CORS, October-first receipts in a closed book, and unchanged authentication and journal permissions');
+
+origin='https://accounting.oonjai.invalid';
+for(const headers of [{'user-agent':'Mozilla/5.0 (Linux; Android 13) Mobile Safari'}, {'user-agent':'iPhone'}, {'sec-ch-ua-mobile':'?1'}]){
+ for(const action of ['ids','journal-id-index','suggest-ids','register']){
+  const paused=await invoke({action},headers);
+  assert.equal(paused.status,403);assert.equal(paused.data.error,'Feature unavailable. Coming soon.');
+ }
+ const list=await invoke({action:'list'},headers);
+ assert.equal(list.status,200);assert.deepEqual(list.data.documents,[]);
+}
+const tablet=await invoke({action:'ids',groups:[{type:'journal',label:'SRR260055'}]},{'user-agent':'Mozilla/5.0 (Linux; Android 13; Tablet) Safari'});
+assert.equal(tablet.status,200);
+console.log('PASS bundled phone capture checks and registration show the notice; phone receipt list and tablet lookup remain available');
