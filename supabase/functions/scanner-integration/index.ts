@@ -21,7 +21,7 @@ export async function handler(req:Request){
   const auth=await admin.auth.getUser(authorization.replace(/^Bearer\s+/i,''));
   if(auth.error||!auth.data.user)return reply({error:'Sign in to Accounting.'},401);
   const owner=auth.data.user.id,user=createClient(URL,KEY,{global:{headers:{Authorization:authorization}},auth:{persistSession:false,autoRefreshToken:false}});
-  const active=result(await user.rpc('active_account14228')),password=result(await user.rpc('password_change_required14257'));
+  const [active,password]=await Promise.all(['active_account14228','password_change_required14257'].map(name=>user.rpc(name).then(result)));
   check(active&&!password,'An active, unlocked Accounting account is required.');
   const [workspace,journal,edit]=await Promise.all(['sub-users-workspace','journal','journal'].map((p_target,i)=>user.rpc('can_action113',{p_target,p_action:i===2?'edit':'view'}).then(result)));
   check(workspace||journal,'Document access is not enabled.');
@@ -117,6 +117,14 @@ export async function handler(req:Request){
    result(await admin.rpc(modern?'scanner_register218':strict?'scanner_register215':'scanner_register208',{p_rows:rows,...(modern?{p_decisions:decisions}:{})}));
    return reply({registered:true,groups:linked,pending:linked.filter(g=>!g.linked).length});
   }
+  async function pageView(row:any,index?:number){
+   if(index!==undefined)check(Number.isSafeInteger(index)&&index>=0&&index<row.pages.length,'This receipt page is unavailable.');
+   const pages=index===undefined?row.pages:[row.pages[index]];
+   const paths=pages.map((p:any)=>p.path);if(row.pdf_provider==='supabase')paths.push(row.pdf_path);
+   const signed=result(await user.storage.from(BUCKET).createSignedUrls(paths,300)),urls=new Map(signed.filter((r:any)=>!r.error&&r.signedUrl).map((r:any)=>[r.path,r.signedUrl]));
+   check(pages.every((p:any)=>urls.has(p.path)),'Some page previews are unavailable.');
+   return {title:row.title,label:row.entry_label,selectedPage:index,pages:pages.map((p:any)=>({...p,url:urls.get(p.path)})),pdf:row.pdf_provider==='drive'?'https://drive.google.com/file/d/'+row.pdf_path+'/view':urls.get(row.pdf_path),expires:Date.now()+240000};
+  }
   if(b.action==='receipt-status')return reply(await receiptStatus226(user,b));
   if(b.action==='list'){
    const ids:string[]=[],staff:string[]=[];let entry='';
@@ -125,17 +133,14 @@ export async function handler(req:Request){
    if(!ids.length&&!staff.length)return reply({documents:[],entry,resolved:false});
    const filters=[ids.length?'journal_ids.ov.{'+ids.join(',')+'}':'',staff.length?'staff_line_ids.ov.{'+staff.join(',')+'}':''].filter(Boolean).join(',');
    const rows=result(await user.from('scanner_documents208').select('*').is('superseded_by218',null).or(filters).order('revision',{ascending:false}).limit(500));
-   return reply({entry,resolved:true,documents:latestGroups(rows).sort((a:any,b:any)=>(a.pages[0]?.part||1)-(b.pages[0]?.part||1)).map((r:any)=>({id:r.id,title:r.title,label:r.entry_label,pages:r.pages.length,revision:r.revision}))});
+   const groups=latestGroups(rows).sort((a:any,b:any)=>(a.pages[0]?.part||1)-(b.pages[0]?.part||1));
+   const first=groups.find((g:any)=>g.pages.length);
+   const firstPage=b.includeFirst===true && first ? await pageView(first,0) : undefined;
+   return reply({entry,resolved:true,firstPage,documents:groups.map((r:any)=>({id:r.id,title:r.title,label:r.entry_label,pages:r.pages.length,revision:r.revision}))});
   }
   if(b.action==='view'){
    check(uuid(b.id),'Invalid document.');const row=result(await user.from('scanner_documents208').select('*').eq('id',b.id).maybeSingle());check(row,'Document unavailable or access denied.');
-   const index=b.pageIndex;
-   if(index!==undefined)check(Number.isSafeInteger(index)&&index>=0&&index<row.pages.length,'This receipt page is unavailable.');
-   const pages=index===undefined?row.pages:[row.pages[index]];
-   const paths=pages.map((p:any)=>p.path);if(row.pdf_provider==='supabase')paths.push(row.pdf_path);
-   const signed=result(await user.storage.from(BUCKET).createSignedUrls(paths,300)),urls=new Map(signed.filter((r:any)=>!r.error&&r.signedUrl).map((r:any)=>[r.path,r.signedUrl]));
-   check(pages.every((p:any)=>urls.has(p.path)),'Some page previews are unavailable.');
-   return reply({title:row.title,label:row.entry_label,selectedPage:index,pages:pages.map((p:any)=>({...p,url:urls.get(p.path)})),pdf:row.pdf_provider==='drive'?'https://drive.google.com/file/d/'+row.pdf_path+'/view':urls.get(row.pdf_path),expires:Date.now()+240000});
+   return reply(await pageView(row,b.pageIndex));
   }
   throw Error('Unsupported scanner action.');
  }catch(e){return reply({error:String(e.message||'Document request failed.').slice(0,300)},400);}

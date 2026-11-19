@@ -153,7 +153,7 @@ function addReceiptPreview(section,request,current){
  const panel=document.createElement('section');
  panel.hidden=true;
  panel.setAttribute('aria-label','Drive receipt preview');
- panel.innerHTML='<h4 class="je-title">Drive receipt preview</h4><p>Drive checks for new files every five minutes. This preview shows which entry numbers the filenames contain.</p><p>For example, use 260001.pdf anywhere, or 1-24.pdf in a folder named November 2026.</p><p data-preview-time></p><ul data-preview-list></ul><div class="je-actions-bar"><button type="button" class="je-btn" data-preview-back>Previous files</button><button type="button" class="je-btn" data-preview-next>Next files</button></div>';
+ panel.innerHTML='<h4 class="je-title">Drive receipt preview</h4><p>Accounting checks this folder when you sign in. After uploading more PDFs, choose Check Drive receipts to link them now.</p><p>For example, use 260001.pdf anywhere, or 1-24.pdf in a folder named November 2026.</p><p data-preview-time></p><ul data-preview-list></ul><div class="je-actions-bar"><button type="button" class="je-btn" data-preview-back>Previous files</button><button type="button" class="je-btn" data-preview-next>Next files</button></div>';
  section.append(panel);
  const button=section.querySelector('[data-receipt-preview]'),list=panel.querySelector('[data-preview-list]');
  let offset=0;
@@ -188,20 +188,20 @@ function addReceiptPreview(section,request,current){
   }
   return li;
  }
- return {button,panel,back,next,async show(change){
-  const start=Math.max(0,offset+change),data=await request('preview',{offset:start});
+ return {button,panel,back,next,async show(change,check=false){
+  const start=check?0:Math.max(0,offset+change),data=await request(check?'check':'preview',{offset:start});
   if(!current())return;
   offset=start;panel.hidden=false;list.replaceChildren(...data.files.map(fileRow));
   const checked=data.state?.last_complete;
   const stamp=checked?formatAppDate(checked,true):'';
-  panel.querySelector('[data-preview-time]').textContent=[data.state?.last_error,checked?'Last complete check: '+stamp+'.':'The first folder check is in progress.',!data.files.length&&checked?'No PDFs found on this page.':''].filter(Boolean).join(' ');
-  back.hidden=!offset;next.hidden=!data.more;button.textContent='Refresh receipt preview';
+  panel.querySelector('[data-preview-time]').textContent=[data.state?.last_error,checked?'Last complete check: '+stamp+'.':'No folder check has finished yet.',!data.files.length&&checked?'No PDFs found on this page.':''].filter(Boolean).join(' ');
+  back.hidden=!offset;next.hidden=!data.more;return data;
  }};
 }
 function mount(host,options){
  const {canEdit,request,editing,finish,load}=options;let cfg=options.cfg;
  const section=document.createElement('section');section.className='receipt-drive228 je-card';
- section.innerHTML='<h3 class="je-title">Receipts and documentation</h3><p data-active228></p><div class="je-actions-bar"><button class="je-btn" data-check-receipt>Check connection</button><button type="button" class="je-btn" data-receipt-preview>Preview Drive receipts</button><button class="je-btn" data-change-receipt>Change account or folder</button></div><div class="settings-grid"><label>Google account for folder setup<input class="je-input" type="email" data-receipt-email228 autocomplete="off"></label><label>Receipt folder link or ID<input class="je-input" data-receipt-folder228></label></div><div class="je-actions-bar"><button class="je-btn" data-save228>Save details</button><button class="je-btn" data-connect228>Connect Google account</button><button class="je-btn" data-activate228>Verify and activate folder</button><button class="je-btn" data-cancel228>Cancel edits</button></div><p data-result228 role="status"></p>';
+ section.innerHTML='<h3 class="je-title">Receipts and documentation</h3><p data-active228></p><div class="je-actions-bar"><button class="je-btn" data-check-receipt>Check connection</button><button type="button" class="je-btn" data-receipt-preview>Check Drive receipts</button><button class="je-btn" data-change-receipt>Change account or folder</button></div><div class="settings-grid"><label>Google account for folder setup<input class="je-input" type="email" data-receipt-email228 autocomplete="off"></label><label>Receipt folder link or ID<input class="je-input" data-receipt-folder228></label></div><div class="je-actions-bar"><button class="je-btn" data-save228>Save details</button><button class="je-btn" data-connect228>Connect Google account</button><button class="je-btn" data-activate228>Verify and activate folder</button><button class="je-btn" data-cancel228>Cancel edits</button></div><p data-result228 role="status"></p>';
  host.prepend(section);
  const $=selector=>section.querySelector(selector),email=$('[data-receipt-email228]'),folder=$('[data-receipt-folder228]'),result=$('[data-result228]'),active=$('[data-active228]');
  email.value=cfg.accountEmail228||'';folder.value=cfg.receiptDrive228?.folderURL||'';
@@ -221,7 +221,19 @@ function mount(host,options){
  const current=()=>section.isConnected&&canEdit();
  const preview=addReceiptPreview(section,request,current);
  const openPreview=change=>run('Reading the latest Drive receipt preview…',async()=>{await preview.show(change);if(current())status('');});
- preview.button.onclick=()=>openPreview(0);preview.back.onclick=()=>openPreview(-25);preview.next.onclick=()=>openPreview(25);
+ preview.button.onclick=()=>run('Checking the receipt folder…',async()=>{
+  let data=await preview.show(0,true),delay=1000;
+  const deadline=Date.now()+90000;
+  while(current() && data && !data.state?.last_error && (data.checking||data.linking) && Date.now()<deadline){
+   status(data.checking?'Checking the remaining files…':'Saving receipt pages and linking them to the journal…');
+   await new Promise(resolve=>setTimeout(resolve,delay));delay=Math.min(delay*2,8000);
+   if(!current() || document.hidden || !section.getClientRects().length)break;
+   data=await preview.show(0);
+  }
+  window.ScanViewer208?.refreshEntries();
+  window.JournalReceipts224?.refresh();
+  if(current() && data)status(data.state?.last_error || (data.retry?'A file could not be prepared. Check the connection and choose Check Drive receipts to retry.':data.checking||data.linking?'Your check is still finishing. Saved links will stay available.':'Receipt check complete. Open a linked entry in the journal. Check the bell for any file that needs attention.'),!!data.state?.last_error||data.retry);
+ });preview.back.onclick=()=>openPreview(-25);preview.next.onclick=()=>openPreview(25);
  function status(text,error=false){result.textContent=text;result.style.color=error?'#9b2727':'';result.style.fontWeight='600';lastError=error?text:'';}
  function showActive(){
   const dest=cfg.receiptDrive228?.active;
@@ -277,7 +289,7 @@ function renderSettings(){
  window.ReceiptDriveSettings228.mount(settingsPanel,{cfg,canEdit,
   editing:value=>{linkEditorOwner=value?owner:'';},finish:text=>{linkEditorOwner='';renderSettings();if(text)message(text);},
   load:async()=>{if(!canEdit())throw Error('Administrator settings access is required.');online();const db=ojmDb,r=await readQuery(db.from('budget_settings14313').select('data').eq('id',true).maybeSingle(),'Receipt destination check');if(!canEdit()||db!==ojmDb)throw Error('Account changed. Reopen settings.');if(r.error)throw r.error;return r.data?.data?.googleSheets143129||defaults();},
-  request:async(action,args={})=>{if(!canEdit())throw Error('Administrator settings access is required.');online();const db=ojmDb,session=await db.auth.getSession();if(session.error||session.data.session?.user?.id!==owner)throw Error('Sign in again to manage Google Drive.');const response=await fetch(OJM_SUPABASE_URL+'/functions/v1/'+(action==='preview'?'receipt-drive-preview':'accounting-documents'),{method:'POST',headers:{Authorization:'Bearer '+session.data.session.access_token,apikey:OJM_SUPABASE_ANON_KEY,'Content-Type':'application/json'},body:JSON.stringify({action,...args}),signal:AbortSignal.timeout(35000)}),value=await response.json();if(!canEdit()||db!==ojmDb)throw Error('Account changed. Reopen settings.');if(!response.ok||value.error)throw Error(value.error||'Google Drive connection failed.');return value;}
+  request:async(action,args={})=>{if(!canEdit())throw Error('Administrator settings access is required.');online();const db=ojmDb,session=await db.auth.getSession();if(session.error||session.data.session?.user?.id!==owner)throw Error('Sign in again to manage Google Drive.');const response=await fetch(OJM_SUPABASE_URL+'/functions/v1/'+(['preview','check'].includes(action)?'receipt-drive-preview':'accounting-documents'),{method:'POST',headers:{Authorization:'Bearer '+session.data.session.access_token,apikey:OJM_SUPABASE_ANON_KEY,'Content-Type':'application/json'},body:JSON.stringify({action,...args}),signal:AbortSignal.timeout(action==='check'?95000:35000)}),value=await response.json();if(!canEdit()||db!==ojmDb)throw Error('Account changed. Reopen settings.');if(!response.ok||value.error)throw Error(value.error||'Google Drive connection failed.');return value;}
  });
 }
 function enter(){
