@@ -89,12 +89,12 @@
     },
     {
       "path": "desktop-sw14242.js",
-      "sha256": "bf3fe15da88e7b3d71287726750043a203628e96c6418286de5bb32eeaef9d11",
+      "sha256": "96d468121573d5851d08f625ecb2aadaa6016d21e34f2ad775356d2e8ce91932",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
       "path": "desktop.html",
-      "sha256": "070406c05df1e8b478ea07c1f4ec6fae27f0cd3f103b7ca9deb0bc3a8d8c13cd",
+      "sha256": "9eb3bb7cae8b7dc56fa73c7a3335b5d8bc87859becafa7057fb7574ddb10fc33",
       "effect": "The component may differ from the tested release; reload and investigate this file."
     },
     {
@@ -1393,7 +1393,7 @@
     },
     {
       "path": "scripts/receipt-settings.js",
-      "sha256": "7674b1043efe43430ddaa0655834640e88ddb9d6277e9559b02c2cfed7806b1a",
+      "sha256": "df709cbad545b0bbe8d602e819bdcc09c79a791e214b6bcc19efa792d1da8743",
       "effect": "Reload the current release and investigate mixed or changed files."
     },
     {

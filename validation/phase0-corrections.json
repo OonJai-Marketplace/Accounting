@@ -7,9 +7,9 @@
     "recovery.html": "c1bbe7bf9f2671c7abb675a026ac39c25bf9c4dec8cdf07dde05c98818b03637",
     "phone-sw.js": "69b541371fd5295bd5b10daec45eeaf4bfdfdcaf394edeeef2fbdd5064c21d89",
     "phone-accounting.html": "b1242a5cd79644de75c24434b3da9843bc58bb199e5fa3bc5f064dd1cef3afc4",
-    "desktop-sw14242.js": "bf3fe15da88e7b3d71287726750043a203628e96c6418286de5bb32eeaef9d11",
+    "desktop-sw14242.js": "96d468121573d5851d08f625ecb2aadaa6016d21e34f2ad775356d2e8ce91932",
     "phone.html": "71dd1a502c381bfd991997a19479703014974c4f213ae965f72a2ed92c06cdda",
-    "desktop.html": "070406c05df1e8b478ea07c1f4ec6fae27f0cd3f103b7ca9deb0bc3a8d8c13cd",
+    "desktop.html": "9eb3bb7cae8b7dc56fa73c7a3335b5d8bc87859becafa7057fb7574ddb10fc33",
     "scripts/phone-runtime14242.js": "ae528e8fe947b2d462d74b0a9e0a6d2273aa58f75efd855c085df0f02a8043e9",
     "scripts/device-vault14334.js": "161496c833a5fed5f6928c196e8eeba53b84c61a077d8d97dc9d244f5f845fa6",
     "scripts/script.js": "415683d566a396a52c3d9489f252cf27c3ebb62d7cb31a87fd135b583b9bc0b6",
@@ -623,5 +623,6 @@
   "leaveEntitlements143489": "Employee-specific expiring leave grants and completed-year vacation extensions.",
   "desktopWake143490": "Foreground database recovery, on-demand device storage measurement and indexed desktop cache lookups.",
   "preparedTableLayouts143491": "Prepared ledger and trial tables, persistent content widths, and quarterly or annual trial comparisons.",
-  "documentRegisterAndReports143492": "2026-11-19: Responsive signatory review, utilization category and item widths, retired payroll action, filtered document register and on-demand offline stock."
+  "documentRegisterAndReports143492": "2026-11-19: Responsive signatory review, utilization category and item widths, retired payroll action, filtered document register and on-demand offline stock.",
+  "receiptDrivePreviewPhase1": "Administrator preview of company Drive receipts and proposed page matches."
 }

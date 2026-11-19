@@ -24,10 +24,59 @@ function merge(latest,value,mode){
  }else throw Error('Unknown receipt settings operation.');
  return next;
 }
+function addReceiptPreview(section,request,current){
+ const panel=document.createElement('section');
+ panel.hidden=true;
+ panel.setAttribute('aria-label','Drive receipt preview');
+ panel.innerHTML='<h4 class="je-title">Drive receipt preview</h4><p>Proposed page matches only. Drive is checked every five minutes.</p><p>For example, use 260001.pdf anywhere, or 1-24.pdf in a folder named November 2026.</p><p data-preview-time></p><ul data-preview-list></ul><div class="je-actions-bar"><button type="button" class="je-btn" data-preview-back>Previous files</button><button type="button" class="je-btn" data-preview-next>Next files</button></div>';
+ section.append(panel);
+ const button=section.querySelector('[data-receipt-preview]'),list=panel.querySelector('[data-preview-list]');
+ let offset=0;
+ const back=panel.querySelector('[data-preview-back]'),next=panel.querySelector('[data-preview-next]');
+ function fileRow(f){
+  const li=document.createElement('li'),title=document.createElement('strong'),info=document.createElement('p');
+  title.textContent=f.name;
+  li.append(title,document.createTextNode(' · '+f.folder),info);
+  const target=f.target;
+  if(f.issue || target.issue){info.textContent=[f.issue,target.issue].filter(Boolean).join(' ');return li;}
+  const pages=f.pages+(f.pages===1?' page':' pages');
+  if(!target.last){
+   const part=target.total?' · Part '+target.part+' of '+target.total:target.part>1?' · Part '+target.part:'';
+   info.textContent=pages+' for '+target.first+part+'.';return li;
+  }
+  info.textContent=pages+'. Page 1 goes to '+target.first+'. Page '+f.pages+' goes to '+target.last+'.';
+  if(f.pages>2){
+   const lookup=document.createElement('div'), label=document.createElement('label');
+   const input=document.createElement('input'), output=document.createElement('output');
+   input.type='text';input.inputMode='numeric';input.pattern='[0-9]*';input.size=4;input.value='1';input.style.width='6em';
+   label.append('PDF page ',input);output.setAttribute('aria-live','polite');
+   const identify=()=>{
+    const value=input.value.trim(), page=Number(value);
+    if(!/^\d+$/.test(value) || page<1 || page>f.pages){
+     output.textContent=' Enter a page from 1 to '+f.pages+'.';
+     return;
+    }
+    const entry=Number(target.first.slice(-4))+page-1;
+    output.textContent=' → '+target.first.slice(0,-4)+String(entry).padStart(4,'0');
+   };
+   input.oninput=identify;identify();lookup.append(label,output);li.append(lookup);
+  }
+  return li;
+ }
+ return {button,panel,back,next,async show(change){
+  const start=Math.max(0,offset+change),data=await request('preview',{offset:start});
+  if(!current())return;
+  offset=start;panel.hidden=false;list.replaceChildren(...data.files.map(fileRow));
+  const checked=data.state?.last_complete;
+  const stamp=checked?formatAppDate(checked,true):'';
+  panel.querySelector('[data-preview-time]').textContent=[data.state?.last_error,checked?'Last complete check: '+stamp+'.':'The first folder check is in progress.',!data.files.length&&checked?'No PDFs found on this page.':''].filter(Boolean).join(' ');
+  back.hidden=!offset;next.hidden=!data.more;button.textContent='Refresh receipt preview';
+ }};
+}
 function mount(host,options){
  const {canEdit,request,editing,finish,load}=options;let cfg=options.cfg;
  const section=document.createElement('section');section.className='receipt-drive228 je-card';
- section.innerHTML='<h3 class="je-title">Receipts and documentation</h3><p data-active228></p><div class="je-actions-bar"><button class="je-btn" data-check-receipt>Check connection</button><button class="je-btn" data-change-receipt>Change account or folder</button></div><div class="settings-grid"><label>Google account for folder setup<input class="je-input" type="email" data-receipt-email228 autocomplete="off"></label><label>Receipt folder link or ID<input class="je-input" data-receipt-folder228></label></div><div class="je-actions-bar"><button class="je-btn" data-save228>Save details</button><button class="je-btn" data-connect228>Connect Google account</button><button class="je-btn" data-activate228>Verify and activate folder</button><button class="je-btn" data-cancel228>Cancel edits</button></div><p data-result228 role="status"></p>';
+ section.innerHTML='<h3 class="je-title">Receipts and documentation</h3><p data-active228></p><div class="je-actions-bar"><button class="je-btn" data-check-receipt>Check connection</button><button type="button" class="je-btn" data-receipt-preview>Preview Drive receipts</button><button class="je-btn" data-change-receipt>Change account or folder</button></div><div class="settings-grid"><label>Google account for folder setup<input class="je-input" type="email" data-receipt-email228 autocomplete="off"></label><label>Receipt folder link or ID<input class="je-input" data-receipt-folder228></label></div><div class="je-actions-bar"><button class="je-btn" data-save228>Save details</button><button class="je-btn" data-connect228>Connect Google account</button><button class="je-btn" data-activate228>Verify and activate folder</button><button class="je-btn" data-cancel228>Cancel edits</button></div><p data-result228 role="status"></p>';
  host.prepend(section);
  const $=selector=>section.querySelector(selector),email=$('[data-receipt-email228]'),folder=$('[data-receipt-folder228]'),result=$('[data-result228]'),active=$('[data-active228]');
  email.value=cfg.accountEmail228||'';folder.value=cfg.receiptDrive228?.folderURL||'';
@@ -38,12 +87,16 @@ function mount(host,options){
  function controls(){
   const protectedFolder=!!cfg.receiptDrive228?.active,editable=!protectedFolder||changing;
   email.readOnly=folder.readOnly=!editable;
+  $('[data-receipt-preview]').hidden=!protectedFolder;
   $('[data-change-receipt]').hidden=!protectedFolder||changing;
   $('[data-check-receipt]').hidden=!protectedFolder||changing;
   $('[data-save228]').hidden=$('[data-activate228]').hidden=$('[data-cancel228]').hidden=!editable;
   $('[data-connect228]').hidden=!editable&&!needsReconnect;
  }
  const current=()=>section.isConnected&&canEdit();
+ const preview=addReceiptPreview(section,request,current);
+ const openPreview=change=>run('Reading the latest Drive receipt preview…',async()=>{await preview.show(change);if(current())status('');});
+ preview.button.onclick=()=>openPreview(0);preview.back.onclick=()=>openPreview(-25);preview.next.onclick=()=>openPreview(25);
  function status(text,error=false){result.textContent=text;result.style.color=error?'#9b2727':'';result.style.fontWeight='600';lastError=error?text:'';}
  function showActive(){
   const dest=cfg.receiptDrive228?.active;
