@@ -1,6 +1,6 @@
 /* Independent update entry point. Never reads or removes accounting storage. */
 (()=>{'use strict';
-let VERSION='143.489';
+let VERSION='143.490';
 const ua=navigator.userAgent||'';
 const phone=/iPhone|iPod/i.test(ua)||/Android/i.test(ua)&&/Mobile/i.test(ua);
 const workerFile=phone?'phone-sw.js':'desktop-sw14242.js';
@@ -15,7 +15,8 @@ function showProgress(data,token){
  }
  if(data.type!=='ojm-shell-progress'||!data.total||reportedError)return;
  const signature=JSON.stringify([data.completed,data.file,data.bytes,data.retry]);
- if(signature!==lastProgress){lastProgress=signature;watchForStall(token);}
+ if(signature===lastProgress)return;
+ lastProgress=signature;watchForStall(token);
  progress.value=data.completed/data.total;
  const file=data.file?.split('/').pop();
  status.textContent='Downloading update: '+Math.round(progress.value*100)+'% · '+Math.max(0,data.total-data.completed)+' files remaining'+(file?' · '+file:'')+(data.bytes?' · '+Math.ceil(data.bytes/1024)+' KB':'')+(data.retry?' · retry '+data.retry:'');

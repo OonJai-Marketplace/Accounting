@@ -6,7 +6,7 @@ const scope=()=>String(window.OJM_SUPABASE_URL||location.origin);
 const storageKey=()=> 'ojm-sync14351:'+scope()+':'+actor();
 const allowed=()=>false;
 const bytes=n=>n<1000?n+' bytes':n<1000000?(n/1000).toFixed(2)+' KB':(n/1000000).toFixed(2)+' MB';
-function pending(){return window.syncRecords284?.pending()||[];}
+function pending(options){return window.syncRecords284?.pending(options)||[];}
 function needsAttention(value){return !!value&&!value.running&&(value.remaining>0||value.failed>0||value.unresolved?.length>0||/needs attention|needs review|Partial synchronization/i.test(value.result||''));}
 function persist(){if(!session||session.actor!==actor())return;try{const old=JSON.parse(localStorage.getItem(storageKey())||'{"history":[]}');const history=session.running?(old.history||[]).filter(needsAttention):needsAttention(session)?[{...session}]:[];const latest=session;if(!latest&&!history.length)localStorage.removeItem(storageKey());else localStorage.setItem(storageKey(),JSON.stringify({latest,history}));}catch(e){problem='Sync result could not be saved: '+e.message;}}
 function restore(){if(summaryOwner===actor())return;summaryOwner=actor();session=null;if(!summaryOwner)return;try{const saved=JSON.parse(localStorage.getItem(storageKey())||'null');session=saved?.latest;if(session?.running){session.running=false;session.stage='Previous session has no saved completion result. Requests are retained; another tab may still be working.';session.result='Synchronization status needs review';session.acknowledged=false;}if(session?.automatic&&!session.total&&!needsAttention(session))session.acknowledged=true;if(session)persist();else if(saved)localStorage.removeItem(storageKey());}catch{problem='Saved sync history could not be read.';}}
@@ -15,7 +15,7 @@ function restore(){if(summaryOwner===actor())return;summaryOwner=actor();session
 function show(force=false){restore();if(force)window.offline14239?.open();else window.offline14239?.refreshDialog?.();}
 function acknowledge(){if(session&&!session.running){session.acknowledged=true;persist();}}
 const areaNames={employees:'Employees',leaves:'Leave',runs:'Payroll',reports:'Reports',documents:'Documents',reference:'Accounts & currencies',business:'Company settings',profiles:'People & permissions',opening:'Opening balances',workflow:'Approvals & reminders',legal:'Legal documents',schedules:'Schedules',audit:'Audit history',submissions:'Submissions',review:'Sub-user journals',home:'Team overview',journal:'Journal',payroll:'Payroll',document:'Documents'};
-function overview(){restore();const rows=pending(),waiting=rows.filter(j=>j.status!=='server-confirmed'),ids=new Set(waiting.map(j=>j.id)),groups=new Map();
+function overview(options){restore();const rows=pending(options),waiting=rows.filter(j=>j.status!=='server-confirmed'),ids=new Set(waiting.map(j=>j.id)),groups=new Map();
  const group=source=>{const name=areaNames[source]||source||'Saved work';if(!groups.has(name))groups.set(name,{name,synced:0,pending:0,updated:false});return groups.get(name)};
  for(const j of session?.initialRecords||[])if(!ids.has(j.id))group(j.source).synced+=j.records;
  for(const j of waiting)group(j.source).pending+=j.records;
@@ -50,7 +50,7 @@ function feedback(){
  restore();const state=window.offline14239?.state()||{},busy=!!(manual||session?.running||state.syncing||window.localFirst14333?.syncing||window.startup14257?.preparing);
  const completed=!!session?.finished&&!needsAttention(session)&&session.result==='Synchronization complete'&&!problem&&!state.pending&&!state.attention;
  const synced=completed&&!busy&&!dirty,when=completed?formatAppDate(session.finished,true):'';
- const message=preparation||problem||(busy?'Syncing…':!state.online?'Offline · saved on this device':state.attention?'Saved work needs attention':state.pending?state.pending+' waiting for database confirmation':synced?'Synced · '+when:completed?'Last synced · '+when:'Ready to sync');
+ const message=preparation||problem||(busy?'Syncing…':!state.online?(state.deviceOnline?'Waiting for database · saved on this device':'Offline · saved on this device'):state.attention?'Saved work needs attention':state.pending?state.pending+' waiting for database confirmation':synced?'Synced · '+when:completed?'Last synced · '+when:'Ready to sync');
  return {busy,synced,completed,message,label:retry?'Retry download':busy?'Syncing…':synced?'Synced':completed?'Sync again':'Sync now',disabled:!!busy&&!retry||!window.offline14239?.canRefresh()||synced};
 }
 function paint(){

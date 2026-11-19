@@ -42,7 +42,7 @@ console.log('PASS: one check per login, manual recovery, exact paused wording, s
  const transport=source.slice(source.indexOf('function errorResponse('),source.indexOf('let queueCache=null;'));
  let calls=0;
  const browser={OJM_SUPABASE_URL:window.OJM_SUPABASE_URL,sessionCache14333:{localMode:true},deviceVault14334:{offline:true}};
- const context={window:browser,navigator:{onLine:true},Request,Response,Headers,URL,AbortController,readRPC:new Set(),identity:()=> 'admin',changed:()=>{},
+ const context={window:browser,navigator:{onLine:true},Request,Response,Headers,URL,AbortController,readRPC:new Set(),identity:()=> 'admin',actor:()=> 'admin',networkEpoch:0,changed:()=>{},
   nativeFetch:async()=>{calls++;return new Response(JSON.stringify({message:'This project is paused'}),{status:503});},
   setTimeout:(...args)=>setTimeout(...args).unref(),clearTimeout};
  vm.runInNewContext(transport,context);

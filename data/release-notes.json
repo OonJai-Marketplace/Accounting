@@ -1,6 +1,7 @@
 {
-  "version": "143.489",
+  "version": "143.490",
   "changes": [
+    "Accounting rechecks an interrupted database connection when a laptop wakes. Device storage measurement is available on demand, and desktop updates reuse cached files with fewer storage lookups.",
     "HR Leave supports per-employee leave grants with expiry and approved extensions of unused vacation from completed service years.",
     "Payroll uses approved daily leave and verifies that leave is current at close. Backup & Recovery can manually refresh and verify both company Google archives.",
     "Older payroll journal templates now recognize retired salary mapping accounts and use their approved active replacements.",

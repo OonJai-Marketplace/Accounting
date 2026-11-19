@@ -1,6 +1,6 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.489',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.490',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
  "scripts/desktop-status-dock.js?v=143.488",
  "docs/protocols/index.html?v=143.413",
@@ -95,7 +95,7 @@ const FILES=[
  "scripts/desktop14245-5.js?v=143.423",
  "scripts/desktop14245-6.js?v=143.488",
  "scripts/local-events14310.js?v=143.375",
- "scripts/offline14239.js?v=143.489",
+ "scripts/offline14239.js?v=143.490",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.327",
@@ -230,7 +230,7 @@ const FILES=[
  "scripts/settings-groups14332.js?v=143.375",
  "styles/settings-groups14332.css?v=143.375",
  "styles/statutory14332.css?v=143.154",
- "scripts/phone-runtime14242.js?v=143.489",
+ "scripts/phone-runtime14242.js?v=143.490",
  "scripts/local-first14333.js?v=143.475",
  "scripts/session-cache14333.js?v=143.33",
  "scripts/year-window14333.js?v=143.391",
@@ -239,7 +239,7 @@ const FILES=[
  "assets/vendor/noble-gcm14334.LICENSE.txt",
  "scripts/payroll-window14334.js?v=143.70",
  "assets/vendor/noble-gcm14334.js?v=143.34",
- "scripts/device-vault14334.js?v=143.479",
+ "scripts/device-vault14334.js?v=143.490",
  "setup/INSTALL-EDITABLE-TODOS-v143.35.sql",
  "scripts/optional-tools14335.js?v=143.275",
  "scripts/document-import-v1422.js?v=143.75",
@@ -256,7 +256,7 @@ const FILES=[
  "docs/UPDATE-v143.40.md",
  "docs/UPDATE-v143.41.md",
  "scripts/history-month14341.js?v=143.407",
- "scripts/idle-sync14341.js?v=143.381",
+ "scripts/idle-sync14341.js?v=143.490",
  "styles/responsive-work14341.css?v=143.62",
  "docs/UPDATE-v143.42.md",
  "scripts/phone-tools14242.js?v=143.339",
@@ -269,7 +269,7 @@ const FILES=[
  "scripts/workspace-consistency14343.js?v=143.475",
  "styles/workspace-consistency14343.css?v=143.377",
  "docs/UPDATE-v143.43.md",
- "phone-sw.js?v=143.489",
+ "phone-sw.js?v=143.490",
  "scripts/personal-journal1437.js?v=143.440",
  "docs/UPDATE-v143.44.md",
  "docs/UPDATE-v143.45.md",
@@ -306,7 +306,7 @@ const FILES=[
  "scripts/layout-consistency-v87.js?v=143.67",
  "scripts/financial-numbers14231.js?v=143.470",
  "scripts/interface-v69.js?v=143.488",
- "scripts/layout-voucher-polish14301.js?v=143.394",
+ "scripts/layout-voucher-polish14301.js?v=143.490",
  "scripts/subusers-final-v55.js?v=143.69",
  "styles/voucher-layout14299.css?v=143.364",
  "styles/hr-workspace14306.css?v=143.489",
@@ -347,11 +347,15 @@ async function completeResponse(response){
  return new Response(bytes,{status:response.status,statusText:response.statusText,headers:response.headers});
 }
 let downloadState={type:'ojm-shell-progress',version:VERSION,completed:0,total:FILES.length};
-let installing=false;
+let installing=false,lastProgressNotice=-Infinity;
 async function reportDownload(detail={}){
  downloadState={...downloadState,...detail};
+ const now=Date.now();
+ if(downloadState.type==='ojm-shell-progress'&&downloadState.completed<downloadState.total&&now-lastProgressNotice<200)return;
+ lastProgressNotice=now;
+ const notice=downloadState;
  for(const client of await self.clients.matchAll({includeUncontrolled:true})){
-  if(new URL(client.url).pathname===new URL('update.html',scopeURL).pathname)client.postMessage(downloadState);
+  if(new URL(client.url).pathname===new URL('update.html',scopeURL).pathname)client.postMessage(notice);
  }
 }
 async function storageStep(operation){
@@ -382,11 +386,28 @@ async function sameStaticBytes(response,expected){
  const digest=await crypto.subtle.digest('SHA-256',await response.clone().arrayBuffer());
  return Array.from(new Uint8Array(digest),n=>n.toString(16).padStart(2,'0')).join('')===expected;
 }
+// Versioned desktop caches retain their complete files. Index request URLs only,
+// so a cache miss need not read a response from every installed release.
+const priorCacheIndexes=new Map();
+let priorCacheNames;
+function desktopCacheNames(){
+ if(!priorCacheNames)priorCacheNames=storageStep(caches.keys()).then(names=>names.filter(name=>name!==CACHE&&name.startsWith('ojm-desktop-shell-'))).catch(error=>{priorCacheNames=null;throw error;});
+ return priorCacheNames;
+}
+function desktopCacheIndex(name){
+ if(!priorCacheIndexes.has(name)){
+  const index=storageStep(caches.open(name).then(cache=>cache.keys())).then(keys=>new Set(keys.map(request=>request.url))).catch(()=>null);
+  priorCacheIndexes.set(name,index);
+ }
+ return priorCacheIndexes.get(name);
+}
 async function sharedDesktopFile(url){
  const expected=STATIC_DIGESTS[url.pathname.slice(scopeURL.pathname.length)];
  if(!url.searchParams.has('v')&&!expected)return;
- const names=(await storageStep(caches.keys())).filter(name=>name!==CACHE&&name.startsWith('ojm-desktop-shell-'));
+ const names=await desktopCacheNames();
  for(const name of names){
+  const index=await desktopCacheIndex(name);
+  if(index&&!index.has(url.href))continue;
   const saved=await storageStep(caches.match(url.href,{cacheName:name}));
   if(saved?.ok&&saved.type!=='opaque'&&(!expected||await sameStaticBytes(saved,expected)))return saved;
  }

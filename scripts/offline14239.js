@@ -128,7 +128,37 @@ async function invalidateSnapshots(id){const d=await db();await new Promise((res
 
 async function pruneYears14341(from,to){const id=actor();if(!id)return;const current=new Date().getFullYear();const keep=(a,b)=>a===from&&b===to||a===current+'-01-01'&&b===current+'-12-31';const remove=k=>{if(!String(k).startsWith(prefix(id)))return false;const match=String(k).match(/:snapshot:complete-journal:(\d{4}-\d{2}-\d{2}):(\d{4}-\d{2}-\d{2})/);if(match)return !keep(match[1],match[2]);if(!/\/rpc\/(journal_window14333|payroll_window14334):/.test(k))return false;const payload=String(k).match(/:(\{[^{}]*"p_from"[^{}]*\}):/);if(!payload)return false;try{const p=JSON.parse(payload[1]);return !keep(p.p_from,p.p_to)}catch{return false}};const d=await db();await new Promise((resolve,reject)=>{const tx=d.transaction('snapshots','readwrite'),r=tx.objectStore('snapshots').openCursor();r.onsuccess=()=>{const c=r.result;if(!c)return;if(remove(c.key))c.delete();c.continue()};tx.oncomplete=resolve;tx.onerror=tx.onabort=()=>reject(tx.error||Error('Temporary year cache could not be released.'))});for(const k of memory.keys())if(remove(k))memory.delete(k);}
 function remember(key,row){memory.delete(key);memory.set(key,row);if(memory.size>100)memory.delete(memory.keys().next().value);void stored('readwrite',key,row).catch(()=>{})}
-function changed(){if(notificationPending)return;notificationPending=true;requestAnimationFrame(()=>{notificationPending=false;const signature=JSON.stringify([actor(),navigator.onLine,reachable,syncing,lastRead,storageError,[...storageFailures14335].map(([k,f])=>[k,f.message]),connectionError,queueRevision,shellReady,availableShell,checkingUpdate,updateMessage,releaseNotes,window.startup14257?.preparing,window.localFirst14333?.signature?.(),window.saveNotices14234?.entries?.().map(j=>[j.id,j.message])]);if(signature===lastNotification)return;lastNotification=signature;window.dispatchEvent(new Event('connection14239'));})}
+function changed(){if(notificationPending)return;notificationPending=true;requestAnimationFrame(()=>{notificationPending=false;const signature=JSON.stringify([actor(),navigator.onLine,reachable,!!wakeCheck,syncing,lastRead,storageError,[...storageFailures14335].map(([k,f])=>[k,f.message]),connectionError,queueRevision,shellReady,availableShell,checkingUpdate,updateMessage,releaseNotes,window.startup14257?.preparing,window.localFirst14333?.signature?.(),window.saveNotices14234?.entries?.().map(j=>[j.id,j.message])]);if(signature===lastNotification)return;lastNotification=signature;window.dispatchEvent(new Event('connection14239'));})}
+// A restored tab can miss the browser's online event while the laptop is asleep.
+let wakeCheck=null,lastWake=null,networkEpoch=0;
+function recoverConnection(force=false){
+ const id=actor(),client=typeof ojmDb!=='undefined'&&ojmDb,epoch=networkEpoch;
+ if(!id||!client||document.hidden||navigator.onLine===false)return;
+ const local=window.sessionCache14333?.localMode||window.deviceVault14334?.offline;
+ const health=window.supabaseHealth461?.current()?.kind;
+ if(!local&&reachable&&!['offline','unavailable'].includes(health))return;
+ if(wakeCheck?.id===id&&wakeCheck.client===client&&wakeCheck.epoch===epoch)return wakeCheck.promise;
+ if(!force&&lastWake?.id===id&&lastWake.client===client&&lastWake.epoch===epoch&&Date.now()-lastWake.at<15000)return;
+ lastWake={id,client,epoch,at:Date.now()};
+ const current=()=>id===actor()&&client===ojmDb&&epoch===networkEpoch&&navigator.onLine!==false;
+ const task={id,client,epoch};wakeCheck=task;
+ task.promise=(async()=>{
+   try{
+     if(local){
+       if(window.deviceVault14334?.recoverOnline)await window.deviceVault14334.recoverOnline();
+       else if(client.auth.refreshSession)await client.auth.refreshSession();
+     }
+     if(!current()||!canRefresh14338())return;
+     const result=await client.rpc('current_access14228').setHeader('x-ojm-database-only','1');
+     if(!current())return;
+     window.supabaseHealth461?.record(id,result);
+     if(result.error){connectionIssue(result.error.message||'Database connection unconfirmed');}
+     else{reachable=true;connectionError='';}
+   }catch{/* The request path retains the connection error and locally saved work. */}
+   finally{if(wakeCheck===task){wakeCheck=null;changed();}}
+ })();
+ changed();return task.promise;
+}
 function connectionIssue(message){reachable=false;connectionError=message||'Connection interrupted';changed()}
 async function readCopy(key){if(!key)return null;try{if(memory.has(key))return memory.get(key);const row=await stored('readonly',key);if(row){memory.set(key,row);if(memory.size>100)memory.delete(memory.keys().next().value)}return row}catch{return null}}
 function fromCopy(row){cacheRevision14333++;lastRead=row.at;changed();return new Response(row.body,{status:row.status,headers:{...row.headers,'X-OJM-Cached':row.at}})}
@@ -169,7 +199,8 @@ window.fetch=async function(input,options={}){
   if(rpc==='desktop_dock_status'&&req.method==='POST'){try{statusRead=(await req.clone().json()).p_action==='read'}catch{}}
   const referenceKey=id&&req.method==='GET'&&['accounts','sub_accounts','currencies'].includes(url.pathname.split('/').pop())&&!req.headers.has('range')&&!url.searchParams.has('limit')&&!url.searchParams.has('offset')?prefix(id)+'read:'+req.method+':'+url.href+'::'+(req.headers.get('accept')||'')+':workspace:'+(req.headers.get('x-ojm-workspace')||''):'';
   if(navigator.onLine===false||!statusRead&&(window.sessionCache14333?.localMode||window.deviceVault14334?.offline))return errorResponse('Connect to the database to confirm this operation. No cached result is used.');
-  try{const headers=new Headers(req.headers);headers.delete('x-ojm-database-only');const response=await fetchWithDeadline(req,15000,{headers,cache:'no-store'});if(response.ok){reachable=true;connectionError='';changed();
+  const requestEpoch=networkEpoch,requestActor=actor();
+  try{const headers=new Headers(req.headers);headers.delete('x-ojm-database-only');const response=await fetchWithDeadline(req,15000,{headers,cache:'no-store'});if(response.ok){if(networkEpoch===requestEpoch&&actor()===requestActor&&navigator.onLine!==false){reachable=true;connectionError='';changed();}
    // Confirmed reference reads also replace their browsing copy for offline reopening.
    if(referenceKey){const body=await response.clone().text();JSON.parse(body);remember(referenceKey,{body,status:response.status,headers:Object.fromEntries(response.headers),at:new Date().toISOString()});}
   }return response}
@@ -254,17 +285,17 @@ async function localJournalHistory(){
 async function snapshot(name,loader,options={}){const id=actor(),client=ojmDb,originalScope=scope(),workspace=window.workspaceRequest138?.target||'',k=prefix(id)+'snapshot:'+name+':workspace:'+workspace;const valid=()=>{if(actor()!==id||ojmDb!==client||scope()!==originalScope||(window.workspaceRequest138?.target||'')!==workspace)throw Error('Account or workspace changed while loading');};if(!id)return loader();options={...options,cacheFirst:options.cacheFirst||!!(cacheReadDepth14359&&!freshReadDepth14338)};if(options.prepareCached||options.cacheFirst){const cached=await readCopy(k);valid();if(cached){if(options.prepareCached)options.prepareCached(structuredClone(cached.value));if(options.cacheFirst){cacheRevision14333++;lastRead=cached.at;changed();return structuredClone(cached.value)}}}try{if(offline()&&!canRefresh14338())throw Error('Offline');const value=await freshReads(loader);valid();const row={value,at:new Date().toISOString()};try{await stored('readwrite',k,row);valid();memory.set(k,row);lastRead=row.at;changed()}catch{valid()}return value}catch(e){valid();if(!offline())throw e;const row=memory.get(k)||await stored('readonly',k);valid();if(!row)throw Error('This complete dataset has not been downloaded yet. Reconnect to load it.');cacheRevision14333++;lastRead=row.at;changed();return structuredClone(row.value)}}
 function state(){const jobs=queue(),legacy=window.saveNotices14234?.entries?.()||[],local=[...(window.localFirst14333?.findings?.()||[]),...(window.journalDurable14385?.findings()||[]),...(window.offlineAudit143174?.findings()||[])],storageIssues=storageIssues14335();
  const waiting=new Set([...jobs.filter(j=>j.status!=='synced').map(j=>j.payload.p_key),...legacy.map(j=>j.id),...local.filter(f=>f.kind==='record').map(f=>f.id),...(window.journalDurable14385?.pending()||[]).filter(j=>j.status!=='saved'||j.changes?.some(o=>o.status!=='saved')||j.voucher&&!j.voucherLinked).map(j=>j.id),...(window.offlineAudit143174?.pending()||[]).map(j=>j.id)]);
- return {online:!offline(),syncing,attention:!!storageIssues.length||legacy.length>0||local.some(f=>f.critical)||jobs.some(j=>j.status==='attention'),pending:waiting.size,lastSync:actor()?localStorage.getItem(prefix(actor())+'lastSync'):null,lastRead,storageError:storageIssues.map(f=>f.detail).join(' '),storageIssues,connectionError,jobs,legacy,shellReady,appVersion:SHELL_VERSION,availableShell,checkingUpdate,updateMessage,releaseNotes,preparing:!!window.startup14257?.preparing}}
+ return {online:!offline(),checkingConnection:!!wakeCheck,deviceOnline:navigator.onLine!==false,syncing,attention:!!storageIssues.length||legacy.length>0||local.some(f=>f.critical)||jobs.some(j=>j.status==='attention'),pending:waiting.size,lastSync:actor()?localStorage.getItem(prefix(actor())+'lastSync'):null,lastRead,storageError:storageIssues.map(f=>f.detail).join(' '),storageIssues,connectionError,jobs,legacy,shellReady,appVersion:SHELL_VERSION,availableShell,checkingUpdate,updateMessage,releaseNotes,preparing:!!window.startup14257?.preparing}}
 // Count only this account's saved records, not browser quota or other users' data.
 async function measureStore(database,store,accept){return new Promise((resolve,reject)=>{let total=0;const tx=database.transaction(store,'readonly'),r=tx.objectStore(store).openCursor(),timer=setTimeout(()=>{reject(Error('Storage measurement timed out'));try{tx.abort()}catch{}},10000);r.onsuccess=()=>{const cursor=r.result;if(!cursor)return;try{if(accept(String(cursor.key)))total+=new TextEncoder().encode(JSON.stringify(cursor.value)).length;cursor.continue()}catch(e){reject(e);tx.abort()}};tx.oncomplete=()=>{clearTimeout(timer);resolve(total)};tx.onerror=tx.onabort=()=>{clearTimeout(timer);reject(tx.error||Error('Storage measurement unavailable'))}})}
 let dataSize143162={actor:'',value:null,pending:false},dataMeasure143162;
 async function measureDeviceData(){const id=actor();if(!id)return;if(dataMeasure143162?.actor===id)return dataMeasure143162.promise;dataSize143162={actor:id,value:null,pending:true};
- const promise=(async()=>{try{let total=await measureStore(await db(),'snapshots',key=>key.startsWith(prefix(id)));total+=await window.localFirst14333.storageBytes();const main='ojm-main14333:'+scope()+(window.accountingReset143108?.suffix()||'')+':'+id+':';for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key.startsWith(main)||key.startsWith(prefix(id)))total+=new TextEncoder().encode(localStorage.getItem(key)||'').length;}if(actor()===id)dataSize143162={actor:id,value:total,pending:false}}catch{if(actor()===id)dataSize143162={actor:id,value:null,pending:false}}finally{if(dataMeasure143162?.actor===id)dataMeasure143162=null;renderDialog()}})();dataMeasure143162={actor:id,promise};return promise;
+ const promise=(async()=>{try{let total=await measureStore(await db(),'snapshots',key=>key.startsWith(prefix(id)));total+=await window.localFirst14333.storageBytes();const main='ojm-main14333:'+scope()+(window.accountingReset143108?.suffix()||'')+':'+id+':';for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key.startsWith(main)||key.startsWith(prefix(id)))total+=new TextEncoder().encode(localStorage.getItem(key)||'').length;}if(actor()===id)dataSize143162={actor:id,value:total,pending:false}}catch{if(actor()===id)dataSize143162={actor:id,value:null,pending:false,failed:true}}finally{if(dataMeasure143162?.actor===id)dataMeasure143162=null;renderDialog()}})();dataMeasure143162={actor:id,promise};return promise;
 }
-function open(findingId=''){if(!actor())return null;if(dialog?.open){renderDialog();return dialog;}const box=document.createElement('dialog');box.id='syncSummary143162';box.className='connection-dialog14239';dialog=box;box.dataset.finding14335=typeof findingId==='string'?findingId:'';document.body.append(box);void measureDeviceData();renderDialog();box.showModal();window.RailTools379?.outside(box,()=>box.close());box.addEventListener('close',()=>{window.idleSync14341?.acknowledge();box.remove();if(dialog===box)dialog=null});return box;}
+function open(findingId=''){if(!actor())return null;if(dialog?.open){renderDialog();return dialog;}const box=document.createElement('dialog');box.id='syncSummary143162';box.className='connection-dialog14239';dialog=box;box.dataset.finding14335=typeof findingId==='string'?findingId:'';document.body.append(box);renderDialog();box.showModal();void recoverConnection();window.RailTools379?.outside(box,()=>box.close());box.addEventListener('close',()=>{window.idleSync14341?.acknowledge();box.remove();if(dialog===box)dialog=null});return box;}
 function renderDialog(){
- if(!dialog)return;const s=state(),overview=window.idleSync14341?.overview()||{groups:[],pending:s.pending,synced:0,pendingBytes:0},session=overview.session,items=(window.syncAssessment14332?.findings()||[]).filter(f=>f.kind!=='cleanup'&&!f.manualCleanup),busy=!!(session?.running||s.syncing||s.preparing||window.localFirst14333?.syncing),size=dataSize143162.actor===actor()?dataSize143162:{value:null,pending:true};
- const signature=JSON.stringify([s,overview,items.map(f=>[f.id,f.title,f.detail,f.status]),size,checkingStorage14335,storageCheck14335]);if(dialog.__render14335===signature)return;dialog.__render14335=signature;const scroll=dialog.querySelector('.sync-body')?.scrollTop||0;
+ if(!dialog)return;const s=state(),overview=window.idleSync14341?.overview({measureBytes:dialog.dataset.view==='details'})||{groups:[],pending:s.pending,synced:0,pendingBytes:0},session=overview.session,items=(window.syncAssessment14332?.findings()||[]).filter(f=>f.kind!=='cleanup'&&!f.manualCleanup),busy=!!(session?.running||s.syncing||s.preparing||window.localFirst14333?.syncing),size=dataSize143162.actor===actor()?dataSize143162:{value:null,pending:false};
+ const signature=JSON.stringify([s.online,s.deviceOnline,s.checkingConnection,s.syncing,s.preparing,s.pending,s.availableShell,s.checkingUpdate,s.updateMessage,s.connectionError,overview,items.map(f=>[f.id,f.title,f.detail,f.status,f.repair,f.critical]),size,checkingStorage14335,storageCheck14335]);if(dialog.__render14335===signature)return;dialog.__render14335=signature;const scroll=dialog.querySelector('.sync-body')?.scrollTop||0;
  const opened=new Set(Array.from(dialog.querySelectorAll('[data-section][aria-expanded="true"]'),n=>n.dataset.section));
  const focused=dialog.contains(document.activeElement)?document.activeElement.dataset.action:null;
  dialog.replaceChildren();
@@ -273,7 +304,7 @@ function renderDialog(){
  const row=(name,value,parent)=>{const line=add('div','',parent,'sync-row143162');add('span',name,line);add('strong',value,line);return line};
  const button=(label,action,parent,onclick)=>{const b=add('button',label,parent);b.type='button';b.dataset.action=action;b.onclick=onclick;return b};
  const header=add('header',''),title=add('h2','Synchronization',header);title.id='connectionTitle14246';
- const connection=add('span',s.online?'Online':'Offline',header,'sync-connection143162');
+ const connection=add('span',s.checkingConnection&&s.deviceOnline?'Checking database…':s.online?'Online':s.deviceOnline?'Device online · database unconfirmed':'Offline',header,'sync-connection143162');
  connection.dataset.online=String(s.online);
  const nav=add('div','',dialog,'sync-views'),body=add('div','',dialog,'sync-body');
  nav.setAttribute('role','group');nav.setAttribute('aria-label','Synchronization views');
@@ -288,12 +319,12 @@ function renderDialog(){
  for(const [id,label] of [['overview','Overview'],['details','Details'],['tools','Device tools']]){
   const panel=add('section','',body,'sync-pane');panels[id]=panel;
   panel.id='sync-view-'+id;panel.setAttribute('aria-label',label);
-  const control=button(label,'view-'+id,nav,()=>{selectView(id);body.scrollTop=0});
+  const control=button(label,'view-'+id,nav,()=>{selectView(id);body.scrollTop=0;if(id==='details')renderDialog()});
   control.setAttribute('aria-controls',panel.id);
  }
  const main=panels.overview,details=panels.details,device=panels.tools;
  selectView(dialog.dataset.view||'overview');
- const refreshWaiting=overview.groups.some(g=>['waiting','refreshing'].includes(g.refresh)),issues=items.filter(f=>f.critical||f.kind==='setup'),needsReview=issues.length||!!overview.problem||/needs attention|needs review/i.test(session?.result||''),status=busy?'Syncing…':!s.online?'Waiting for connection':needsReview?'Needs review':overview.pending?'Waiting for database confirmation':overview.checking?'Checking saved copies':refreshWaiting?'Refresh pending':session?.finished?'Up to date':'Ready to sync';
+ const refreshWaiting=overview.groups.some(g=>['waiting','refreshing'].includes(g.refresh)),issues=items.filter(f=>f.critical||f.kind==='setup'),needsReview=issues.length||!!overview.problem||/needs attention|needs review/i.test(session?.result||''),status=busy?'Syncing…':!s.online?(s.deviceOnline?'Waiting for database connection':'Waiting for connection'):needsReview?'Needs review':overview.pending?'Waiting for database confirmation':overview.checking?'Checking saved copies':refreshWaiting?'Refresh pending':session?.finished?'Up to date':'Ready to sync';
  const stateRow=add('div','',main,'sync-state143162');stateRow.dataset.tone=!s.online||needsReview?'attention':busy?'working':'ready';add('strong',status,stateRow).setAttribute('role','status');
  if(busy||session?.finished)add('span',busy?session?.stage||'Refreshing records':'Last sync '+formatAppDate(session.finished,true),stateRow);
  if(busy)add('progress','',stateRow).setAttribute('aria-label','Synchronization in progress');
@@ -321,18 +352,19 @@ function renderDialog(){
  for(const g of refreshed)row(g.name,g.refresh==='failed'?'Refresh failed':g.refresh==='refreshing'?'Refreshing…':g.refresh==='waiting'?'Waiting':g.updated?'Downloaded':'Checked',details);
  if(session?.cleanup)add('p',session.cleanup,details);
  row('Website version',s.appVersion,device);
- row('Stored on this device',size.pending?'Measuring…':size.value==null?'Unavailable':format(size.value),device);
+ row('Stored on this device',size.pending?'Measuring…':size.value==null?(size.failed?'Measurement unavailable':'Not measured'):format(size.value),device);
  const tools=add('div','',device,'sync-tools143162');
  const update=button(s.checkingUpdate?'Checking…':'Check updates','check-updates',tools,checkForUpdates);update.disabled=s.checkingUpdate;
  const updateLink=add('a',s.availableShell?'Install '+s.availableShell:'Update website',tools);
  updateLink.href='update.html?check='+Date.now();updateLink.dataset.action='update-website';
+ const measure=button(size.pending?'Measuring…':'Measure storage','measure-storage',tools,()=>{void measureDeviceData();renderDialog()});measure.disabled=size.pending;
  const check=button(checkingStorage14335?'Checking…':'Check storage','check-storage',tools,checkStorage14335);check.disabled=checkingStorage14335;
  for(const message of [s.updateMessage,storageCheck14335])if(message)add('p',message,device).setAttribute('role','status');
  const footer=add('footer','');button('Close','close',footer,()=>dialog.close());const feedback=window.idleSync14341?.feedback();const sync=button(feedback?.label||(busy?'Syncing…':'Sync now'),'sync',footer,()=>window.idleSync14341?.syncNow());sync.dataset.syncNow14343='';sync.disabled=feedback?.disabled??(busy||!canRefresh14338());body.scrollTop=scroll;if(focused)dialog.querySelector('[data-action="'+CSS.escape(focused)+'"]')?.focus({preventScroll:true});
 }
 
-function paint(doc=document,phone=false){if(visibleActor!==actor()){visibleActor=actor();dialog?.close();lastRead=null}const s=state(),label=s.online?'Online':navigator.onLine===false?'Offline':'Limited connection';const hosts=phone?[doc.querySelector('.top')]:[...doc.querySelectorAll('.area-banner113,.dash-hero112')];for(const host of hosts.filter(Boolean)){let b=host.querySelector('.connection14239');if(!b){b=doc.createElement('button');b.type='button';b.className='connection14239';b.onclick=open;if(phone)host.insertBefore(b,host.querySelector('.profile'));else host.append(b)}const text=label;if(b.textContent!==text)b.textContent=text;const state=s.online?'online':navigator.onLine===false?'offline':'limited',aria=text+(window.autoSync14256?'. Connection and manual sync':'. Connection and saved-entry status');if(b.dataset.state!==state)b.dataset.state=state;if(b.getAttribute('aria-label')!==aria)b.setAttribute('aria-label',aria);}}
-const SHELL_VERSION='143.489';let releaseNotes=null;try{const saved=JSON.parse(localStorage.getItem('ojm_release_notes143105')||'null');if(saved&&/^\d+\.\d+$/.test(saved.version)&&Array.isArray(saved.changes))releaseNotes=saved}catch{}let checkingUpdate=false,updateMessage='';let shellRegistration=null,waitingForLoad=false,shellFailures=0,shellRetry=null,availableShell='';
+function paint(doc=document,phone=false){if(visibleActor!==actor()){visibleActor=actor();dialog?.close();lastRead=null}const online=!offline(),label=online?'Online':navigator.onLine===false?'Offline':'Limited connection';const hosts=phone?[doc.querySelector('.top')]:[...doc.querySelectorAll('.area-banner113,.dash-hero112')];for(const host of hosts.filter(Boolean)){let b=host.querySelector('.connection14239');if(!b){b=doc.createElement('button');b.type='button';b.className='connection14239';b.onclick=open;if(phone)host.insertBefore(b,host.querySelector('.profile'));else host.append(b)}const text=label;if(b.textContent!==text)b.textContent=text;const state=online?'online':navigator.onLine===false?'offline':'limited',aria=text+(window.autoSync14256?'. Connection and manual sync':'. Connection and saved-entry status');if(b.dataset.state!==state)b.dataset.state=state;if(b.getAttribute('aria-label')!==aria)b.setAttribute('aria-label',aria);}}
+const SHELL_VERSION='143.490';let releaseNotes=null;try{const saved=JSON.parse(localStorage.getItem('ojm_release_notes143105')||'null');if(saved&&/^\d+\.\d+$/.test(saved.version)&&Array.isArray(saved.changes))releaseNotes=saved}catch{}let checkingUpdate=false,updateMessage='';let shellRegistration=null,waitingForLoad=false,shellFailures=0,shellRetry=null,availableShell='';
 function shellStatus(data){shellReady=data.ready===true&&data.version===SHELL_VERSION;if(data.ready&&String(data.version).localeCompare(SHELL_VERSION,undefined,{numeric:true})>0&&availableShell!==data.version){availableShell=data.version;window.showCenterStatus?.('Website update '+data.version+' is ready. Open System to review and apply it.');}if(shellReady&&/^(Offline files|Offline reopening)/.test(storageError))storageError='';changed()}
 async function checkForUpdates(){
  if(checkingUpdate)return;
@@ -381,9 +413,15 @@ function ready(){
  paint();let pending=false;const schedule=()=>{if(pending)return;pending=true;requestAnimationFrame(()=>{pending=false;paint()})};window.addEventListener('connection14239',()=>{paint();renderDialog();try{const f=document.getElementById('connectedPhone132');if(f?.contentDocument)paint(f.contentDocument,true)}catch{}});window.addEventListener('page113',schedule);registerShell();}
 function pendingOwner(id){return queue().some(j=>j.payload.p_owner===id&&j.status!=='synced')||!!window.saveNotices14234?.staffPending?.(id).length}
 window.offline14239={resumeStaff,localJournalHistory,retryStorageCopy,retryEntry:id=>sync({targetId:id}),refreshDialog:renderDialog,measureStore,checkForUpdates,pruneYears:pruneYears14341,get cacheRevision(){return cacheRevision14333},cachedReads,freshReads,canRefresh:canRefresh14338,confirmConnection,offline,state,checkStorage:checkStorage14335,pendingOwner,enqueue,queue,persist,sync:(options={})=>!options.coordinated&&window.idleSync14341?.run?idleSync14341.run(!!options.automatic):sync(options),open,paint,snapshot,canonical,changed,connectionIssue,request};
-window.addEventListener('sync-assessment14332',()=>{if(dialog)void measureDeviceData();renderDialog()});
+window.addEventListener('sync-assessment14332',renderDialog);
 window.addEventListener('session-online14333',()=>{reachable=true;connectionError='';changed()});
-window.addEventListener('online',()=>{reachable=true;connectionError='';shellFailures=0;clearTimeout(shellRetry);registerShell();changed()});window.addEventListener('offline',()=>{reachable=false;changed()});window.addEventListener('storage',event=>{if(event.key===null||actor()&&(event.key.startsWith(prefix(actor())+'entry:')||event.key===prefix(actor())+'lastSync')){queueRevision++;changed()}});window.addEventListener('save-state14234',changed);window.addEventListener('local-work14333',()=>{changed();renderDialog()});
+window.addEventListener('online',()=>{networkEpoch++;reachable=false;shellFailures=0;clearTimeout(shellRetry);registerShell();changed();void recoverConnection(true)});
+window.addEventListener('offline',()=>{networkEpoch++;reachable=false;changed()});
+const resumeConnection=()=>{if(!document.hidden)void recoverConnection()};
+document.addEventListener('visibilitychange',resumeConnection);
+window.addEventListener('pageshow',resumeConnection);
+window.addEventListener('focus',resumeConnection);
+window.addEventListener('storage',event=>{if(event.key===null||actor()&&(event.key.startsWith(prefix(actor())+'entry:')||event.key===prefix(actor())+'lastSync')){queueRevision++;changed()}});window.addEventListener('save-state14234',changed);window.addEventListener('local-work14333',()=>{changed();renderDialog()});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
 })();
 

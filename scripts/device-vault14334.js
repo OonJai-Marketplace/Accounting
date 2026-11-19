@@ -808,6 +808,7 @@ if(typeof module!=='undefined')module.exports=createRememberedPhone212;
   offline = rawSession.getItem(P + "offline") === "1";
   window.deviceVault14334 = {
     ready: ready212,
+    recoverOnline,
     consumeFresh() {
       const fresh = rawSession.getItem(P + "fresh") === "1";
       rawSession.removeItem(P + "fresh");
@@ -884,25 +885,33 @@ if(typeof module!=='undefined')module.exports=createRememberedPhone212;
         new StorageEvent("storage", { key: e.key.slice(prefix.length) }),
       );
   });
-  window.addEventListener("online", async () => {
-    if (!secret || !client || pending) return;
+  let reconnecting=null;
+  function recoverOnline() {
+    if (!secret || !client || pending || navigator.onLine===false) return;
     checkDeadline();
     if (!secret || locked) return;
-    try {
-      const r = await client.auth.refreshSession();
-      if (r.error) throw r.error;
-      offline = false;
-      rawSession.setItem(P + "offline", "0");
-      window.dispatchEvent(new Event("session-online14333"));
-      window.autoSync14256?.run();
-      window.idleSync14341?.request?.();
-    } catch (e) {
-      if (!transport(e)) {
-        revoke();
-        void lock(
-          "Online authorization expired. Sign in again; your encrypted work is retained.",
-        );
-      }
-    }
-  });
+    const owner=actor, activeClient=client, key=secret;
+    if(reconnecting?.owner===owner && reconnecting.client===client && reconnecting.key===key)return reconnecting.promise;
+    const current=()=>actor===owner && client===activeClient && secret===key && !locked;
+    const task={owner,client:activeClient,key};reconnecting=task;
+    task.promise=(async()=>{
+      try {
+        const r=await activeClient.auth.refreshSession();
+        if(!current())return;
+        if(r.error)throw r.error;
+        if(navigator.onLine===false)return;
+        if(r.data?.session?.user?.id!==owner)return;
+        offline=false;rawSession.setItem(P+"offline","0");
+        window.dispatchEvent(new Event("session-online14333"));
+        window.autoSync14256?.run();
+        window.idleSync14341?.request?.();
+      } catch(e){
+        if(current()&&!transport(e)){
+          revoke();
+          void lock("Online authorization expired. Sign in again; your encrypted work is retained.");
+        }
+      } finally{if(reconnecting===task)reconnecting=null;}
+    })();return task.promise;
+  }
+  window.addEventListener("online",recoverOnline);
 })();

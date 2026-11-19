@@ -42,6 +42,7 @@ function tableTools(){
  selectTablePanel(sidebar,0);
 }
 function connection(){
+ if(!document.body)return;
  let button=$('#connectionFloat14301');
  if(!button){button=document.createElement('button');button.id='connectionFloat14301';button.type='button';button.innerHTML='<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8a15 15 0 0 1 18 0M6 12a10 10 0 0 1 12 0M9 16a5 5 0 0 1 6 0M12 20h.01"/></svg>';button.setAttribute('aria-haspopup','dialog');button.onclick=()=>window.offline14239?.open();document.body.append(button)}
  const dock=$('#workspaceTools108');if(dock&&dock.firstElementChild!==button)dock.prepend(button);
@@ -55,7 +56,7 @@ function schedule(){if(!queued){queued=true;requestAnimationFrame(polish)}}
 document.addEventListener('click',event=>{
  const table=event.target.closest('[data-doc-action="table109"]');if(table)setTimeout(()=>{const sidebar=$('#docTableSidebar14298');if(sidebar)selectTablePanel(sidebar,0)},0);
 },true);
-window.addEventListener('connection14239',schedule);window.addEventListener('online',schedule);window.addEventListener('offline',schedule);
+window.addEventListener('connection14239',connection);window.addEventListener('online',connection);window.addEventListener('offline',connection);
 document.addEventListener('DOMContentLoaded',()=>{polish();new MutationObserver(records=>{
  const selector='#transactions-voided,#period-review,#document-editor105,.connection14239,#workspaceTools108,.logo-tile113';
  if(records.some(r=>r.target.closest?.(selector)||[...r.addedNodes].some(n=>n.nodeType===1&&(n.matches(selector)||n.querySelector(selector)))))schedule();
