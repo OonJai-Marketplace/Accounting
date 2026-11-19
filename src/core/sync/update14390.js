@@ -1,12 +1,26 @@
 /* Independent update entry point. Never reads or removes accounting storage. */
 (()=>{'use strict';
-let VERSION='143.501';
+let VERSION='143.502';
 const ua=navigator.userAgent||'';
 const phone=/iPhone|iPod/i.test(ua)||/Android/i.test(ua)&&/Mobile/i.test(ua);
 const workerFile=phone?'phone-sw.js':'desktop-sw14242.js';
 const status=document.getElementById('updateStatus'),retry=document.getElementById('updateRetry'),progress=document.getElementById('updateProgress');
 let attempt=0,finished=false,timer,poll,registration,unwatch=()=>{},lastProgress='',reportedError=false;
-function fail(message){clearTimeout(timer);clearInterval(poll);status.textContent=message;retry.hidden=false;}
+let firstFileTimer,hasFileActivity=false;
+const resumeParameter='resumeUpdate';
+function fail(message){clearTimeout(firstFileTimer);clearTimeout(timer);clearInterval(poll);status.textContent=message;retry.hidden=false;}
+function recoverFirstVisit(token){
+ clearTimeout(firstFileTimer);
+ const url=new URL(location.href);
+ if(token!==attempt||finished||reportedError||hasFileActivity||url.searchParams.get(resumeParameter)===VERSION)return;
+ firstFileTimer=setTimeout(()=>{
+  if(token!==attempt||finished||reportedError||hasFileActivity||navigator.onLine===false)return;
+  url.searchParams.set(resumeParameter,VERSION);
+  url.searchParams.set('version',VERSION);
+  status.textContent='Reconnecting to the update…';
+  location.replace(url.href);
+ },15000);
+}
 function watchForStall(token){clearTimeout(timer);timer=setTimeout(()=>{if(token===attempt&&!finished)fail('The update has stopped making progress. Tap Retry update. Completed files are saved; this does not necessarily mean your internet is disconnected.')},90000);}
 function showProgress(data,token){
  if(finished||token!==attempt||data?.version!==VERSION)return;
@@ -14,12 +28,14 @@ function showProgress(data,token){
   reportedError=true;fail((data.message||'Some files could not download.')+(data.file?' ('+data.file+')':'')+' Tap Retry update.');return;
  }
  if(data.type!=='ojm-shell-progress'||!data.total||reportedError)return;
- const signature=JSON.stringify([data.completed,data.file,data.bytes,data.retry]);
+ if(data.completed>0||data.bytes>0){hasFileActivity=true;clearTimeout(firstFileTimer);}
+ const signature=JSON.stringify([data.phase,data.completed,data.file,data.bytes,data.retry]);
  if(signature===lastProgress)return;
  lastProgress=signature;watchForStall(token);
  progress.value=data.completed/data.total;
  const file=data.file?.split('/').pop();
- status.textContent='Downloading update: '+Math.round(progress.value*100)+'% · '+Math.max(0,data.total-data.completed)+' files remaining'+(file?' · '+file:'')+(data.bytes?' · '+Math.ceil(data.bytes/1024)+' KB':'')+(data.retry?' · retry '+data.retry:'');
+ const action=data.phase==='checking'?'Checking saved files':'Downloading update';
+ status.textContent=action+': '+Math.round(progress.value*100)+'% · '+Math.max(0,data.total-data.completed)+' files remaining'+(file?' · '+file:'')+(data.bytes?' · '+Math.ceil(data.bytes/1024)+' KB':'')+(data.retry?' · retry '+data.retry:'');
 }
 async function verify(worker,token){
  if(!worker||finished||token!==attempt||new URL(worker.scriptURL).pathname!==new URL(workerFile,location.href).pathname)return;
@@ -30,7 +46,7 @@ async function verify(worker,token){
   if(reply.progress)showProgress(reply.progress,token);
   if(worker.state!=='activated'||!reply.ready)return;
   if(String(reply.version).localeCompare(VERSION,undefined,{numeric:true})<0){if(new URL(worker.scriptURL).searchParams.get('v')===VERSION&&!registration?.installing&&!registration?.waiting){reportedError=true;fail('The website announced '+VERSION+' but supplied offline files for '+reply.version+'. The release files do not match. Retry after publication finishes.');}return;}
-  finished=true;clearTimeout(timer);clearInterval(poll);unwatch();status.textContent='Update ready. Opening Accounting…';progress.value=1;
+  finished=true;clearTimeout(firstFileTimer);clearTimeout(timer);clearInterval(poll);unwatch();status.textContent='Update ready. Opening Accounting…';progress.value=1;
   const url=new URL(phone?'phone.html':'desktop.html',location.href);url.searchParams.set('v',reply.version);location.replace(url.href);
  }catch{}finally{clearTimeout(timeout);channel.port1.close();}
 }
@@ -54,7 +70,7 @@ async function fetchRelease(){
  }finally{clearTimeout(timeout);}
 }
 async function start(){
- const token=++attempt;finished=false;reportedError=false;lastProgress='';clearTimeout(timer);clearInterval(poll);unwatch();retry.hidden=true;progress.removeAttribute('value');status.textContent='Checking the latest version…';
+ const token=++attempt;finished=false;reportedError=false;hasFileActivity=false;lastProgress='';clearTimeout(firstFileTimer);clearTimeout(timer);clearInterval(poll);unwatch();retry.hidden=true;progress.removeAttribute('value');status.textContent='Checking the latest version…';
  if(!('serviceWorker'in navigator)){fail('This browser cannot prepare the offline update. Open Accounting in a browser that supports offline apps.');return;}
  if(navigator.onLine===false){fail('Reconnect to the internet, then tap Retry update.');return;}
  watchForStall(token);
@@ -67,6 +83,7 @@ async function start(){
   const notes=document.getElementById('updateNotes');notes.replaceChildren();
   if(Array.isArray(release.changes)&&release.changes.length){const heading=document.createElement('h2');heading.textContent='What changed in '+release.version;const list=document.createElement('ul');for(const change of release.changes.filter(x=>typeof x==='string').slice(0,30)){const li=document.createElement('li');li.textContent=change;list.append(li)}notes.append(heading,list);notes.hidden=false;}
   status.textContent='Starting the download…';
+  if(!phone)recoverFirstVisit(token);
   registration=await navigator.serviceWorker.register(workerFile+'?v='+VERSION,{scope:'./',updateViaCache:'none'});
   if(token!==attempt)return;
   const watched=new Map();

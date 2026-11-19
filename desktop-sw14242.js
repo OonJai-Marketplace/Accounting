@@ -1,6 +1,6 @@
 /* Static application files only. Each release has an isolated cache.
    Never overwrite old version caches: open tabs may still require those bytes. */
-const VERSION='143.501',CACHE='ojm-desktop-shell-'+VERSION;
+const VERSION='143.502',CACHE='ojm-desktop-shell-'+VERSION;
 const FILES=[
  "scripts/desktop-status-dock.js?v=143.491",
  "docs/protocols/index.html?v=143.413",
@@ -95,7 +95,7 @@ const FILES=[
  "scripts/desktop14245-5.js?v=143.423",
  "scripts/desktop14245-6.js?v=143.492",
  "scripts/local-events14310.js?v=143.375",
- "scripts/offline14239.js?v=143.501",
+ "scripts/offline14239.js?v=143.502",
  "docs/UPDATE-v143.18.md",
  "docs/UPDATE-v143.19.md",
  "scripts/company-accounts14319.js?v=143.327",
@@ -230,7 +230,7 @@ const FILES=[
  "scripts/settings-groups14332.js?v=143.375",
  "styles/settings-groups14332.css?v=143.375",
  "styles/statutory14332.css?v=143.154",
- "scripts/phone-runtime14242.js?v=143.501",
+ "scripts/phone-runtime14242.js?v=143.502",
  "scripts/local-first14333.js?v=143.475",
  "scripts/session-cache14333.js?v=143.33",
  "scripts/year-window14333.js?v=143.391",
@@ -269,7 +269,7 @@ const FILES=[
  "scripts/workspace-consistency14343.js?v=143.475",
  "styles/workspace-consistency14343.css?v=143.377",
  "docs/UPDATE-v143.43.md",
- "phone-sw.js?v=143.501",
+ "phone-sw.js?v=143.502",
  "scripts/personal-journal1437.js?v=143.440",
  "docs/UPDATE-v143.44.md",
  "docs/UPDATE-v143.45.md",
@@ -346,17 +346,20 @@ async function completeResponse(response){
  const bytes=await response.arrayBuffer();
  return new Response(bytes,{status:response.status,statusText:response.statusText,headers:response.headers});
 }
-let downloadState={type:'ojm-shell-progress',version:VERSION,completed:0,total:FILES.length};
+let downloadState={type:'ojm-shell-progress',version:VERSION,completed:0,total:FILES.length,phase:'checking'};
 let installing=false,lastProgressNotice=-Infinity;
+let progressDelivery=null;
 async function reportDownload(detail={}){
  downloadState={...downloadState,...detail};
  const now=Date.now();
- if(downloadState.type==='ojm-shell-progress'&&downloadState.completed<downloadState.total&&now-lastProgressNotice<200)return;
+ if(downloadState.type==='ojm-shell-progress'&&downloadState.completed<downloadState.total&&(now-lastProgressNotice<200||progressDelivery))return;
  lastProgressNotice=now;
- const notice=downloadState;
- for(const client of await self.clients.matchAll({includeUncontrolled:true})){
-  if(new URL(client.url).pathname===new URL('update.html',scopeURL).pathname)client.postMessage(notice);
- }
+ // Navigation can delay discovery of the update page. The file queue must keep
+ // running. Its latest snapshot is also available through ojm-shell-status.
+ if(!progressDelivery)progressDelivery=self.clients.matchAll({includeUncontrolled:true}).then(clients=>{
+  for(const client of clients)if(new URL(client.url).pathname===new URL('update.html',scopeURL).pathname)client.postMessage(downloadState);
+ }).catch(()=>{}).finally(()=>{progressDelivery=null;});
+ return progressDelivery;
 }
 async function storageStep(operation){
  let timer;
@@ -391,7 +394,7 @@ async function sameStaticBytes(response,expected){
 const priorCacheIndexes=new Map();
 let priorCacheNames;
 function desktopCacheNames(){
- if(!priorCacheNames)priorCacheNames=storageStep(caches.keys()).then(names=>names.filter(name=>name!==CACHE&&name.startsWith('ojm-desktop-shell-'))).catch(error=>{priorCacheNames=null;throw error;});
+ if(!priorCacheNames)priorCacheNames=storageStep(caches.keys()).then(names=>names.filter(name=>name!==CACHE&&name.startsWith('ojm-desktop-shell-')).reverse()).catch(error=>{priorCacheNames=null;throw error;});
  return priorCacheNames;
 }
 function desktopCacheIndex(name){
@@ -423,16 +426,17 @@ async function downloadFile(cache,file){
   return;
  }
  for(let retry=0;retry<3;retry++){
-  await reportDownload({file:file.split('?')[0],bytes:0,retry});
+  void reportDownload({phase:'checking',file:file.split('?')[0],bytes:0,retry});
   const controller=new AbortController();let timer,lastReport=0;
   const arm=()=>{clearTimeout(timer);timer=setTimeout(()=>controller.abort(),60000)};
   try{
    if(await sharedDesktopFile(url))return;
+   void reportDownload({phase:'downloading',file:file.split('?')[0],bytes:0,retry});
    arm();let response=await fetch(url.href,{cache:'no-cache',signal:controller.signal});
    if(!response.ok||response.type==='opaque')throw Error('Download returned '+response.status);
    if(response.body){
     const reader=response.body.getReader(),chunks=[];let bytes=0;
-    try{while(true){const part=await reader.read();if(part.done)break;chunks.push(part.value);bytes+=part.value.byteLength;arm();if(Date.now()-lastReport>500){lastReport=Date.now();await reportDownload({file:file.split('?')[0],bytes,retry});}}}
+    try{while(true){const part=await reader.read();if(part.done)break;chunks.push(part.value);bytes+=part.value.byteLength;arm();if(Date.now()-lastReport>500){lastReport=Date.now();void reportDownload({phase:'downloading',file:file.split('?')[0],bytes,retry});}}}
     finally{reader.releaseLock();}
     response=new Response(new Blob(chunks),{status:response.status,statusText:response.statusText,headers:response.headers});
    }else response=await completeResponse(response);
@@ -448,16 +452,21 @@ self.addEventListener('install',event=>event.waitUntil((async()=>{
  installing=true;
  try{
   const cache=await storageStep(caches.open(CACHE));
-  for(let offset=0;offset<FILES.length;offset+=2){
-   const batch=await Promise.allSettled(FILES.slice(offset,offset+2).map(async file=>{
-    await downloadFile(cache,file);
-    await reportDownload({completed:downloadState.completed+1,bytes:0});
-   }));
-   const failed=batch.find(result=>result.status==='rejected');if(failed)throw failed.reason;
+  let next=0,failure;
+  async function prepareFiles(){
+   while(!failure&&next<FILES.length){
+    const file=FILES[next++];
+    try{
+     await downloadFile(cache,file);
+     void reportDownload({completed:downloadState.completed+1});
+    }catch(error){failure??=error;}
+   }
   }
+  await Promise.all(Array.from({length:3},prepareFiles));
+  if(failure)throw failure;
   await self.skipWaiting();
  }catch(error){
-  await reportDownload({type:'ojm-shell-error',file:error.downloadFile||'',message:error.name==='QuotaExceededError'?'This device has insufficient browser storage for the update.':'A file could not finish downloading. Completed files are saved for retry.'});
+  void reportDownload({type:'ojm-shell-error',file:error.downloadFile||'',message:error.name==='QuotaExceededError'?'This device has insufficient browser storage for the update.':'A file could not finish downloading. Completed files are saved for retry.'});
   throw error;
  }
 })()));
