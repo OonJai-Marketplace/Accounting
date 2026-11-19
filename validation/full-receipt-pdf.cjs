@@ -6,16 +6,21 @@ module.exports=async function checkFullReceiptPDF(page,original){
  await frame.waitFor();
  assert.equal(await link.getAttribute('href'),original);
  const bounds=await dialog.evaluate(node=>{
-  const frame=node.querySelector('iframe').getBoundingClientRect();
-  const close=node.querySelector('button').getBoundingClientRect();
-  const link=node.querySelector('a').getBoundingClientRect();
-  return {width:frame.width,height:frame.height,viewportWidth:visualViewport.width,
-   viewportHeight:visualViewport.height,top:frame.top,bottom:frame.bottom,
-   controlsVisible:[close,link].every(r=>r.top>=-1&&r.left>=-1&&r.bottom<=visualViewport.height+1&&r.right<=visualViewport.width+1)};
+  const box=node.getBoundingClientRect(),frame=node.querySelector('iframe').getBoundingClientRect();
+  const toolbar=node.querySelector('.rv-pdf-toolbar').getBoundingClientRect();
+  const vw=visualViewport.width,vh=visualViewport.height;
+  return {width:box.width,height:box.height,left:box.left,top:box.top,
+   right:vw-box.right,bottom:vh-box.bottom,viewportWidth:vw,viewportHeight:vh,
+   frameWidth:frame.width,frameHeight:frame.height,toolbarHeight:toolbar.height,
+   controlsVisible:[...node.querySelectorAll('button,a')].every(el=>{
+    const r=el.getBoundingClientRect();return r.left>=box.left && r.right<=box.right && r.top>=box.top && r.bottom<=frame.top+1;
+   })};
  });
  const detail=JSON.stringify(bounds);
- assert(bounds.height>=bounds.viewportHeight*.80,detail);
- assert(bounds.width>=bounds.viewportWidth*.96,detail);
- assert(bounds.top>=-1&&bounds.bottom<=bounds.viewportHeight+1&&bounds.controlsVisible,detail);
- console.log('Full receipt PDF dimensions',detail);
+ assert(Math.min(bounds.left,bounds.top,bounds.right,bounds.bottom)>=12,detail);
+ assert(Math.abs(bounds.left-bounds.right)<=2 && Math.abs(bounds.top-bounds.bottom)<=2,detail);
+ assert(bounds.frameHeight>=Math.min(480,bounds.viewportHeight*.65),detail);
+ assert(bounds.frameWidth>=Math.min(620,bounds.viewportWidth*.84),detail);
+ assert(bounds.frameHeight+bounds.toolbarHeight>=bounds.height-5 && bounds.controlsVisible,detail);
+ console.log('Full PDF popup dimensions',detail);
 };
