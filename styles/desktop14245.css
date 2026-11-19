@@ -4855,6 +4855,33 @@ body #document-editor105 .doc-options105 input:not([type=color]):not([type=file]
 #document-editor105 .doc-bottom108 .doc-info271 .doc-report-notices270[hidden]{display:none}
 @media print{#document-editor105 .doc-report-notices270{display:none!important}}
 
+/* The shared report chooser scrolls its fields while keeping its actions in view. */
+body .report-signers .ui-dialog108{width:min(37rem,100%);max-height:calc(100dvh - 2rem);overflow:hidden!important;border-radius:12px}
+body .report-signers .ui-dialog108>header,body .report-signers .ui-dialog108>footer{flex:none;padding:12px 20px}
+body .report-signers .ui-dialog108>header h3{font-size:1.25rem!important}
+body .report-signers .ui-body108{min-height:0;padding:18px 20px;overscroll-behavior:contain}
+#reportSignatories275{display:grid;gap:14px;color:#243c31}
+#reportSignatories275 .signer-context{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px}
+#reportSignatories275 .signer-context p{margin:0;font-family:inherit;font-weight:600;font-size:1rem;line-height:1.4;overflow-wrap:anywhere}
+#reportSignatories275 fieldset{margin:0;min-inline-size:0;padding:0;border:0}
+#reportSignatories275 fieldset[hidden]{display:none}
+#reportSignatories275 legend{float:left;box-sizing:border-box;width:100%;margin:0 0 9px;padding:9px 12px;background:#e7efe9;color:#244c37;border-left:3px solid #427958;font-size:.875rem;font-weight:700}
+#reportSignatories275 .signer-fields{clear:both;display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:12px}
+#reportSignatories275 label{min-width:0;gap:4px;color:#354c3f;font-size:.875rem;font-weight:600}
+#reportSignatories275 :is(select,input:not([type=checkbox])){box-sizing:border-box;width:100%;height:36px;background-color:white!important;font-size:.9375rem!important}
+#reportSignatories275 select{appearance:none;padding-right:30px;background-image:linear-gradient(45deg,transparent 50%,#345b45 50%),linear-gradient(135deg,#345b45 50%,transparent 50%)!important;background-size:5px 5px!important;background-position:calc(100% - 15px) center,calc(100% - 10px) center!important;background-repeat:no-repeat!important}
+#reportSignatories275 .signer-default{align-items:center;gap:8px!important;min-height:28px;line-height:1.4;font-weight:400}
+#reportSignatories275 [role=alert]{margin:0;color:#8d3229;font-size:.875rem}
+#reportSignatories275 [role=alert]:empty{display:none}
+@media(max-width:500px){
+ body .report-signers.ui-overlay108{padding:10px}
+ body .report-signers .ui-dialog108>header,body .report-signers .ui-dialog108>footer,body .report-signers .ui-body108{padding:12px 14px}
+ #reportSignatories275 .signer-context,#reportSignatories275 .signer-fields{grid-template-columns:minmax(0,1fr);gap:8px}
+ #reportSignatories275 .signer-context label{display:flex;flex-direction:row;align-items:center;justify-content:space-between;gap:8px}
+ #reportSignatories275 select{width:auto}
+ #reportSignatories275 :is(select,input:not([type=checkbox])){font-size:1rem!important}
+}
+
 
 /* styles/refinements-v106.css */
 /* Ivory navigation, emerald working surfaces, restrained brass accents. */

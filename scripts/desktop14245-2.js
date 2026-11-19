@@ -319,6 +319,7 @@ function contentWidths(s){
 function fit(s){
  const {table}=s,box=table.parentElement;
  if(!box||!table.closest('.tab-content,dialog,[role=dialog],.submission-compare-overlay,.final-records-overlay,.modal-content,.ui-dialog108,.ui-dialog117')||table.closest('.attendance-grid99,.print-page,[contenteditable=true],#document-editor105,.voucher-paper,.salary-paper')||s.widths)return;
+ if(table.matches('[data-budget-table14316="utilization-items"]')&&table.closest('.fund-popup326'))return;
  if(contentWidths(s))return;
  if(fitObserver&&!fitBoxes.get(box)?.has(table)){
   if(!fitBoxes.has(box)){fitBoxes.set(box,new Set());fitObserver.observe(box);}

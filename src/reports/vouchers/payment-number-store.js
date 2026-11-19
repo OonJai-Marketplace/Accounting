@@ -63,10 +63,24 @@ function paymentNumberStore401({rpc, guard, actor, offline}) {
     }
     return local(s=>available(s,type,date,count));
   }
-  async function reserve(type,date,count) {
+  async function withSeries(type,date,action) {
+    const check=guard(),run=()=>{check();return action()};
+    const locks=globalThis.navigator?.locks;
+    return locks?locks.request('payment-stock401:'+actor()+':'+scope(type,date),run):run();
+  }
+  async function prepareStock(type,date) {
+    if(offline())return;
     const check=guard(),key=scope(type,date);
-    // Persist an intent before contacting the server. A lost response reuses its key.
-    const intent=await local(s=>s.intents[key] ||= {key:crypto.randomUUID(),type,date,count},true);
+    // Check stock and persist its retry key in the same device transaction, across tabs.
+    const intent=await local(s=>{
+      if(s.intents[key])return s.intents[key];
+      if(s.stock.some(x=>x.scope===key))return null;
+      // A reservation must not take the numbers of an unconfirmed offline save.
+      if(Object.values(s.pending).some(i=>!i.held&&scope(i.request.p_data.documentType||'voucher',i.request.p_date)===key))return null;
+      return s.intents[key]={key:crypto.randomUUID(),type,date,count:10};
+    },true);
+    if(!intent)return;
+    check();
     const numbers=await rpc('payment_reserve401',{p_type:type,p_date:intent.date,p_count:intent.count,p_key:intent.key});
     check();
     if(!Array.isArray(numbers)||numbers.length!==intent.count||numbers.some(n=>!serial(n)))throw Error('Number reservation was not confirmed.');
@@ -142,7 +156,7 @@ function paymentNumberStore401({rpc, guard, actor, offline}) {
     const result=await local((s,bytes,files)=>{
       const item=s.pending[id];
       if(!item)return {confirmed:s.confirmed[id]?.[index]};
-      if(!item.held)throw Error('This number is pending confirmation. Sync documents before printing, or prepare offline numbers before your next offline session.');
+      if(!item.held)throw Error('This number is pending confirmation. Use Sync in Documents when connected before printing.');
       if(index<0||index>=item.numbers.length)throw Error('Document page not found.');
       if(args.p_pdf){
         if(item.pdfs[index]&&bytes!==args.p_pdf)throw Error('A different device PDF is already retained.');
@@ -163,7 +177,9 @@ function paymentNumberStore401({rpc, guard, actor, offline}) {
     return syncOne(id);
   }
   const summary=()=>local(s=>({stock:s.stock.reduce((map,x)=>(map[x.scope]=(map[x.scope]||0)+1,map),{}),
-    pending:Object.entries(s.pending).map(([id,i])=>({id,type:i.request.p_data.documentType||'voucher',numbers:i.numbers,conflict:i.conflict,held:i.held}))}));
-  return {preview,reserve,issue,syncOne,acceptNext,summary,pendingPdf,
+    pending:Object.entries(s.pending).map(([id,i])=>({id,type:i.request.p_data.documentType||'voucher',date:i.request.p_date,kind:i.request.p_kind,numbers:i.numbers,conflict:i.conflict,held:i.held}))}));
+  return {preview,syncOne,acceptNext,summary,pendingPdf,
+    prepareStock:(type,date)=>withSeries(type,date,()=>prepareStock(type,date)),
+    issue:request=>withSeries(request.p_data.documentType||'voucher',request.p_date,()=>issue(request)),
     confirmed:id=>local(s=>s.confirmed[id]),pending:id=>local(s=>s.pending[id]),localRows};
 }

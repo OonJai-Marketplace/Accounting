@@ -229,7 +229,7 @@ window.BudgetReport290 = (() => {
   const left=i=>i===0||['Category','Item','Reference','Action','Status'].includes(headers[i]);
   const heading=headers.map((h,i)=>'<th scope="col" style="text-align:'+(left(i)?'left':'right')+'">'+esc(h)+'</th>').join('');
   const tr=(cells,total)=>'<tr'+(total?' data-budget-summary290="total"':'')+'>'+cells.map((cell,i)=>'<td style="vertical-align:top;text-align:'+(left(i)?'left':'right')+';padding:3px 6px;'+(total?fill:'')+'">'+cell+'</td>').join('')+'</tr>';
-  return '<div class="data-table82"><table '+marker+' style="width:100%;border-collapse:collapse"><thead><tr>'+heading+'</tr></thead><tbody>'+
+  return '<div class="data-table82"><table '+marker+(headers[0]==='Category'?' data-budget-table14316="utilization-items"':'')+' style="width:100%;border-collapse:collapse"><thead><tr>'+heading+'</tr></thead><tbody>'+
    rows.map(r=>tr(r,false)).join('')+'</tbody>'+(totals.length?'<tfoot>'+totals.map(r=>tr(r,true)).join('')+'</tfoot>':'')+'</table></div>';
  }
  function cashSummary(d){

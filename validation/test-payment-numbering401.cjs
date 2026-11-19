@@ -18,7 +18,11 @@ const createFixture = require('./phase0-browser-fixture.cjs');
       return r.fulfill(result?.error?{status:400,json:result.error}:{json:result});
     });
     await route('payment_preview401',q=>labels(q));
-    await route('payment_reserve401',q=>labels(q,true));
+    const reservations=new Map();
+    await route('payment_reserve401',q=>{
+      if(!reservations.has(q.p_key))reservations.set(q.p_key,labels(q,true));
+      return reservations.get(q.p_key);
+    });
     await route('voucher_issue14299',q=>{
       if(issued.has(q.p_request_key))return issued.get(q.p_request_key);
       const spec={p_type:q.p_data.documentType||'voucher',p_date:q.p_date,p_count:q.p_count};
@@ -38,13 +42,13 @@ const createFixture = require('./phase0-browser-fixture.cjs');
       const modal=ui108.modal.bind(ui108);ui108.modal=(t,...args)=>t==='Open in Document Editor'?Promise.resolve('new'):modal(t,...args);
     });
     const date=await page.evaluate(()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Vientiane',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()));
-    // Normal register action prepares two independent batches, without issuing rows.
-    for(const type of ['receipt','voucher']){
-      await page.evaluate(()=>document.querySelector('#paymentReserveButton401').click());
-      const dlg=page.locator('#paymentReserve401');await dlg.locator('[name=type]').selectOption(type);
-      await page.locator('.ui-overlay108').last().getByRole('button',{name:'Reserve numbers',exact:true}).click();
-      await page.waitForFunction(t=>document.querySelector('#paymentDevice401').textContent.includes('10 offline '+t),type);
-    }
+    // Opening Documents prepares both month-specific series once on this device.
+    await page.evaluate(()=>{switchTab('transactions-vouchers14299');vouchers14299.open()});
+    await page.waitForFunction(async date=>{
+      const {stock}=await vouchers14299.numbering.summary();
+      return ['receipt','voucher'].every(type=>stock[type+':'+date.slice(0,7)]===10);
+    },date);
+    assert.equal(await page.locator('#paymentReserveButton401').count(),0);
     assert.equal(issued.size,0);
     // Prepare the same PDF libraries served by the installed desktop shell.
     for(const js of ['assets/vendor/document14285/html2canvas.min.js','assets/vendor/document14285/jspdf.umd.min.js?v=4.2.1'])
