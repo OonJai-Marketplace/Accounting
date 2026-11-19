@@ -23,10 +23,22 @@ function approved(run,id){return (run.isSample?[]:run.correction277?(run.leaveSn
 function overlapLeave(leaves,date){return leaves.find(l=>date>=l.from&&date<=l.to)}
 // Allocate declared leave across scheduled dates. Explicit exceptions replace that share; zero-minute defaults do not.
 function remainingLeave105(run,row,leave){
+ const approvedFractions=leave.dayFractions;
  const nonWork=(run.correction277?run.settingsSnapshot?.payroll:ApplicationSettings.payroll)?.nonWorkDays99||[],dates=[];
- for(let date=new Date(leave.from+'T12:00:00');date<=new Date(leave.to+'T12:00:00');date.setDate(date.getDate()+1)){
- const iso=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');const info=window.hrCalendar14306?.day(iso,row.employeeId,run);const fraction=info?.fraction??(nonWork.includes(date.getDay())?0:1);if(fraction)dates.push({date:iso,fraction});
+ let index=0;
+ for(let date=new Date(leave.from+'T12:00:00');date<=new Date(leave.to+'T12:00:00');date.setDate(date.getDate()+1),index++){
+ const iso=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+ let fraction;
+ if(approvedFractions!=null){
+  fraction=approvedFractions[index];
+  if(!Array.isArray(approvedFractions)||!Number.isFinite(fraction)||fraction<0||fraction>1)throw Error('Review the approved daily leave fractions before calculating payroll.');
+ }else{
+  const info=window.hrCalendar14306?.day(iso,row.employeeId,run);
+  fraction=info?.fraction??(nonWork.includes(date.getDay())?0:1);
  }
+ if(fraction)dates.push({date:iso,fraction});
+ }
+ if(approvedFractions!=null&&approvedFractions.length!==index)throw Error('Approved daily leave does not cover the recorded dates.');
  const overrides=new Set((row.input.attendance||[]).filter(a=>mark(a)!=='0'||a.override95).map(a=>a.date));
  if(!dates.length)return 0;
  const total=dates.reduce((s,d)=>s+d.fraction,0);return Math.min(Number(leave.days||0),total)*dates.filter(d=>!beforeEmployment234(row.employee,d.date)&&!overrides.has(d.date)).reduce((s,d)=>s+d.fraction,0)/total;
@@ -260,12 +272,23 @@ function mountSettings(){const f=document.querySelector('[data-settings-group="p
   <button type="button" class="je-btn je-btn-secondary" onclick="openLegend95()">Legend Settings</button>
   <button type="button" class="je-btn je-btn-secondary" data-calendar99 onclick="openCalendar99()">Weekly Non-working Days</button>
  </div>`;f.querySelector('.settings-form-actions').before(box)}
+function calendarRulesChanged(before,after){
+ return JSON.stringify([before?.settings,before?.events])!==JSON.stringify([after?.settings,after?.events]);
+}
+function approvedMonthLeaveSnapshot(month){
+ return structuredClone(Work82.leaves.filter(l=>l.data.status==='approved'&&l.data.month===month)
+  .map(l=>({...l.data,id:l.id})).sort((a,b)=>String(a.id).localeCompare(String(b.id))));
+}
 window.saveRun82=function(finalize=false){updateRun82();if(!Work82.run||Work82.run.status==='finalized')return;const original=Work82.run,record=Work82.runRecord,actor=liveProfile?.id,db=ojmDb,current=()=>liveProfile?.id===actor&&ojmDb===db&&Work82.run===original;return runAction82(async()=>{if(!current())return;const panels=finalize?[...document.querySelectorAll('#payroll-entries,#payroll-deductions,#hr-attendance')].filter(panel=>!panel.inert):[];
  for(const panel of panels)panel.inert=true;
  try{
- const settingsVersion=finalize?(original.correction277?original.settingsVersion:await payrollTaxSettings.verify()):null;if(!current())return;const beforeSave=JSON.stringify(original),run=structuredClone(original);if(!run.correction277)run.nonWorkDays99=structuredClone(ApplicationSettings.payroll.nonWorkDays99||[]);if(!document.getElementById('runMeta95')?.reportValidity())return;const out=results(run),config=run.correction277?run.config:payrollConfig82();if(!run.rows.length)throw Error('Add active employees before saving payroll.');if(run.rows.some(r=>!currencies82().includes(r.employee.currency)))throw Error('Enable all employee currencies in Payroll Settings.');if(ratesNeeded(run).length&&!run.rateSource?.trim())throw Error('Record the exchange-rate source.');if(run.isSample&&finalize)throw Error('Samples cannot be finalized as actual payroll.');if(finalize){if(config.payFrequency!=='monthly')throw Error('Finalization currently supports monthly payroll.');if(run.rows.some(r=>['penalty','otherDeduction','reportedMissed','unreportedMissed','advance','loanRecovery'].some(k=>Number(r.input[k]))&&!r.input.note?.trim()))throw Error('Enter a supporting reference for manual deductions and recoveries.');
+ const settingsVersion=finalize?(original.correction277?original.settingsVersion:await payrollTaxSettings.verify()):null;if(!current())return;const beforeSave=JSON.stringify(original),run=structuredClone(original);if(!run.correction277)run.nonWorkDays99=structuredClone(ApplicationSettings.payroll.nonWorkDays99||[]);if(!document.getElementById('runMeta95')?.reportValidity())return;const reviewedLeave=finalize&&!run.correction277?approvedMonthLeaveSnapshot(run.month):null;
+ const reviewedCalendar=reviewedLeave?structuredClone(window.hrCalendar14306?.snapshot()):null;
+ const out=results(run),config=run.correction277?run.config:payrollConfig82();if(!run.rows.length)throw Error('Add active employees before saving payroll.');if(run.rows.some(r=>!currencies82().includes(r.employee.currency)))throw Error('Enable all employee currencies in Payroll Settings.');if(ratesNeeded(run).length&&!run.rateSource?.trim())throw Error('Record the exchange-rate source.');if(run.isSample&&finalize)throw Error('Samples cannot be finalized as actual payroll.');if(finalize){if(config.payFrequency!=='monthly')throw Error('Finalization currently supports monthly payroll.');if(run.rows.some(r=>['penalty','otherDeduction','reportedMissed','unreportedMissed','advance','loanRecovery'].some(k=>Number(r.input[k]))&&!r.input.note?.trim()))throw Error('Enter a supporting reference for manual deductions and recoveries.');
  for(const row of run.rows){const usage=out.find(r=>r.employeeId===row.employeeId)?.legendLeaveUsage95||{};for(const [type,days] of Object.entries(usage)){if(type==='vacation'){const result=out.find(x=>x.employeeId===row.employeeId);const days=(result?.attendance95||[]).filter(x=>!x.linked&&x.leaveType==='vacation').map(x=>({date:x.date,days:Number(x.scheduleFraction??1)}));vacationLedger.check({id:row.employeeId,data:row.employee},days,record?.id);continue;}const approvedUsed=Work82.leaves.filter(l=>l.data.employeeId===row.employeeId&&l.data.status==='approved'&&l.data.from>=row.employee.renewal&&(l.data.type===type||type==='sick'&&l.data.type==='minorSick')).reduce((n,l)=>n+Number(l.data.days),0),postedUsed=usedLegendLeave(row.employeeId,type,row.employee.renewal,record?.id),limit=Number(row.employee[type]??ApplicationSettings.payroll[type+'Allowance']??0);if(approvedUsed+postedUsed+days>limit)throw Error(row.employee.name+': '+type+' allowance would be exceeded. Review leave or the legend code.');if(type==='minorSick'){const sickApproved=Work82.leaves.filter(l=>l.data.employeeId===row.employeeId&&l.data.status==='approved'&&l.data.from>=row.employee.renewal&&['sick','minorSick'].includes(l.data.type)).reduce((n,l)=>n+Number(l.data.days),0);if(sickApproved+usedLegendLeave(row.employeeId,'sick',row.employee.renewal,record?.id)+days+(usage.sick||0)>Number(row.employee.sick))throw Error(row.employee.name+': total sick allowance would be exceeded.');}}}
- if(!await ui117.confirm('Save and close this reviewed payroll? A copy will be available in Salary History; you will stay here to prepare or post its journal. Nothing will be journaled. Open-month edits need no explanation. Closed-month corrections require a report. Journal changes remain a separate, explicit action.')||!current())return;if(!run.correction277&&await payrollTaxSettings.verify()!==settingsVersion)throw Error('Settings changed during review. Review payroll again.');if(!current())return;run.settingsVersion=settingsVersion;run.status='finalized';run.finalizedAt=new Date().toISOString();run.finalizedBy=liveProfile.full_name||liveProfile.email;run.results=out;run.config=config;if(!run.correction277){run.settingsSnapshot=structuredClone(ApplicationSettings);run.legendSnapshot95=structuredClone(legends());run.calendarSnapshot14306=window.hrCalendar14306?.snapshot();run.leaveSnapshot=Work82.leaves.filter(l=>l.data.status==='approved'&&l.data.month===run.month).map(l=>({id:l.id,...l.data}));}}
+ if(!await ui117.confirm('Save and close this reviewed payroll? A copy will be available in Salary History; you will stay here to prepare or post its journal. Nothing will be journaled. Open-month edits need no explanation. Closed-month corrections require a report. Journal changes remain a separate, explicit action.')||!current())return;if(!run.correction277&&await payrollTaxSettings.verify()!==settingsVersion)throw Error('Settings changed during review. Review payroll again.');if(!current())return;
+ if(reviewedLeave&&(JSON.stringify(approvedMonthLeaveSnapshot(run.month))!==JSON.stringify(reviewedLeave)||calendarRulesChanged(reviewedCalendar,window.hrCalendar14306?.snapshot())))throw Error('Approved leave or the work calendar changed during review. Review payroll again.');
+ run.settingsVersion=settingsVersion;run.status='finalized';run.finalizedAt=new Date().toISOString();run.finalizedBy=liveProfile.full_name||liveProfile.email;run.results=out;run.config=config;if(!run.correction277){run.settingsSnapshot=structuredClone(ApplicationSettings);run.legendSnapshot95=structuredClone(legends());run.calendarSnapshot14306=reviewedCalendar;run.leaveSnapshot=reviewedLeave;}}
  if(!current())return;
  if(finalize&&JSON.stringify(original)!==beforeSave)throw Error('Payroll inputs changed during review. Check the latest amounts and finalize again.');
  const saved=await saveWork82('runs',run,record);if(!current())return;

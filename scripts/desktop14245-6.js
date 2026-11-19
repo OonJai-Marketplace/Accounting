@@ -3549,6 +3549,7 @@ function install(host,legacy){
  const section=document.createElement('section');section.id='portable328';section.className='panel113';
  section.innerHTML='<header><h2>Backup &amp; Recovery</h2></header><fieldset><legend>Period and records</legend><div class="portable-fields"><label>Period<select name="period"><option value="month">Month</option><option value="custom">Custom dates</option><option value="year">Year</option><option value="quarter">Quarter</option></select></label><label data-for="month">Month<input type="month" name="month"></label><label data-for="year quarter">Year<input type="number" name="year" min="1900" max="2200"></label><label data-for="quarter">Quarter<select name="quarter"><option>1</option><option>2</option><option>3</option><option>4</option></select></label><label data-for="custom">From<input type="date" name="from"></label><label data-for="custom">Through<input type="date" name="to"></label></div><details class="portable-modules"><summary>All modules</summary><label><input type="checkbox" data-all checked> Select all</label>'+Object.entries(modules).map(([k,v])=>'<label><input type="checkbox" data-module="'+k+'" checked> '+v+'</label>').join('')+'</details></fieldset>'+
  '<fieldset><legend>Download</legend><div class="portable-actions"><button data-act="excel">Raw Excel (.xlsx)</button><button data-act="backup">Restorable backup (.json)</button><button data-act="csv">Google Sheets (.csv)</button></div></fieldset>'+
+ '<fieldset><legend>Google archives</legend><button type="button" data-act="google-refresh">Refresh both Google archives</button></fieldset>'+
  '<fieldset><legend>Database</legend><div class="portable-actions"><button data-act="restore">Restore from file</button><button data-act="delete" class="portable-danger">Delete selected records</button></div><p>Restore accepts an original Excel or JSON backup. Deletion first downloads a ZIP with the raw Excel data and restorable JSON. Locked periods are included. Employee records, leave requests and leave balances stay in HR. Partial payroll months remove only attendance on the selected dates.</p></fieldset><p role="status" aria-live="polite"></p>';
  host.replaceChildren(section);if(legacy)section.append(legacy);
  const get=name=>section.querySelector('[name="'+name+'"]'),msg=section.querySelector('[role=status]'),all=section.querySelector('[data-all]'),boxes=[...section.querySelectorAll('[data-module]')];
@@ -3583,6 +3584,7 @@ function install(host,legacy){
   busy=true;fieldsets.forEach(n=>n.disabled=true);msg.textContent='Working…';
   try{
    guard();
+   if(kind==='google-refresh'){const {refreshArchives}=await import(new URL('integrations/google-sheets/refresh.mjs?v=143.488',document.baseURI).href);await refreshArchives(db,guard,msg);return;}
    const sel=upload?null:selection();
    const confirm=(title,html,label,danger=false)=>ui108.modal(title,html,[{label:'Cancel',value:false},{label,value:true,danger,primary:!danger}]);
    const period=r=>escapeHtml(formatAppDate(r.from))+' – '+escapeHtml(formatAppDate(r.to));

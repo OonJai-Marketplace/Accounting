@@ -1,9 +1,25 @@
-import {createHash} from 'node:crypto';
+// Registered archive sources have stable database keys. Node also supports legacy unkeyed files.
+const createHash=typeof window==='undefined'?(await import('node:crypto')).createHash:null;
 import {buildData} from './reports.mjs';
 export const canonical=value=>JSON.stringify(normal(value));
 function normal(v){if(Array.isArray(v))return v.map(normal);if(v&&typeof v==='object')return Object.fromEntries(Object.keys(v).sort().map(k=>[k,normal(v[k])]));return v;}
 const compoundKeys={accounting_feature_samples:['sample_key'],backup_registry113:['table_name'],currencies:['code'],drive_draft_dispositions143160:['sheet','draft'],entry_prefix_reservations:['stem'],hope_reads183:['message_id','app','actor'],hr_inbox143168:['sheet','request_id'],journal_sources14253:['journal_line_id','source_line_id'],operation_receipts14228:['actor_id','request_key'],presentation_settings113:['area'],staff_entry_sequences:['user_id'],todo_starter_installs14335:['owner_id'],upcoming_reminders14229:['owner_id'],user_permissions:['user_id'],user_print_preferences1434:['owner_id'],voucher_sequences14299:['year_no','kind']};
-export const key=(r,table)=>String(r.id??r.journal_id??r.year??(compoundKeys[table]?canonical(compoundKeys[table].map(k=>r[k])):('sha256:'+createHash('sha256').update(canonical(r)).digest('hex'))));
+const supplementalKeys={
+ reconciliation_versions306:['record_id','saved_at'],portable_leave328:['run_id','employee_id','leave_date','leave_type'],
+ journal_fx_evidence288:['entry_id'],budget_report_wording:['report_id'],journal_template_collections275:['owner_id'],
+ workspace_fund_revision379:['owner_id'],negative_fund_notices475:['owner_id'],sub_account_reporting_links:['sub_account_id'],
+ budget_utilization_journals:['report_id'],journal_plan_occurrences280:['plan_id','occurrence_no'],
+ reconciliation_records305:['record_id'],reconciliation_settings305:['singleton'],reconciliation_periods305:['month']
+};
+export function key(row,table){
+ const fields=supplementalKeys[table];
+ if(fields)return fields.length===1?String(row[fields[0]]):canonical(fields.map(k=>row[k]));
+ const id=row.id??row.journal_id??row.year;
+ if(id!=null)return String(id);
+ if(compoundKeys[table])return canonical(compoundKeys[table].map(k=>row[k]));
+ if(!createHash)throw Error('Archive source needs a registered record key: '+table);
+ return 'sha256:'+createHash('sha256').update(canonical(row)).digest('hex');
+}
 export function parts(text){const out=[];for(let i=0;i<text.length;){let end=Math.min(i+28000,text.length);if(end<text.length&&/[\uD800-\uDBFF]/.test(text[end-1]))end--;out.push(text.slice(i,end));i=end;}return out;}
 export function records(tables){return Object.entries(tables).sort(([a],[b])=>a.localeCompare(b)).flatMap(([table,rows])=>[...rows].sort((a,b)=>key(a,table).localeCompare(key(b,table))).flatMap(r=>parts(canonical(r)).map((p,i)=>[table,key(r,table),i+1,p])));}
 export function unpack(rows){const groups=new Map(),tables={};for(const r of rows){if(!r[0])continue;const k=canonical(r.slice(0,2));if(!groups.has(k))groups.set(k,[]);const a=groups.get(k),part=Number(r[2]);if(!Number.isInteger(part)||part<1||a[part-1]!==undefined)throw Error('Duplicate or invalid history record part');a[part-1]=String(r[3]??'');}

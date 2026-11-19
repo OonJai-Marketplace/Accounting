@@ -88,6 +88,6 @@ function uploadAccountingFile(form) {
       last += batch.length;
     }
     SpreadsheetApp.flush();
-    return missing.length+' archive rows added. '+(rows.length-missing.length)+' already present. Source Records only. Check the reporting snapshot on Review Home.';
+    return missing.length+' archive rows added. '+(rows.length-missing.length)+' already present. Source Records saved. Open Accounting → Backup & Recovery → Refresh both Google archives to update and verify the reporting tabs.';
   } finally { lock.releaseLock(); }
 }

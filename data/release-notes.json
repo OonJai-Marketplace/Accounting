@@ -1,6 +1,7 @@
 {
-  "version": "143.487",
+  "version": "143.488",
   "changes": [
+    "Payroll uses approved daily leave and verifies that leave is current at close. Backup & Recovery can manually refresh and verify both company Google archives.",
     "Older payroll journal templates now recognize retired salary mapping accounts and use their approved active replacements.",
     "Prepared and direct payroll journals use the same saved payroll valuation. A separate book rate remains editable, and restoring a payroll draft preserves explicit rates.",
     "Overtime preserves approved unpaid leave. Payroll inputs are locked during finalization.",

@@ -46,7 +46,7 @@ function setup(){
 function scripts(){
  const install=read('src/bridges/hr-payroll/attendance-v96/install-and-scope-close.js');
  const save=read('src/payroll/workspace/groups-v96/drafts-and-finalization.js');
- return [...base.scripts(),read('src/bookkeeping/history/history-month14341.js'),read('src/payroll/reports/history-v96.js').split('window.exportPayroll95=')[0],install.slice(0,install.indexOf('// Keep auto-prepared')),save.slice(save.indexOf('window.saveRun82='))];
+ return [...base.scripts(),read('src/bookkeeping/history/history-month14341.js'),read('src/payroll/reports/history-v96.js').split('window.exportPayroll95=')[0],install.slice(0,install.indexOf('// Keep auto-prepared')),save.slice(save.indexOf('function calendarRulesChanged('))];
 }
 const html=base.html.replace('Saves use an in-memory test store. Posting is blocked.','Saves and journal posting are simulated in memory. No live financial data is used.').replace('<h1>Payroll action checks</h1>','<h1>Payroll lifecycle checks — synthetic data</h1>').replace('<button id="qa-open">','<button id="qa-entries">Payroll Entries</button><button id="qa-history">Salary History</button><button id="qa-close-month">Simulate closed accounting month</button><p id="qa-period">October accounting month: Open (simulation)</p><section id="payroll-entries" class="tab-content active"></section><section id="payroll-history" class="tab-content" hidden></section><section id="journal" class="tab-content" hidden></section><button id="qa-open">');
 module.exports={scripts,setup,html,baseSetup:base.setup};

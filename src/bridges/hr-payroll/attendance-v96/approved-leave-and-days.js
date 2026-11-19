@@ -2,10 +2,22 @@ function approved(run,id){return (run.isSample?[]:run.correction277?(run.leaveSn
 function overlapLeave(leaves,date){return leaves.find(l=>date>=l.from&&date<=l.to)}
 // Allocate declared leave across scheduled dates. Explicit exceptions replace that share; zero-minute defaults do not.
 function remainingLeave105(run,row,leave){
+ const approvedFractions=leave.dayFractions;
  const nonWork=(run.correction277?run.settingsSnapshot?.payroll:ApplicationSettings.payroll)?.nonWorkDays99||[],dates=[];
- for(let date=new Date(leave.from+'T12:00:00');date<=new Date(leave.to+'T12:00:00');date.setDate(date.getDate()+1)){
- const iso=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');const info=window.hrCalendar14306?.day(iso,row.employeeId,run);const fraction=info?.fraction??(nonWork.includes(date.getDay())?0:1);if(fraction)dates.push({date:iso,fraction});
+ let index=0;
+ for(let date=new Date(leave.from+'T12:00:00');date<=new Date(leave.to+'T12:00:00');date.setDate(date.getDate()+1),index++){
+ const iso=date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0');
+ let fraction;
+ if(approvedFractions!=null){
+  fraction=approvedFractions[index];
+  if(!Array.isArray(approvedFractions)||!Number.isFinite(fraction)||fraction<0||fraction>1)throw Error('Review the approved daily leave fractions before calculating payroll.');
+ }else{
+  const info=window.hrCalendar14306?.day(iso,row.employeeId,run);
+  fraction=info?.fraction??(nonWork.includes(date.getDay())?0:1);
  }
+ if(fraction)dates.push({date:iso,fraction});
+ }
+ if(approvedFractions!=null&&approvedFractions.length!==index)throw Error('Approved daily leave does not cover the recorded dates.');
  const overrides=new Set((row.input.attendance||[]).filter(a=>mark(a)!=='0'||a.override95).map(a=>a.date));
  if(!dates.length)return 0;
  const total=dates.reduce((s,d)=>s+d.fraction,0);return Math.min(Number(leave.days||0),total)*dates.filter(d=>!beforeEmployment234(row.employee,d.date)&&!overrides.has(d.date)).reduce((s,d)=>s+d.fraction,0)/total;
