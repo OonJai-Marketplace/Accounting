@@ -26,8 +26,16 @@ const assert=require('node:assert/strict'),create=require('./phase0-browser-fixt
  assert.equal(await page.locator('#icons-body226 .jr-link226').count(),3,'one icon per entry, not per journal line');
  assert(calls.some(c=>c.action==='receipt-status'&&[linked,missing,unknown].every(id=>c.entries.includes(id))),'visible IDs are checked together');
  assert.equal(images.length,0);assert.equal(calls.filter(c=>c.action==='view'||c.action==='list').length,0,'indicators do not open previews');
- const position=await icon(linked).evaluate(b=>{const label=b.previousElementSibling.getBoundingClientRect(),icon=b.getBoundingClientRect();return {right:icon.left>=label.right,aligned:Math.abs((icon.top+icon.bottom-label.top-label.bottom)/2)<3,width:icon.width}});
- assert(position.right&&position.aligned);assert.equal(position.width,32);
+ async function checkPosition(button){
+  const box=await button.evaluate(b=>{
+   const id=b.previousElementSibling.getBoundingClientRect(),icon=b.getBoundingClientRect(),cell=b.closest('td')?.getBoundingClientRect();
+   return {below:icon.top>=id.bottom,centered:Math.abs((icon.left+icon.right-id.left-id.right)/2)<=1,
+    fits:!cell||(icon.left>=cell.left&&icon.right<=cell.right&&icon.bottom<=cell.bottom+1),width:icon.width,height:icon.height};
+  });
+  assert.deepEqual(box,{below:true,centered:true,fits:true,width:32,height:32});
+ }
+ await checkPosition(icon(linked));
+ await checkPosition(page.locator('#ledger-id226 + .jr-link226'));
  await page.screenshot({path:'/tmp/receipt-icons226-'+(process.env.PHASE0_DEVICE||'desktop')+'.png'});
  await page.locator('#icons-body226').getByRole('button',{name:'Open receipts for '+linked,exact:true}).click();await page.locator('.journal-receipts224 img').waitFor();assert.equal(images.length,1);assert.equal(await page.locator('.journal-entry-menu14387').count(),0);
  await page.locator('.journal-receipts224').getByRole('button',{name:'Close',exact:true}).click();
@@ -36,6 +44,15 @@ const assert=require('node:assert/strict'),create=require('./phase0-browser-fixt
  await page.locator('#ledger-id226 + .jr-link226').click();await page.locator('.journal-receipts224 img').waitFor();assert.equal(await page.evaluate(()=>ledgerClicks226),1);await page.locator('.journal-receipts224').getByRole('button',{name:'Close',exact:true}).click();
  await page.evaluate(()=>{const staff=document.createElement('div');staff.id='personalWorkspace1437';staff.innerHTML='<table><tbody><tr data-entry-id="staff-line-247"><td><span data-entry-menu14387="1">STAFF-247</span></td></tr></tbody></table>';document.getElementById('icons-fixture226').append(staff);});
  await page.waitForFunction(()=>document.querySelector('#icons-fixture226 [data-receipt-key226="staff:staff-line-247"]')?.dataset.receiptState226==='linked');
+ const staffIcon=page.locator('#icons-fixture226 [data-receipt-key226="staff:staff-line-247"]');
+ const narrowWidth=await staffIcon.evaluate(button=>{
+  const cell=button.closest('td'),row=cell.parentElement,table=row.closest('table');
+  table.style.cssText='table-layout:fixed;width:240px';cell.style.width='64px';cell.style.overflow='hidden';
+  row.insertCell().textContent='Description';
+  return cell.getBoundingClientRect().width;
+ });
+ assert(narrowWidth<80,'entry ID column is narrow enough to catch a side-by-side icon');
+ await checkPosition(staffIcon);
  assert(calls.some(c=>c.action==='receipt-status'&&c.staffLines?.includes('staff-line-247')),'personal journal uses the staff-line metadata endpoint');
  // Repeated viewport checks must be DOM-idempotent and must never display metadata notices.
  await page.waitForTimeout(300);
