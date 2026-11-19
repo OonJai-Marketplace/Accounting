@@ -1,6 +1,7 @@
 {
-  "version": "143.496",
+  "version": "143.497",
   "changes": [
+    "Full PDF opens linked receipts across the screen, with the original PDF link and Close PDF at the top.",
     "After an update is found, Download update starts loading the website files immediately on phones and desktops.",
     "The administrator receipt bell names files that need attention and explains how to fix them. On iPad, a receipt bell appears in the sidebar when there is a problem.",
     "Click a journal entry ID to open its linked receipt. Drive receipts keep one private preview per page. Overlapping uploads wait for review.",

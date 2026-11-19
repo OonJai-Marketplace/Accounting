@@ -15,19 +15,14 @@ function dismissOnBackdrop(dialog){
  dialog.addEventListener('pointerdown',e=>{beganOutside=outside(e);});
  dialog.addEventListener('click',e=>{if(beganOutside&&outside(e)&&dialog.open)dialog.close();beganOutside=false;});
 }
-function pdfPreview(value,title){
+function pdfURLs(value){
  const url=new URL(value),drive=url.origin==='https://drive.google.com' && /^\/file\/d\/[\w-]+\/view$/.test(url.pathname);
  const stored=root.OJM_SUPABASE_URL && url.origin===new URL(root.OJM_SUPABASE_URL).origin && url.pathname.startsWith('/storage/v1/object/sign/scan-documents208/');
  if(!drive&&!stored)throw Error('This PDF location is unavailable.');
- const details=document.createElement('details'),summary=document.createElement('summary');summary.textContent='View full PDF';details.append(summary);
- details.ontoggle=()=>{
-  if(!details.open){details.querySelector('iframe')?.remove();details.querySelector('a')?.remove();return;}
-  if(details.querySelector('iframe'))return;
-  const frame=document.createElement('iframe');frame.title=title||'Receipt PDF';frame.referrerPolicy='no-referrer';frame.style.cssText='display:block;width:100%;height:min(56vh,620px);border:0';
-  const preview=new URL(url);if(drive)preview.pathname=preview.pathname.replace(/\/view$/,'/preview');frame.src=preview.href;
-  const link=document.createElement('a');link.href=url.href;link.target='_blank';link.rel='noopener noreferrer';link.textContent='Open original PDF';details.append(frame,link);
- };
- return details;
+ const preview=new URL(url);
+ if(drive)preview.pathname=preview.pathname.replace(/\/view$/,'/preview');
+ else if(!preview.hash)preview.hash='view=Fit';
+ return {original:url.href,preview:preview.href};
 }
-root.ReceiptLinks208={create,preview,digest,BUCKET,dismissOnBackdrop,pdfPreview};
+root.ReceiptLinks208={create,preview,digest,BUCKET,dismissOnBackdrop,pdfURLs};
 })(globalThis);

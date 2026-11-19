@@ -19,7 +19,7 @@ dialog.scan-viewer208, dialog.rv-pdf-dialog {
 }
 .rv-header small {display:block;font-size:.8rem;line-height:1.2;color:#536c60}
 .scan-viewer208 h2 {margin:0;color:inherit;font-size:1.2rem;line-height:1.45;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.scan-viewer208 button,.rv-pdf-dialog>button,.scan-viewer208 .rv-add {
+.scan-viewer208 button,.rv-pdf-toolbar button,.scan-viewer208 .rv-add {
  box-sizing:border-box;min-width:0;min-height:2rem;margin:0;padding:.3rem .8rem;
  font:inherit;font-size:.94rem;font-weight:600;line-height:1.3;white-space:nowrap;
  border:1px solid #adbdaf;border-radius:7px;background:white;color:#184c38;cursor:pointer;
@@ -56,18 +56,20 @@ dialog.scan-viewer208, dialog.rv-pdf-dialog {
 .rv-next {justify-self:end}
 .scan-viewer208 .rv-next:not(:disabled) {background:#145940;border-color:#145940;color:white}
 .rv-count {font-size:.94rem;font-weight:600;font-variant-numeric:tabular-nums;text-align:center}
-.rv-pdf-dialog[open] {display:flex;flex-direction:column;padding:.65rem;gap:.5rem}
-.rv-pdf-dialog>button {align-self:end}
-.rv-pdf-dialog details {flex:1;min-height:0;overflow:auto}
-.rv-pdf-dialog summary {display:none}
-.rv-pdf-dialog iframe {height:calc(100% - 2.5rem)!important}
-.rv-pdf-dialog a {display:inline-block;padding:.45rem;color:#184c38}
+dialog.rv-pdf-dialog {
+ width:100%;height:100vh;height:100dvh;max-width:none;max-height:none;border:0;border-radius:0;
+ padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+.rv-pdf-dialog[open] {display:grid;grid-template: auto minmax(0,1fr) / minmax(0,1fr)}
+.rv-pdf-toolbar {display:flex;align-items:center;justify-content:space-between;gap:.5rem;padding:.25rem .65rem;border-bottom:1px solid #cbd8ce}
+.rv-pdf-toolbar a {display:inline-flex;align-items:center;align-self:stretch;padding:0 .25rem;color:#184c38}
+.rv-pdf-dialog>iframe {display:block;width:100%;height:100%;min-width:0;min-height:0;border:0}
 @media (max-width:600px),(pointer:coarse) {
- .scan-viewer208 button,.scan-viewer208 .rv-add,.rv-pdf-dialog>button {min-height:44px}
+ .scan-viewer208 button,.scan-viewer208 .rv-add,.rv-pdf-toolbar button {min-height:44px}
  .rv-description select {min-height:44px}
 }
 @media (max-width:600px) {
- dialog.scan-viewer208,dialog.rv-pdf-dialog {
+ dialog.scan-viewer208 {
   width:calc(100% - .5rem);height:calc(100vh - .5rem);height:calc(100dvh - .5rem);
   border-radius:10px;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
  }

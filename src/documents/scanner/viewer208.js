@@ -87,15 +87,24 @@ async function open(request,options={}){
  }
  const resize=new ResizeObserver(sizeImage);
  resize.observe(stage);
- function fullPDF(details){
-  pdfDialog=document.createElement('dialog');pdfDialog.className='rv-pdf-dialog';
-  pdfDialog.setAttribute('aria-label','Full receipt PDF');
-  const closePDF=document.createElement('button');closePDF.type='button';closePDF.textContent='Close PDF';
-  closePDF.onclick=()=>pdfDialog.close();
-  pdfDialog.append(closePDF,details);document.body.append(pdfDialog);
-  const opened=pdfDialog;
+ function fullPDF(urls,title){
+  const opened=document.createElement('dialog');
+  opened.className='rv-pdf-dialog';
+  opened.setAttribute('aria-label','Full receipt PDF');
+  const toolbar=document.createElement('div');
+  toolbar.className='rv-pdf-toolbar';
+  const original=document.createElement('a');
+  original.href=urls.original;original.target='_blank';original.rel='noopener noreferrer';
+  original.textContent='Open original PDF';
+  const closePDF=document.createElement('button');
+  closePDF.type='button';closePDF.autofocus=true;closePDF.textContent='Close PDF';
+  closePDF.onclick=()=>opened.close();
+  toolbar.append(original,closePDF);
+  const frame=document.createElement('iframe');
+  frame.title=title||'Receipt PDF';frame.referrerPolicy='no-referrer';frame.src=urls.preview;
+  opened.append(toolbar,frame);
   opened.addEventListener('close',()=>{opened.remove();if(pdfDialog===opened)pdfDialog=null;},{once:true});
-  ReceiptLinks208.dismissOnBackdrop(opened);opened.showModal();details.open=true;
+  pdfDialog=opened;document.body.append(opened);opened.showModal();
  }
  const api=ReceiptLinks208.create({url:window.OJM_SUPABASE_URL,key:window.OJM_SUPABASE_ANON_KEY,session});
  async function view(id,offset){
@@ -136,8 +145,8 @@ async function open(request,options={}){
    const detail=[select.hidden?group.title:'',label!==title.textContent?label:'',page.page?'PDF page '+page.page:''].filter(Boolean).join(' · ');
    caption.textContent=detail;caption.title=detail;
    if(doc.pdf){
-    const details=ReceiptLinks208.pdfPreview(doc.pdf,doc.title);
-    pdf.hidden=false;pdf.onclick=()=>{if(active())fullPDF(details);};
+    const urls=ReceiptLinks208.pdfURLs(doc.pdf);
+    pdf.hidden=false;pdf.onclick=()=>{if(active())fullPDF(urls,doc.title);};
    }
    const img=new Image();img.alt=label;img.decoding='async';img.referrerPolicy='no-referrer';
    const unavailable=()=>{
