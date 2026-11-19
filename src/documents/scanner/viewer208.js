@@ -1,8 +1,24 @@
 /* The journal and the own-account phone workspace share one paged receipt dialog. */
 (()=>{'use strict';
 let current, cacheScope='';
-const savedViews=new Map();
-function clearViews(){savedViews.clear();cacheScope='';}
+const savedViews=new Map(),savedEntries=new Map(),savedImages=new Map(),deviceEntries=new Map();
+let loginRun=null,cacheEpoch=0,imageBytes=0;
+const maxBytes=4*1024*1024;
+function rememberImage(key,blob){
+ if(blob.size>maxBytes)return;
+ imageBytes-=savedImages.get(key)?.size||0;savedImages.delete(key);savedImages.set(key,blob);imageBytes+=blob.size;
+ while(imageBytes>maxBytes){const oldest=savedImages.keys().next().value;imageBytes-=savedImages.get(oldest).size;savedImages.delete(oldest);}
+}
+function rememberEntry(entry,result){
+ if(!result.documents?.length || !result.firstPage)return;
+ const until=result.local?Date.now()+180000:Math.min(result.firstPage.expires||0,Date.now()+180000);
+ savedEntries.set(entry,{result,until});
+ const first=result.documents.find(d=>d.pages>0);
+ if(first)savedViews.set(first.id+':0',{until,promise:Promise.resolve(result.firstPage)});
+ if(savedEntries.size>32)savedEntries.delete(savedEntries.keys().next().value);
+ if(savedViews.size>32)savedViews.delete(savedViews.keys().next().value);
+}
+function clearViews(){cacheEpoch++;savedViews.clear();savedEntries.clear();deviceEntries.clear();savedImages.clear();imageBytes=0;cacheScope='';}
 function syncScope(scope){
  if(cacheScope!==scope){clearViews();cacheScope=scope;}
 }
@@ -18,7 +34,7 @@ async function session(){
 function accessScope(){
  return JSON.stringify([window.OJM_SUPABASE_URL,typeof liveProfile==='undefined'?null:liveProfile?.id,
   window.deviceVault14334?.actor,window.deviceVault14334?.unlocked,window.workspaceRequest138?.target,
-  window.PhoneWorkspace14242?.ready(),document.documentElement.dataset.device132]);
+  window.PhoneWorkspace14242?.ready(),document.documentElement.dataset.device132,typeof liveProfile==='undefined'?null:liveProfile?.role,window.access113?.can('journal','view')]);
 }
 function previewURL(value){
  const url=new URL(value);
@@ -26,7 +42,7 @@ function previewURL(value){
   throw Error('This receipt preview is unavailable.');
  return url.href;
 }
-function guard477(){const scope=accessScope();syncScope(scope);if(current&&current.scope!==scope)current.close();}
+function guard477(){const scope=accessScope();if(loginRun && loginRun.scope!==scope)loginRun=null;syncScope(scope);if(current&&current.scope!==scope)current.close();}
 
 async function open(request,options={}){
  current?.close();
@@ -47,10 +63,11 @@ async function open(request,options={}){
  const title=part('h2'),stage=part('.rv-stage'),caption=part('.rv-caption'),select=part('select'),
   zoom=part('.rv-zoom'),pdf=part('.rv-pdf'),add=part('.rv-add'),prev=part('.rv-prev'),next=part('.rv-next'),count=part('.rv-count');
  const scope=accessScope();syncScope(scope);
- let groups=[],total=0,position=0,revision=0,image,zoomed=false,pdfDialog,imageTimer;
+ let groups=[],total=0,position=0,revision=0,image,zoomed=false,pdfDialog,imageTimer,objectURL;
  const handle={scope,close};
  function close(){
   revision++;
+  if(objectURL)URL.revokeObjectURL(objectURL);
   clearTimeout(imageTimer);
   resize.disconnect();
   pdfDialog?.close();
@@ -127,6 +144,7 @@ async function open(request,options={}){
   const group=groups.find(g=>index<g.start+g.pages);
   const offset=index-group.start;
   clearTimeout(imageTimer);
+  if(objectURL){URL.revokeObjectURL(objectURL);objectURL=null;}
   setZoom(false);image=null;zoom.disabled=true;
   prev.disabled=index===0;next.disabled=index===total-1;
   count.textContent='Page '+(index+1)+' of '+total;
@@ -144,9 +162,12 @@ async function open(request,options={}){
    const label=page.label||doc.label||title.textContent;
    const detail=[select.hidden?group.title:'',label!==title.textContent?label:'',page.page?'PDF page '+page.page:''].filter(Boolean).join(' · ');
    caption.textContent=detail;caption.title=detail;
-   if(doc.pdf){
-    const urls=ReceiptLinks208.pdfURLs(doc.pdf);
-    pdf.hidden=false;pdf.onclick=()=>{if(active())fullPDF(urls,doc.title);};
+   if(doc.pdf || doc.storedPDF){
+    pdf.hidden=false;pdf.onclick=async()=>{
+     try{const href=doc.pdf || (await api.api('view',{id:group.id,pageIndex:offset})).pdf;
+      if(valid())fullPDF(ReceiptLinks208.pdfURLs(href),doc.title);
+     }catch(e){if(valid())message(e.message,'alert',retry);}
+    };
    }
    const img=new Image();img.alt=label;img.decoding='async';img.referrerPolicy='no-referrer';
    const unavailable=()=>{
@@ -162,8 +183,21 @@ async function open(request,options={}){
     const paper=document.createElement('div');paper.className='rv-paper';paper.append(img);
     img.onclick=()=>{if(active())setZoom(!zoomed);};stage.replaceChildren(paper);
    };
-   const url=previewURL(page.url);
-   imageTimer=setTimeout(unavailable,30000);img.src=url;
+   const key=group.id+':'+offset,persistent=options.journal && request.entry && !request.staffLine && window.ReceiptPageCache;
+   let blob=savedImages.get(key);
+   if(!blob && persistent && !refresh)blob=await persistent.getImage(key).catch(()=>null);
+   if(!valid())return;
+   if(!blob && persistent){
+    const remote=page.url?page:(await api.api('view',{id:group.id,pageIndex:offset})).pages[0];
+    if(!valid())return;
+    const response=await fetch(previewURL(remote.url),{referrerPolicy:'no-referrer',signal:AbortSignal.timeout(30000)});
+    if(!response.ok)throw Error('The receipt image could not load. Try again.');
+    blob=await response.blob();if(!valid())return;
+    rememberImage(key,blob);
+    void persistent.putImage(key,blob).catch(()=>{});
+   }
+   if(!valid())return;
+   imageTimer=setTimeout(unavailable,30000);img.src=blob?(objectURL=URL.createObjectURL(blob)):previewURL(page.url);
   }catch(error){if(valid())message(error.message,'alert',retry);}
  }
  function linkScanner(entry,empty){
@@ -181,8 +215,16 @@ async function open(request,options={}){
    if(!active())return;
    if(!signed?.user?.id||window.deviceVault14334&&deviceVault14334.actor!==signed.user.id||
       typeof liveProfile!=='undefined'&&liveProfile?.id!==signed.user.id)throw Error('Your account changed. Sign in again.');
-   const result=await api.api('list',request);
+   let cached=options.journal && request.entry && savedEntries.get(request.entry);
+   const stored=options.journal && deviceEntries.get(request.entry);
+   if(!cached && stored?.until>Date.now()){
+    const value=await window.ReceiptPageCache?.read('entry:'+request.entry+':'+stored.stamp).catch(()=>null);
+    if(!active())return;
+    if(value?.result)cached={result:value.result,until:stored.until};
+   }
+   const result=cached && cached.until>Date.now()?cached.result:await api.api('list',options.journal?{...request,includeFirst:true}:request);
    if(!active())return;
+   if(options.journal && request.entry)rememberEntry(request.entry,result);
    options.onList?.(result);
    const entry=result.entry||options.label||request.entry||'';
    title.textContent=entry||'Supporting documents';title.title=title.textContent;
@@ -213,6 +255,83 @@ async function open(request,options={}){
  await list();
 }
 
+// One finite preparation pass per administrator login. The app is already interactive.
+function stopLogin(){loginRun=null;clearViews();}
+async function startLogin(){
+ if(document.documentElement.dataset.device132==='phone'||window.PhoneWorkspace14242||typeof liveProfile==='undefined'||liveProfile?.role!=='admin'||
+    !window.access113?.can('journal','view')||!navigator.onLine||window.deviceVault14334?.unlocked===false)return;
+ const scope=accessScope();syncScope(scope);
+ if(loginRun?.scope===scope)return;
+ const run=loginRun={scope},actor=liveProfile.id;
+ const active=()=>loginRun===run && scope===accessScope() && navigator.onLine;
+ const api=ReceiptLinks208.create({url:window.OJM_SUPABASE_URL,key:window.OJM_SUPABASE_ANON_KEY,session});
+ const disk=window.ReceiptPageCache;
+ async function warm(){
+  const index=()=>ojmDb.rpc('receipt_login_index');
+  const [{data,error},keys]=await Promise.all([window.offline14239?.freshReads?offline14239.freshReads(index):index(),disk?.entryKeys().catch(()=>new Set())]);
+  if(error || !Array.isArray(data) || !active())return;
+  const until=Date.now()+180000;
+  deviceEntries.clear();
+  const missing=[];
+  for(const row of data){
+   if(keys?.has(row.entry+':'+row.stamp))deviceEntries.set(row.entry,{stamp:row.stamp,until});
+   else if(missing.length<8)missing.push(row);
+  }
+  for(const {entry,stamp} of missing){
+   if(!active() || imageBytes>=maxBytes)break;
+   if(savedEntries.has(entry))continue;
+   const epoch=cacheEpoch;
+   try{
+    const result=await api.api('list',{entry,includeFirst:true});
+    if(!active()||epoch!==cacheEpoch)return;
+    rememberEntry(entry,result);
+    const first=result.documents?.find(d=>d.pages>0),page=result.firstPage?.pages?.[0];
+    if(!first||!page)continue;
+
+    const key=first.id+':0';
+    const recorded=savedImages.has(key) || await disk?.hasImage(key).catch(()=>false);
+    if(!recorded){
+     const res=await fetch(previewURL(page.url),{referrerPolicy:'no-referrer',priority:'low',signal:AbortSignal.timeout(20000)});
+     if(!res.ok||!/^image\//i.test(res.headers.get('content-type')||''))continue;
+     if(Number(res.headers.get('content-length'))>maxBytes-imageBytes){await res.body?.cancel();continue;}
+     const blob=await res.blob();
+     if(!active()||epoch!==cacheEpoch)return;
+     if(blob.size>maxBytes-imageBytes)break;
+     rememberImage(key,blob);
+     await disk?.putImage(key,blob).catch(()=>{});
+    }
+    if(stamp && active() && epoch===cacheEpoch && disk && await disk.hasImage(key)){
+     const doc=result.firstPage;
+     const localResult={entry,documents:result.documents,resolved:result.resolved,local:true,
+      firstPage:{title:doc.title,label:doc.label,selectedPage:0,
+       pdf:doc.pdf?.startsWith('https://drive.google.com/file/d/')?doc.pdf:null,storedPDF:!!doc.pdf,
+       pages:[{page:page.page,label:page.label}]}};
+     await disk.save('entry:'+entry+':'+stamp,{stamp,key,result:localResult}).catch(()=>{});
+    }
+   }catch{/* A later click can retry this page. */}
+  }
+ }
+ async function drive(action){
+  const s=await session();
+  if(s.user.id!==actor || !active())return;
+  const res=await fetch(window.OJM_SUPABASE_URL+'/functions/v1/receipt-drive-preview',{method:'POST',headers:{
+   Authorization:'Bearer '+s.access_token,apikey:window.OJM_SUPABASE_ANON_KEY,'Content-Type':'application/json'
+  },body:JSON.stringify({action}),signal:AbortSignal.timeout(95000)});
+  if(res.ok)return res.json();
+ }
+ async function discover(){
+  if(!window.access113?.can('settings-accounting','edit'))return;
+  let status=await drive('login'),updated=!!(status?.inspected||status?.checking||status?.linking);
+  const deadline=Date.now()+90000;
+  for(let delay=1000;active() && status && !status.state?.last_error && (status.checking||status.linking) && Date.now()<deadline;delay=Math.min(delay*2,8000)){
+   await new Promise(resolve=>setTimeout(resolve,delay));if(!active())return;
+   status=await drive('progress');
+  }
+  return updated;
+ }
+ const [,discovery]=await Promise.allSettled([warm(),discover()]);
+ if(active() && discovery.status==='fulfilled' && discovery.value){savedEntries.clear();window.JournalReceipts224?.refresh();await warm();}
+}
 function requestFor(button){
  return button.dataset.scanLine208?{staffLine:button.dataset.scanLine208}:{entry:button.dataset.scanEntry208};
 }
@@ -244,5 +363,5 @@ function start(){
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)guard477();});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
-window.ScanViewer208={open,decorate};
+window.ScanViewer208={open,decorate,startLogin,stopLogin,refreshEntries:()=>{savedEntries.clear();deviceEntries.clear();}};
 })();

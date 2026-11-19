@@ -7,7 +7,7 @@ const folderType = 'application/vnd.google-apps.folder';
 const origins = new Set(['https://oonjai-marketplace.github.io', 'https://localhost', 'capacitor://localhost', 'https://accounting.oonjai.invalid']);
 const maxBytes = 64 * 1024 * 1024;
 type Folder = {id:string, name:string};
-type Cursor = {folders:Folder[], token?:string};
+type Cursor = {folders:Folder[], token?:string, watched?:string[]};
 function checked(result:any) {
   if (result.error) throw new Error('The receipt preview could not read or save its progress.');
   return result.data;
@@ -42,8 +42,36 @@ async function inspect(file:any, token:string) {
   } catch { /* Invalid and password-protected PDFs need a new revision. */ }
   return {pages:null, issue:'The pages could not be counted. Check that the PDF opens without a password.'};
 }
-async function scan() {
-  const dest = await destination(), lease = crypto.randomUUID();
+async function changesPage(path:string,params:Record<string,string>,bearer:string){
+  const r=await fetch('https://www.googleapis.com/drive/v3/changes'+path+'?'+new URLSearchParams({...params,supportsAllDrives:'true'}),{
+    headers:{Authorization:'Bearer '+bearer},signal:AbortSignal.timeout(12000)
+  });
+  return r.ok ? await r.json() : null;
+}
+// Check only the change log after the last completed folder inventory.
+// A missing checkpoint or a large backlog safely falls back to the saved metadata inventory.
+async function relevantChanges(dest:Awaited<ReturnType<typeof destination>>,state:any,bearer:string){
+  const folders=new Set<string>([dest.root,...(state.watched_folders||[])]);
+  let token=state.change_token;
+  for(let i=0;i<3;i++){
+    const list=await changesPage('',{pageToken:token,pageSize:'100',includeItemsFromAllDrives:'true',
+      ...(state.shared_drive_id?{driveId:state.shared_drive_id}:{}),fields:'changes(fileId,removed,file(mimeType,parents,trashed)),nextPageToken,newStartPageToken'},bearer);
+    if(!list)return null;
+    const changed=(list.changes||[]).filter((c:any)=>c.fileId);
+    if(changed.some((c:any)=>folders.has(c.fileId)||((c.file?.mimeType===folderType||c.file?.mimeType==='application/pdf') && c.file?.parents?.some((parent:string)=>folders.has(parent)))))return null;
+    // Moved and removed PDFs may no longer report their old parent.
+    if(changed.length){
+      const known=checked(await admin.from('receipt_drive_preview_files').select('file_id').eq('scope',dest.scope).in('file_id',changed.map((c:any)=>c.fileId)).limit(1));
+      if(known.length)return null;
+    }
+    if(list.newStartPageToken)return list.newStartPageToken;
+    if(!list.nextPageToken)return null;
+    token=list.nextPageToken;
+  }
+  return null;
+}
+async function scan(dest:Awaited<ReturnType<typeof destination>>) {
+  const lease = crypto.randomUUID();
   const state = checked(await admin.rpc('receipt_preview_claim', {p_scope:dest.scope, p_lease:lease}));
   if (!state) return {busy:true};
   try {
@@ -52,8 +80,26 @@ async function scan() {
     const owner = checked(await admin.from('profiles').select('role,status').eq('id', c.owner).maybeSingle());
     if (owner?.role !== 'admin' || owner.status !== 'active') throw new Error('Verify the company receipt connection with an active administrator.');
     const bearer = await googleToken(c), started = Date.now();
+    const progress=checked(await admin.from('receipt_drive_preview_state').select('change_token,next_change_token,shared_drive_id,watched_folders,last_error').eq('scope',dest.scope).single());
+    const save=(patch:Record<string,unknown>)=>admin.from('receipt_drive_preview_state').update(patch).eq('scope',dest.scope).eq('lease',lease).select('scope').single().then(checked);
+    if(!state.cursor){
+      if(progress.change_token && !progress.last_error){
+        const retries=checked(await admin.from('receipt_drive_preview_files').select('file_id').eq('scope',dest.scope).eq('retry',true).limit(1));
+        const token=!retries.length?await relevantChanges(dest,progress,bearer):null;
+        if(token){
+          await save({change_token:token,last_complete:new Date().toISOString(),last_error:null});
+          return {complete:true,inspected:0,unchanged:true};
+        }
+      }
+      // Capture BEFORE inventory so concurrent uploads are included in the next delta.
+      const rootMeta=await drive('/'+encodeURIComponent(dest.root),{fields:'driveId'},bearer);
+      const driveId=rootMeta.ok?(await rootMeta.json()).driveId:null;
+      const start=rootMeta.ok?await changesPage('/startPageToken',driveId?{driveId}:{},bearer):null;
+      progress.next_change_token=start?.startPageToken||null;
+      await save({next_change_token:progress.next_change_token,shared_drive_id:driveId||null});
+    }
     let cursor:Cursor = state.cursor || {folders:[{id:dest.root,name:dest.name}]};
-    let complete = false;
+    let complete = false, inspected = 0;
     do {
       const current = cursor.folders[0], root = current.id === dest.root;
       let available = true;
@@ -86,7 +132,7 @@ async function scan() {
         let count = old, retry = old?.retry || false;
         if (!old || old.content_key !== contentKey || (old.retry && old.seen !== state.generation)) {
           if (files.length && Date.now() - started >= 23000) { partial = true; break; }
-          try { count = await inspect(f, bearer); retry = false; }
+          try { inspected++; count = await inspect(f, bearer); retry = false; }
           catch { count = {pages:null,issue:'Drive could not finish reading this PDF. The next check will retry.'}; retry = true; }
         }
         files.push({file_id:f.id, name:f.name, folder:current.name, content_key:contentKey, modified:f.modifiedTime, pages:count.pages, issue:count.issue, retry, target:previewTarget(f.name,count.pages,current.name)});
@@ -99,12 +145,14 @@ async function scan() {
       if (root) for (const f of listing.files) {
         if (f.mimeType === folderType && !folders.some(x => x.id === f.id)) folders.push({id:f.id,name:f.name});
       }
+      const watched=root?[...new Set([...(cursor.watched||[]),...folders.map(f=>f.id)])]:cursor.watched;
       if (!listing.nextPageToken) folders.shift();
-      cursor = {folders, token:listing.nextPageToken};
+      cursor = {folders, token:listing.nextPageToken,watched};
       complete = folders.length === 0;
       checked(await admin.rpc('receipt_preview_step_with_alerts', {p_scope:dest.scope, p_lease:lease, p_files:files, p_cursor:cursor, p_done:complete}));
     } while (!complete && Date.now() - started < 23000);
-    return {complete};
+    if(complete)await save({change_token:progress.next_change_token,next_change_token:null,watched_folders:cursor.watched||[dest.root]});
+    return {complete,inspected};
   } catch (e) {
     checked(await admin.from('receipt_drive_preview_state').update({last_error:(e instanceof Error ? e.message : 'Drive check failed.').slice(0,240)}).eq('scope',dest.scope).eq('lease',lease));
     throw e;
@@ -124,20 +172,28 @@ Deno.serve(async (req:Request) => {
     if (body.action === 'scan') {
       const secret = req.headers.get('Authorization')?.replace(/^Bearer /,'') || '';
       if (secret.length !== 64 || !checked(await admin.rpc('receipt_preview_job_allowed',{p_key:secret}))) return reply({error:'Scheduler access required.'},403);
-      return reply(await scan());
+      return reply(await scan(await destination()));
     }
-    if (body.action !== 'preview') return reply({error:'Unknown preview action.'},400);
+    if (!['check','login','preview','progress'].includes(body.action)) return reply({error:'Unknown preview action.'},400);
     const {user} = await auth(req,true);
     const [active, reset] = await Promise.all([user.rpc('active_account14228'),user.rpc('password_change_required14257')]);
     if (checked(active) !== true || checked(reset) !== false) return reply({error:'Sign in with an active administrator account.'},403);
+    const manual = body.action === 'check' || body.action === 'login';
+    if (manual && checked(await user.rpc('can_action113',{p_target:'settings-accounting',p_action:'edit'})) !== true)
+      return reply({error:'Receipt settings edit access is required.'},403);
     const dest = await destination();
     const offset = Number(body.offset ?? 0);
     if (!Number.isSafeInteger(offset) || offset < 0) return reply({error:'Invalid page.'},400);
-    const [status, rows] = await Promise.all([
-      admin.from('receipt_drive_preview_state').select('last_complete,last_error').eq('scope',dest.scope).maybeSingle(),
-      admin.from('receipt_drive_preview_files').select('name,folder,pages,issue').eq('scope',dest.scope).order('modified',{ascending:false}).order('file_id').range(offset,offset+25)
+    const check = manual ? await scan(dest) : null;
+    const [status, rows, jobs] = await Promise.all([
+      admin.from('receipt_drive_preview_state').select('last_complete,last_error,cursor,lease_until').eq('scope',dest.scope).maybeSingle(),
+      body.action==='login' || body.action==='progress' ? {data:[],error:null} : admin.from('receipt_drive_preview_files').select('name,folder,pages,issue').eq('scope',dest.scope).order('modified',{ascending:false}).order('file_id').range(offset,offset+25),
+      admin.from('receipt_drive_link_jobs').select('state,attempts,note').eq('scope',dest.scope).in('state',['queued','working']).limit(100)
     ]);
     const items = checked(rows);
-    return reply({state:checked(status),more:items.length>25,files:items.slice(0,25).map((f:any)=>({...f,target:previewTarget(f.name,f.pages,f.folder)}))});
+    const state = checked(status), pending = checked(jobs);
+    const retry = pending.some((j:any)=>j.attempts>0 && j.state==='queued');
+    return reply({inspected:check?.inspected||0,checking:!state?.last_error && (!!state?.cursor || Date.parse(state?.lease_until)>Date.now() || check?.busy),
+      linking:pending.length>0 && !retry,retry,state:{last_complete:state?.last_complete,last_error:state?.last_error},more:items.length>25,files:items.slice(0,25).map((f:any)=>({...f,target:previewTarget(f.name,f.pages,f.folder)}))});
   } catch (e) {return reply({error:e instanceof Error ? e.message : 'Receipt preview unavailable.'},400);}
 });

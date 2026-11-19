@@ -4411,6 +4411,9 @@
     ],
     "scripts/scan-viewer208.js": [
       {
+        "source": "src/documents/scanner/receipt-page-cache.js"
+      },
+      {
         "source": "src/documents/scanner/viewer208.js"
       }
     ],
