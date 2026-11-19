@@ -4499,6 +4499,10 @@
     ],
     "scripts/receipt-settings.js": [
       {
+        "source": "src/integrations/google/receipt-alerts.js",
+        "suffix": ";\n"
+      },
+      {
         "source": "src/integrations/google/receipt-drive228.js",
         "prefix": "/* Receipt Drive settings */\n",
         "suffix": ";\n"

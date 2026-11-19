@@ -70,7 +70,7 @@ async function scan() {
         if (!r.ok) {
           if (cursor.token && r.status === 400) {
             cursor = {folders:[{id:dest.root, name:dest.name}]};
-            checked(await admin.rpc('receipt_preview_step', {p_scope:dest.scope,p_lease:lease,p_files:[],p_cursor:cursor,p_done:false}));
+            checked(await admin.rpc('receipt_preview_step_with_alerts', {p_scope:dest.scope,p_lease:lease,p_files:[],p_cursor:cursor,p_done:false}));
           }
           throw new Error('Drive could not list the receipt folder. The next check will retry.');
         }
@@ -89,10 +89,10 @@ async function scan() {
           try { count = await inspect(f, bearer); retry = false; }
           catch { count = {pages:null,issue:'Drive could not finish reading this PDF. The next check will retry.'}; retry = true; }
         }
-        files.push({file_id:f.id, name:f.name, folder:current.name, content_key:contentKey, modified:f.modifiedTime, pages:count.pages, issue:count.issue, retry});
+        files.push({file_id:f.id, name:f.name, folder:current.name, content_key:contentKey, modified:f.modifiedTime, pages:count.pages, issue:count.issue, retry, target:previewTarget(f.name,count.pages,current.name)});
       }
       if (partial) {
-        checked(await admin.rpc('receipt_preview_step', {p_scope:dest.scope,p_lease:lease,p_files:files,p_cursor:cursor,p_done:false}));
+        checked(await admin.rpc('receipt_preview_step_with_alerts', {p_scope:dest.scope,p_lease:lease,p_files:files,p_cursor:cursor,p_done:false}));
         break;
       }
       const folders = [...cursor.folders];
@@ -102,7 +102,7 @@ async function scan() {
       if (!listing.nextPageToken) folders.shift();
       cursor = {folders, token:listing.nextPageToken};
       complete = folders.length === 0;
-      checked(await admin.rpc('receipt_preview_step', {p_scope:dest.scope, p_lease:lease, p_files:files, p_cursor:cursor, p_done:complete}));
+      checked(await admin.rpc('receipt_preview_step_with_alerts', {p_scope:dest.scope, p_lease:lease, p_files:files, p_cursor:cursor, p_done:complete}));
     } while (!complete && Date.now() - started < 23000);
     return {complete};
   } catch (e) {
