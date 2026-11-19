@@ -1,6 +1,7 @@
 {
-  "version": "143.494",
+  "version": "143.495",
   "changes": [
+    "The administrator receipt bell names files that need attention and explains how to fix them. On iPad, a receipt bell appears in the sidebar when there is a problem.",
     "Click a journal entry ID to open its linked receipt. Drive receipts keep one private preview per page. Overlapping uploads wait for review.",
     "On phones, Scan now shows “Feature unavailable. Coming soon.”",
     "Report signatories use a responsive name and job title layout. Fund utilization gives more room to item descriptions and removes the payroll adjustment action. Documents adds year, status and classification filters, compact creation actions and automatic offline number preparation.",
