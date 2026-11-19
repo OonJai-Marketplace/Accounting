@@ -54,7 +54,7 @@ const assert=require('node:assert/strict'),create=require('./phase0-browser-fixt
  await page.waitForFunction(()=>document.querySelector('#icons-body226 .jr-link226[data-receipt-key226="entry:OJM261001"]').dataset.receiptState226==='linked');
  let release;hold=new Promise(r=>release=r);await page.evaluate(()=>JournalReceipts224.refresh());
  for(let i=0;!started&&i<80;i++)await page.waitForTimeout(25);assert(started);
- await page.evaluate(()=>{window.originalActor226=liveProfile.id;liveProfile.id='different-actor';deviceVault14334.unlocked=false;});
+ await page.evaluate(()=>{window.originalActor226=liveProfile.id;liveProfile.id='different-actor';deviceVault14334.unlocked=false;window.dispatchEvent(new Event('account-access477'));});
  await page.waitForFunction(()=>[...document.querySelectorAll('#icons-body226 .jr-link226')].every(b=>b.dataset.receiptState226==='unknown'));
  release();hold=null;await page.waitForTimeout(300);
  assert.equal(await icon(linked).getAttribute('data-receipt-state226'),'unknown','late response cannot restore another account status');

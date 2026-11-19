@@ -1,1 +1,77 @@
-.scan-support-link208{display:inline-flex;align-items:center;min-height:32px;box-sizing:border-box;border:0;background:transparent;color:#15644f;text-decoration:underline;text-underline-offset:3px;cursor:pointer;font:inherit;font-size:11px;padding:3px 5px;margin-left:4px;white-space:nowrap}.entry-id-stack .scan-support-link208{margin-left:0;text-align:left}.scan-viewer208{width:min(950px,calc(100vw - 24px));max-height:94dvh;padding:20px;border:1px solid #b7cbbd;border-radius:14px;background:#fffdf7;color:#17392f;overflow:auto}.scan-viewer208::backdrop{background:#0c261c99}.scan-viewer-top208,.scan-viewer-navigation208{display:flex;align-items:center;justify-content:space-between;gap:12px}.scan-viewer-top208 h2{margin:0;font-size:20px}.scan-viewer208 button{min-height:32px;padding:6px 14px;border:1px solid #b7cbbd;border-radius:7px;background:#fff;color:#174c39;cursor:pointer}.scan-viewer208 button:disabled{opacity:.45;cursor:default}.scan-viewer208 select{display:block;max-width:100%;padding:9px;margin:8px 0}.scan-viewer-image208{overflow:auto;margin:12px 0;background:#edf0e9;min-height:160px;text-align:center}.scan-viewer-image208 img{display:block;width:100%;height:auto;object-fit:contain;margin:auto}.scan-viewer208 a{color:#15644f}.scan-viewer-navigation208{font-size:13px}@media print{.scan-support-link208,.scan-viewer208{display:none!important}}@media(max-width:600px){.scan-viewer208{padding:12px}.scan-viewer-navigation208{gap:5px}.scan-viewer208 button{padding:7px 9px}}
+.scan-support-link208{display:inline-flex;align-items:center;min-height:32px;box-sizing:border-box;border:0;background:transparent;color:#15644f;text-decoration:underline;text-underline-offset:3px;cursor:pointer;font:inherit;font-size:11px;padding:3px 5px;margin-left:4px;white-space:nowrap}.entry-id-stack .scan-support-link208{margin-left:0;text-align:left}
+
+dialog.scan-viewer208, dialog.rv-pdf-dialog {
+ box-sizing:border-box; position:fixed; inset:0; margin:auto; padding:0;
+ width:min(68rem,calc(100% - 2rem)); height:min(60rem,92vh); height:min(60rem,92dvh);
+ max-width:100%; max-height:100%; border:1px solid #adc1b4; border-radius:14px;
+ background:#fffdf7; color:#17392f; overflow:hidden;
+}
+.scan-viewer208[open] {display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto auto}
+.scan-viewer208::backdrop,.rv-pdf-dialog::backdrop {background:rgb(12 38 28 / 68%)}
+.scan-viewer208 [hidden] {display:none!important}
+.scan-viewer208 .rv-header,.scan-viewer208 .rv-details,.scan-viewer208 .rv-nav {
+ position:static; box-sizing:border-box; margin:0; padding:.5rem 1rem;
+ background:#fffdf7; color:inherit;
+}
+.scan-viewer208 .rv-header {
+ display:grid;grid-template-columns:minmax(0,1fr) 5.5rem auto;align-items:center;gap:.5rem;
+ border-bottom:1px solid #cbd8ce;
+}
+.rv-header small {display:block;font-size:.8rem;line-height:1.2;color:#536c60}
+.scan-viewer208 h2 {margin:0;color:inherit;font-size:1.2rem;line-height:1.45;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scan-viewer208 button,.rv-pdf-dialog>button,.scan-viewer208 .rv-add {
+ box-sizing:border-box;min-width:0;min-height:2rem;margin:0;padding:.3rem .8rem;
+ font:inherit;font-size:.94rem;font-weight:600;line-height:1.3;white-space:nowrap;
+ border:1px solid #adbdaf;border-radius:7px;background:white;color:#184c38;cursor:pointer;
+}
+.scan-viewer208 button:disabled {opacity:.45;cursor:default}
+.scan-viewer208 :focus-visible,.rv-pdf-dialog :focus-visible {outline:2px solid #0c7050;outline-offset:-2px}
+.scan-viewer208 .rv-stage {
+ min-height:0;min-width:0;overflow:auto;overscroll-behavior:contain;background:#e6ece6;
+}
+.rv-paper,.rv-message {box-sizing:border-box;width:100%;height:100%;display:grid;place-items:center}
+.rv-paper img {display:block;width:100%;height:100%;min-width:0;min-height:0;max-width:none;max-height:none;object-fit:contain;cursor:zoom-in}
+.rv-enlarged .rv-paper {width:max-content;min-width:100%;height:max-content;min-height:100%}
+.rv-enlarged .rv-paper img {height:auto;cursor:zoom-out}
+.rv-message {height:auto;min-height:100%;align-content:center;padding:1rem;text-align:center}
+.rv-message p {margin:0 0 .5rem;color:#395749}
+.scan-viewer208 .rv-details {
+ display:flex;height:3rem;align-items:center;gap:.55rem;border-top:1px solid #cbd8ce;
+}
+.rv-description {flex:1;display:flex;align-items:center;gap:.5rem;min-width:0;overflow:hidden}
+.rv-description select {
+ min-width:0;max-width:62%;width:auto;margin:0;padding:.25rem;border:1px solid #c1ccc3;
+ border-radius:5px;background:white;color:inherit;font:inherit;font-size:.88rem;
+}
+.rv-caption {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#52665c;font-size:.88rem}
+.scan-viewer208 .rv-pdf,.scan-viewer208 .rv-add {
+ display:inline-flex;align-items:center;flex:none;padding:.25rem .45rem;
+ border-color:transparent;background:transparent;font-size:.88rem;text-decoration:underline;text-underline-offset:.18em;
+}
+.scan-viewer208 .rv-nav {
+ display:grid;grid-template-columns:1fr minmax(6.5rem,1.4fr) 1fr;align-items:center;gap:.5rem;
+ border-top:1px solid #d8e1d8;
+}
+.rv-prev {justify-self:start}
+.rv-next {justify-self:end}
+.scan-viewer208 .rv-next:not(:disabled) {background:#145940;border-color:#145940;color:white}
+.rv-count {font-size:.94rem;font-weight:600;font-variant-numeric:tabular-nums;text-align:center}
+.rv-pdf-dialog[open] {display:flex;flex-direction:column;padding:.65rem;gap:.5rem}
+.rv-pdf-dialog>button {align-self:end}
+.rv-pdf-dialog details {flex:1;min-height:0;overflow:auto}
+.rv-pdf-dialog summary {display:none}
+.rv-pdf-dialog iframe {height:calc(100% - 2.5rem)!important}
+.rv-pdf-dialog a {display:inline-block;padding:.45rem;color:#184c38}
+@media (max-width:600px),(pointer:coarse) {
+ .scan-viewer208 button,.scan-viewer208 .rv-add,.rv-pdf-dialog>button {min-height:44px}
+ .rv-description select {min-height:44px}
+}
+@media (max-width:600px) {
+ dialog.scan-viewer208,dialog.rv-pdf-dialog {
+  width:calc(100% - .5rem);height:calc(100vh - .5rem);height:calc(100dvh - .5rem);
+  border-radius:10px;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+ }
+ .scan-viewer208 .rv-header,.scan-viewer208 .rv-details,.scan-viewer208 .rv-nav {padding:.25rem .55rem}
+ .rv-description {gap:.25rem}
+}
+@media print {.scan-support-link208,.scan-viewer208,.rv-pdf-dialog {display:none!important}}

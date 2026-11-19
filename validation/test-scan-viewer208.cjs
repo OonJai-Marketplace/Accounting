@@ -1,40 +1,69 @@
-/* Browser behavior with synthetic receipts only; every request stays in fixtures. */
-const {chromium}=require('playwright'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+// Exercise the own-account Entries screen with existing links in the browser fixture.
+const assert=require('node:assert/strict');
+const createFixture=require('./phase0-browser-fixture.cjs');
+
 (async()=>{
- const browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||'/tmp/scanner-chrome/chromium',headless:true,args:['--no-sandbox']});
+ const fixture=await createFixture();
  try{
-  const page=await browser.newPage({viewport:{width:390,height:844},hasTouch:true,isMobile:true});let requests=[],slow=false;
-  await page.route('**/*',async route=>{
-   const u=new URL(route.request().url());requests.push(u.pathname);
-   if(u.pathname==='/')return route.fulfill({contentType:'text/html',body:'<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1"><table><tr data-entry-id="OJM26-0001"><td><div class="entry-id-stack"><span>OJM26-0001</span></div></td></tr></table><p><button class="r79-link" data-entry="OJM26-0002">OJM26-0002</button></p>'});
-   if(u.pathname.startsWith('/preview/'))return route.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" width="600" height="800"><rect width="600" height="800" fill="#fff"/><text x="50" y="90" font-size="25">Synthetic receipt</text></svg>'});
-   if(u.pathname==='/functions/v1/scanner-integration'){
-    const b=route.request().postDataJSON();
-    if(b.action==='list')return route.fulfill({json:{entry:b.entry,documents:b.entry==='OJM26-0002'?[]:[{id:'one',title:'October receipts',pages:2},{id:'two',title:'Second document',pages:1}]}});
-    assert.equal(b.action,'view');if(b.id==='two'&&slow)await new Promise(r=>setTimeout(r,250));
-    return route.fulfill({json:{title:b.id==='two'?'Second document':'October receipts',label:b.id==='two'?'SECOND':'OJM26-0001',pages:[{url:'https://fixture.test/preview/1.svg',page:2,label:'Page A'},{url:'https://fixture.test/preview/2.svg',page:3,label:'Page B'}],pdf:'https://fixture.test/original.pdf',expires:Date.now()+240000}});
+  const {page,login,me}=await fixture.open('phone','submitter');
+  const entry='RY260042',line='00000000-0000-4000-8000-000000002225',batch=crypto.randomUUID();
+  const fund=me.user_permissions.assigned_fund_account_ids[0],account=me.user_permissions.destination_account_ids[0];
+  await page.clock.setFixedTime(new Date('2026-11-19T04:00:00Z'));
+  await page.route('**/rest/v1/staff_journals?**',route=>route.fulfill({json:[{id:batch,owner_id:me.id,period_start:'2026-11-01',status:'draft'}]}));
+  await page.route('**/rest/v1/staff_journal_lines?**',route=>route.fulfill({json:[{id:line,staff_journal_id:batch,line_no:1,
+   transaction_date:'2026-11-18',workspace_entry_no:entry,direction:'out',entry_kind:'cashbook',
+   fund_account_id:fund,account_id:account,currency_code:'LAK',amount:1000,memo:'Kitchen supplies',status:'draft'}]}));
+  let linked=true,release,slowStarted;
+  const pause=new Promise(done=>release=done),started=new Promise(done=>slowStarted=done);
+  const calls=[],images=[],pdfReads=[];
+  await page.route('**/functions/v1/scanner-integration',async route=>{
+   const b=route.request().postDataJSON();calls.push(b);
+   if(b.action==='list'){
+    assert.deepEqual(b,{action:'list',staffLine:line});
+    return route.fulfill({json:{entry,documents:linked?[{id:'one',title:'October receipts',pages:2},{id:'two',title:'Second document',pages:1}]:[]}});
    }
-   throw Error('Unexpected network request '+u.href);
+   assert.equal(b.action,'view');
+   if(b.id==='two'){slowStarted();await pause;}
+   const n=b.id==='two'?1:2;
+   return route.fulfill({json:{title:b.id,label:entry,expires:Date.now()+240000,pdf:'https://drive.google.com/file/d/fixture/view',
+    pages:Array.from({length:n},(_,i)=>({page:i+2,label:b.id+'-'+i,url:fixture.base+'/storage/v1/object/sign/scan-documents208/'+b.id+'/'+i+'.jpg'}))}});
   });
-  await page.goto('https://fixture.test/');
-  await page.evaluate(()=>{window.deviceVault14334={unlocked:true,actor:'owner'};window.OJM_SUPABASE_URL='https://fixture.test';window.OJM_SUPABASE_ANON_KEY='public-fixture';window.ojmDb={auth:{getSession:async()=>({data:{session:{access_token:'fixture',user:{id:'owner'}}}})}};});
-  await page.addStyleTag({path:path.resolve('src/documents/scanner/viewer208.css')});
-  await page.addScriptTag({path:path.resolve('src/documents/scanner/links208.js')});
-  await page.addScriptTag({path:path.resolve('src/documents/scanner/viewer208.js')});
-  assert.equal(await page.locator('.scan-support-link208').count(),2);
-  assert.equal(requests.filter(p=>p.includes('functions')).length,0,'no automatic journal-wide fetching');
-  await page.locator('.scan-support-link208').first().click();await page.locator('dialog img').waitFor();
-  assert.equal(await page.locator('dialog h2').innerText(),'OJM26-0001');
-  await page.getByRole('button',{name:'Next',exact:true}).click();assert.match(await page.locator('.scan-viewer-navigation208').innerText(),/2 \/ 2/);
-  assert.equal(requests.includes('/original.pdf'),false,'preview never downloads the PDF');
-  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'phone fits viewport');
-  slow=true;await page.locator('#scanDocument208').selectOption('two');await page.locator('#scanDocument208').selectOption('one');await page.waitForTimeout(350);
-  assert.equal(await page.locator('dialog h2').innerText(),'OJM26-0001','late request cannot replace latest selection');
-  await page.screenshot({path:'/tmp/scan-viewer208-phone.png',fullPage:true});
-  await page.getByRole('button',{name:'Close',exact:true}).click();await page.locator('.scan-support-link208').last().click();await page.getByText('No scans are linked to this entry yet.').waitFor();
-  assert.equal(await page.getByRole('link',{name:'Open receipt scanner'}).getAttribute('href'),'scan.html?entry=OJM26-0002');
-  await page.evaluate(()=>{deviceVault14334.unlocked=false;});await page.waitForFunction(()=>!document.querySelector('dialog').open);
-  await page.locator('.scan-support-link208').first().click();await page.getByRole('alert').waitFor();assert.match(await page.getByRole('alert').innerText(),/Sign in/);
-  console.log('PASS: lazy private previews, phone layout, PDF avoidance, navigation, response races, scanner entry shortcut and sign-out clearing');
- }finally{await browser.close();}
-})().catch(e=>{console.error(e);process.exit(1);});
+  await page.route('**/storage/v1/object/sign/scan-documents208/**',route=>{
+   images.push(route.request().url());
+   const tall=!route.request().url().endsWith('/1.jpg');
+   return route.fulfill({contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" width="600" height="'+(tall?1600:300)+'"><rect width="100%" height="100%" fill="white"/><text x="20" y="65">Receipt preview</text></svg>'});
+  });
+  await page.route('https://drive.google.com/**',route=>{pdfReads.push(route.request().url());return route.fulfill({contentType:'text/html',body:'PDF fixture'});});
+  await login();await page.locator('#bottom [data-page=entries]').tap();
+  const row=page.locator('details.entry').first();await row.locator('summary').tap();
+  const trigger=row.locator('[data-scan-line208]');
+  assert.equal(calls.length,0);
+  await trigger.tap();
+  const viewer=page.locator('.scan-viewer208'),image=viewer.locator('img');
+  const control=name=>viewer.getByRole('button',{name,exact:true});
+  const fixed=()=>viewer.evaluate(n=>['h2','.rv-count','.rv-prev','.rv-next','.rv-close'].map(selector=>{
+   const {x,y,width,height}=n.querySelector(selector).getBoundingClientRect();return [x,y,width,height];
+  }));
+  await image.waitFor();assert.equal(await viewer.locator('h2').innerText(),entry);
+  assert.equal(images.length,1);assert.deepEqual(pdfReads,[]);
+  assert(await control('Previous').isDisabled());assert.equal(await viewer.locator('.rv-count').innerText(),'Page 1 of 3');
+  const first=await fixed();await control('Enlarge').tap();assert.deepEqual(await fixed(),first);
+  assert(await viewer.locator('.rv-stage').evaluate(n=>n.scrollHeight>n.clientHeight));
+  await control('Next').tap();await image.waitFor();assert(await control('Enlarge').isVisible());
+  assert.deepEqual(await fixed(),first);assert.equal(await image.count(),1);
+  await control('Next').tap();await started;assert.equal(await viewer.locator('.rv-count').innerText(),'Page 3 of 3');
+  assert(await control('Next').isDisabled());await control('Previous').tap();await image.waitFor();
+  await Promise.all([page.waitForResponse(r=>r.url().includes('scanner-integration')&&r.request().postDataJSON().id==='two'),Promise.resolve().then(release)]);
+  assert.equal(await image.getAttribute('alt'),'one-1');
+  await control('Next').tap();await image.waitFor();assert.equal(await image.getAttribute('alt'),'two-0');assert.deepEqual(await fixed(),first);
+  assert.equal(images.some(u=>u.endsWith('/two/1.jpg')),false);
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  await page.screenshot({path:'/tmp/scan-viewer208-phone.png'});
+  assert.deepEqual(pdfReads,[]);await Promise.all([page.waitForRequest(r=>r.url().endsWith('/fixture/preview')),control('Full PDF').tap()]);
+  await page.getByRole('button',{name:'Close PDF'}).tap();await image.waitFor();
+  await control('Close').tap();assert(await row.getAttribute('open')!==null);
+  linked=false;await trigger.tap();await viewer.getByText('No receipts are linked to this entry yet.').waitFor();
+  assert.equal(await viewer.getByRole('link',{name:'Open receipt scanner'}).getAttribute('href'),'scan.html?entry='+entry);
+  console.log('PASS own-account Entries, linked PDFs, stable controls, zoom, out-of-order replies, empty entry and on-demand PDF.');
+ }finally{await fixture.close();}
+})().catch(error=>{console.error(error);process.exitCode=1;});
