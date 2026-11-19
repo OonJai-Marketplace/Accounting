@@ -264,3 +264,20 @@ body #hr-contracts .hr-employee-select14306{display:block;max-width:360px;margin
   html body.shell113 #hr-leave .hr-empty466{padding:14px 12px!important;color:#617268!important}
  }
 }
+
+/* Leave balance approvals share the HR dialog, controls and action footer. */
+.hr-dialog14306.leave-balance489{width:min(520px,calc(100vw - 24px))}
+.leave-balance489 .hr-dialog-body14306{display:grid;gap:14px}
+.leave-balance489 .leave-mode489{display:flex;gap:3px;padding:3px;border:1px solid #b9cfc3;border-radius:7px;background:#eef4ef}
+.leave-balance489 .leave-mode489 button{flex:1;padding:7px 6px;border:0;border-radius:4px;background:transparent;color:#294c3c;font:inherit;font-size:13px;cursor:pointer}
+.leave-balance489 .leave-mode489 [aria-pressed=true]{background:#fff;color:#12553d;font-weight:650;box-shadow:0 1px 3px #183f3026}
+.leave-balance489 .leave-mode489 button:disabled{color:#67776e;cursor:default}
+.leave-balance489 .leave-entry489{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.leave-balance489 .leave-preview489{padding:9px 12px;border-left:3px solid #478768;background:#f0f6f1;font-size:13px;color:#234b35}
+.leave-balance489 .leave-eligibility489{margin:-6px 0 0;font-size:13px;color:#52685b}
+.leave-balance489 .leave-history489{border-top:1px solid #d3e1d6;padding-top:12px;font-size:13px}
+.leave-balance489 .leave-history489 summary{cursor:pointer;font-weight:600}
+.leave-balance489 [data-history]{margin-top:8px}
+.leave-balance489 [data-history]>div{display:grid;gap:3px;padding:6px 0;overflow-wrap:anywhere}
+.leave-balance489 [role=alert]:empty{display:none}
+@media(max-width:380px){.leave-balance489 .leave-entry489{grid-template-columns:1fr}}
