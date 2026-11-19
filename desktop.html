@@ -1,22 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>(()=>{const ua=navigator.userAgent,phone=/iPhone|iPod/i.test(ua)||/Android/i.test(ua)&&/Mobile/i.test(ua);if(!phone)return;const u=new URL('phone.html',location.href);u.search=location.search;u.searchParams.set('staff','1');u.hash=location.hash;location.replace(u.href)})();</script>
+<meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>Oon Jai Accounting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="48x48" href="assets/app-icons/accounting-48-v1.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/app-icons/accounting-180-v1.png">
+<meta name="theme-color" content="#07513e">
+</head>
+<body>
+<section id="accountingLaunch" role="status" aria-live="polite" style="color-scheme:light;position:fixed;inset:0;z-index:2147483647;display:grid;place-content:center;justify-items:center;gap:12px;padding:24px;box-sizing:border-box;background:#fffaf1;color:#174c38;font:600 16px/1.5 system-ui,sans-serif;text-align:center">
+  <strong style="font-size:22px">Oon Jai Accounting</strong>
+  <span>Opening your workspace…</span>
+  <progress aria-label="Loading Accounting" style="width:12rem;height:8px;accent-color:#087451"></progress>
+</section>
+<script>
+(() => {
+  const panel = document.getElementById('accountingLaunch');
+  const message = panel.querySelector('span');
+  const retry = document.createElement('button');
+  retry.type = 'button';
+  retry.textContent = 'Retry opening';
+  retry.onclick = () => location.reload();
+  const slow = setTimeout(() => {
+    message.textContent = 'Still loading Accounting…';
+    panel.append(retry);
+  }, 15000);
+  document.addEventListener('DOMContentLoaded', () => {
+    clearTimeout(slow);
+    if ((window.startup14257 && window.loading1444 && typeof initializeSupabaseApp === "function") || window.recoveryRedirect14257) {
+      panel.remove();
+    } else {
+      message.textContent = 'The workspace files could not open.';
+      panel.querySelector('progress').remove();
+      panel.append(retry);
+    }
+  }, {once: true});
+})();
+</script>
+<script>(()=>{const ua=navigator.userAgent,phone=/iPhone|iPod/i.test(ua)||/Android/i.test(ua)&&/Mobile/i.test(ua);if(!phone)return;const u=new URL('phone.html',location.href);u.search=location.search;u.searchParams.set('staff','1');u.hash=location.hash;location.replace(u.href)})();</script>
+
 <script src="scripts/desktop14245-1.js?v=143.443"></script>
 <style>@layer screenFit296, journalRail291, corrections14337, workspace14331, compact14327;</style>
 <script src="scripts/system-diagnostics14324.js?v=143.26"></script><script>(()=>{const q=new URLSearchParams(location.search),h=new URLSearchParams(location.hash.slice(1));if(q.has('password-recovery')||q.get('type')==='recovery'||h.get('type')==='recovery'||q.has('error_description')||h.has('error_description')){window.recoveryRedirect14257=true;const u=new URL('recovery.html',location.href);u.search=location.search;u.hash=location.hash;location.replace(u.href)}})();</script>
-  <meta charset="UTF-8" />
+
   <script src="deployment-config.js?v=143.109"></script><script src="scripts/supabase-config.js?v=143.109"></script><script src="scripts/operational-reset143108.js?v=143.184"></script><script src="assets/vendor/noble-gcm14334.js?v=143.34"></script><script src="scripts/device-vault14334.js?v=143.490"></script><script>if(!window.OJM_DEPLOYMENT?.supabase?.url||!window.OJM_DEPLOYMENT?.supabase?.publishableKey)location.replace(new URL("setup.html",location.href).href)</script>
-  <script src="scripts/offline14239.js?v=143.500"></script>
+  <script src="scripts/offline14239.js?v=143.501"></script>
   <link rel="stylesheet" href="styles/desktop14245.css?v=143.492">
   <link rel="stylesheet" href="styles/voucher-layout14299.css?v=143.492">
-<title>Oon Jai Accounting</title>
+
 <link rel="stylesheet" href="styles/functional-corrections14292.css?v=143.128">
 
   <!-- Typography -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&family=Caveat+Brush&family=Kalam:wght@400&family=Permanent+Marker&family=Caveat&family=Patrick+Hand&family=Marck+Script&family=Sriracha&family=Kaushan+Script&display=swap" rel="stylesheet">
   <!-- Backbone Stylesheet -->
 
@@ -51,10 +91,8 @@
 <link rel="stylesheet" href="styles/desktop-scale14320.css?v=143.20"><script src="scripts/desktop-scale14320.js?v=143.23"></script><link rel="stylesheet" href="styles/compact14327.css?v=143.419-polish">
 <script src="scripts/summary-period14331.js?v=143.491"></script>
 <link rel="stylesheet" href="styles/workspace14331.css?v=143.439">
-<link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" sizes="48x48" href="assets/app-icons/accounting-48-v1.png"><link rel="apple-touch-icon" sizes="180x180" href="assets/app-icons/accounting-180-v1.png"><link rel="stylesheet" href="styles/app-install205.css?v=143.208"><script src="scripts/app-install205.js?v=143.208"></script><meta name="theme-color" content="#07513e"><script defer src="scripts/receipt-links208.js?v=143.497"></script><script defer src="scripts/scan-viewer208.js?v=143.499"></script><link rel="stylesheet" href="styles/scan-viewer208.css?v=143.500"><script defer src="scripts/journal-receipts224.js?v=143.494"></script><link rel="stylesheet" href="styles/journal-receipts224.css?v=143.498"></head>
-<body>
-
-  <div id="loginGate" class="login-gate no-print">
+<link rel="stylesheet" href="styles/app-install205.css?v=143.208"><script src="scripts/app-install205.js?v=143.208"></script><script defer src="scripts/receipt-links208.js?v=143.497"></script><script defer src="scripts/scan-viewer208.js?v=143.499"></script><link rel="stylesheet" href="styles/scan-viewer208.css?v=143.500"><script defer src="scripts/journal-receipts224.js?v=143.494"></script><link rel="stylesheet" href="styles/journal-receipts224.css?v=143.498">
+<div id="loginGate" class="login-gate no-print">
     <div id="sessionRestore1444" role="status" aria-label="Restoring your session"><span class="loading-orbit1444" aria-hidden="true"><i style="--i:0"><b></b></i><i style="--i:1"><b></b></i><i style="--i:2"><b></b></i><i style="--i:3"><b></b></i><i style="--i:4"><b></b></i><i style="--i:5"><b></b></i></span></div>
     <form id="loginForm" class="login-card" onsubmit="handleDemoLogin(event)">
       <div class="login-brand-mark"><img src="assets/brand/oonjai-logo.png" alt="Oon Jai company logo" width="52" height="52"></div>
@@ -1272,7 +1310,7 @@
   <script src="assets/vendor/supabase.js?v=142.47"></script>
 
   <!-- Backbone Script Engine -->
-  <script src="scripts/desktop14245-3.js?v=143.499"></script>
+  <script src="scripts/desktop14245-3.js?v=143.501"></script>
 <script src="scripts/optional-tools14335.js?v=143.275"></script>
 
 

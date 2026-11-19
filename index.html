@@ -1,9 +1,17 @@
 <!doctype html>
 <html lang="en"><head><script>(()=>{const q=new URLSearchParams(location.search),h=new URLSearchParams(location.hash.slice(1));if(q.has('password-recovery')||q.get('type')==='recovery'||h.get('type')==='recovery'||q.has('error_description')||h.has('error_description')){window.recoveryRedirect14257=true;const u=new URL('recovery.html',location.href);u.search=location.search;u.hash=location.hash;location.replace(u.href)}})();</script><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Oon Jai Accounting</title>
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" sizes="48x48" href="assets/app-icons/accounting-48-v1.png"><link rel="apple-touch-icon" sizes="180x180" href="assets/app-icons/accounting-180-v1.png"><meta name="theme-color" content="#07513e"></head><body>
+<section id="accountingLaunch" role="status" aria-live="polite" style="position:fixed;inset:0;z-index:2147483647;display:grid;place-content:center;justify-items:center;gap:12px;padding:24px;box-sizing:border-box;background:#fffaf1;color:#174c38;font:600 16px/1.5 system-ui,sans-serif;text-align:center">
+  <strong style="font-size:22px">Oon Jai Accounting</strong>
+  <span>Opening your workspace…</span>
+  <progress aria-label="Loading Accounting" style="width:12rem;height:8px;accent-color:#087451"></progress>
+</section>
 <script>
 (()=>{if(window.recoveryRedirect14257)return;const ua=navigator.userAgent||'';
 const staff=/iPhone|iPod/i.test(ua)||/Android/i.test(ua)&&/Mobile/i.test(ua);
 const u=new URL(staff?'phone.html':'desktop.html',location.href);u.search=location.search;u.searchParams.set('v','143.479');if(staff)u.searchParams.set('staff','1');else u.searchParams.delete('staff');u.hash=location.hash;location.replace(u.href)})();
-</script><link rel="manifest" href="manifest.webmanifest"><link rel="icon" type="image/png" sizes="48x48" href="assets/app-icons/accounting-48-v1.png"><link rel="apple-touch-icon" sizes="180x180" href="assets/app-icons/accounting-180-v1.png"><link rel="stylesheet" href="styles/app-install205.css?v=143.208"><script src="scripts/app-install205.js?v=143.208"></script><meta name="theme-color" content="#07513e"></head><body><noscript>Enable JavaScript to open your workspace.</noscript><p><a href="phone.html?v=143.413&amp;staff=1">Saved staff workspace</a> · <a href="desktop.html?v=143.413">Desktop / tablet workspace</a></p></body></html>
+</script>
+<link rel="stylesheet" href="styles/app-install205.css?v=143.208"><script defer src="scripts/app-install205.js?v=143.208"></script>
+<noscript><style>#accountingLaunch{display:none!important}</style>Enable JavaScript to open your workspace.<p><a href="phone.html?v=143.413&amp;staff=1">Saved staff workspace</a> · <a href="desktop.html?v=143.413">Desktop / tablet workspace</a></p></noscript></body></html>
 
 

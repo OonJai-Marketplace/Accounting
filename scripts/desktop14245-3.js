@@ -10009,7 +10009,29 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  function markRead143119(rows){rows=rows.flatMap(row=>row.members143173||[row]);if(!rows.length)return;const seen=seen143119();for(const row of rows)seen.add(readKey143119(row));try{localStorage.setItem('ojm_notice_read143125:'+liveProfile.id,JSON.stringify([...seen].slice(-500)))}catch{}}
  const upcoming143119=n=>!n.critical&&(!!n.hrEventId||n.type==='Upcoming transaction'||n.type==='Scheduled journal · upcoming');
  window.markUpcomingRead143119=function(eventId){markRead143119(notices().filter(n=>eventId?n.hrEventId===eventId:upcoming143119(n)));updateBell()};
- document.addEventListener('click',async e=>{const link=e.target.closest('a[href]');if(!link||new URL(link.href,location.href).origin!==location.origin||!new URL(link.href,location.href).pathname.endsWith('/update.html'))return;e.preventDefault();if(link.getAttribute('aria-busy')==='true')return;link.setAttribute('aria-busy','true');try{window.drafts1427?.flush();await window.documentWorkspace105?.prepareUpdate?.();location.assign(link.href)}catch(error){const message='Update paused: '+error.message+' Your current work is still open.';if($('websiteUpdateMessage143103'))$('websiteUpdateMessage143103').textContent=message;else window.showCenterStatus?.(message,true)}finally{link.removeAttribute('aria-busy')}},true);
+ document.addEventListener('click',async e=>{
+  const link=e.target.closest('a[href]');
+  if(!link)return;
+  const url=new URL(link.href,location.href);
+  if(url.origin!==location.origin||!url.pathname.endsWith('/update.html'))return;
+  e.preventDefault();
+  if(link.getAttribute('aria-busy')==='true')return;
+  const label=link.textContent;
+  const reset=()=>{link.textContent=label;link.removeAttribute('aria-busy');window.removeEventListener('pageshow',reset);};
+  link.setAttribute('aria-busy','true');
+  link.textContent='Opening update…';
+  window.addEventListener('pageshow',reset,{once:true});
+  try{
+   window.drafts1427?.flush();
+   await window.documentWorkspace105?.prepareUpdate?.();
+   location.assign(url.href);
+  }catch(error){
+   reset();
+   const message='Update paused: '+error.message+' Your current work is still open.';
+   if($('websiteUpdateMessage143103'))$('websiteUpdateMessage143103').textContent=message;
+   else window.showCenterStatus?.(message,true);
+  }
+ },true);
  function profile(){const person=typeof liveProfile==='undefined'?null:liveProfile;if(!person)return null;const current=String(person.full_name||DemoAccess.currentUser?.name||'').trim().toLowerCase(),email=String(person.email||'').trim().toLowerCase();return (typeof Work82!=='undefined'?Work82.employees:[]).find(row=>row.data?.userId===person.id||row.data?.profileEmail?.trim().toLowerCase()===email&&email||row.data?.name?.trim().toLowerCase()===current&&current)?.data||null}
  window.updateHeaderProfile104=function(){const node=$('headerAccountInitials'),name=$('currentUserChip'),role=$('sidebarUserRole');if(!node)return;const person=typeof liveProfile!=='undefined'&&liveProfile;const display=person?.full_name||DemoAccess.currentUser?.name||'Signed-in user';if(name&&name.textContent!==display)name.textContent=display;const roleText=String((typeof livePermission!=='undefined'&&livePermission?.job_title)||person?.user_permissions?.job_title||(person?.role==='admin'?'Administrator':'Sub-user'));if(role&&role.textContent!==roleText)role.textContent=roleText;let logo='';try{logo=localStorage.getItem('ojm_company_logo101')||''}catch{}const photo=window.shell113?.state.photo||profile()?.photoData||logo;if(photo&&/^data:image\/(?:png|jpeg|webp);base64,/i.test(photo)){let img=node.querySelector('img');if(!img){node.textContent='';img=document.createElement('img');img.alt='';node.append(img)}if(img.src!==photo)img.src=photo;node.classList.add('has-photo104')}else{node.classList.remove('has-photo104');const initials=display.trim().split(/\s+/).slice(0,2).map(s=>s[0]||'').join('').toUpperCase()||'OJ';if(node.textContent!==initials)node.textContent=initials}};
  function renderWebsiteUpdates(){const card=$('websiteUpdates143103');if(!card)return;const state=window.offline14239?.state();$('websiteUpdateCurrent143103').textContent=state?.appVersion||'—';$('websiteUpdateLatest143103').textContent=state?.availableShell||state?.appVersion||'—';$('websiteUpdateMessage143103').textContent=state?.updateMessage||'Check for the latest published version.';const button=$('websiteUpdateCheck143103');button.disabled=!!state?.checkingUpdate;button.textContent=state?.checkingUpdate?'Checking…':'Check for updates';const download=$('websiteUpdateDownload143103');download.hidden=!state?.availableShell;download.href='update.html?version='+encodeURIComponent(state?.availableShell||'');const notes=$('websiteUpdateNotes143105'),release=state?.releaseNotes;const markup=release?.changes?.length?'<h4>What changed in '+escape(release.version)+'</h4><ul>'+release.changes.map(text=>'<li>'+escape(text)+'</li>').join('')+'</ul>':'<p>Release notes will appear after checking for updates.</p>';if(notes._releaseMarkup143105!==markup){notes._releaseMarkup143105=markup;notes.innerHTML=markup;}}

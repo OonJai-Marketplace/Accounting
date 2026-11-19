@@ -1,6 +1,7 @@
 {
-  "version": "143.500",
+  "version": "143.501",
   "changes": [
+    "Accounting shows a progress bar while the workspace files open after an update, before the usual sign-in animation and preparation steps.",
     "Full PDF opens in a centered receipt window. The PDF fills the space below its toolbar, with the accounting screen visible around it. If Drive cannot open the receipt folder, Accounting keeps the last successful file list.",
     "Accounting remembers receipt pages on this device between administrator sign-ins. Recent pages load first, and later checks download missing or changed images.",
     "The receipt link is centered below the entry ID in journal and ledger tables so it stays inside the column.",
