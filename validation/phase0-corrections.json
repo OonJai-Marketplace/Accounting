@@ -5,12 +5,12 @@
   "runtime_sha256": {
     "styles/refinements-v93.css": "e060e980ecaf5b921f480cf9de77068cda78dcc38fa3f271add6dbd780b17880",
     "recovery.html": "c1bbe7bf9f2671c7abb675a026ac39c25bf9c4dec8cdf07dde05c98818b03637",
-    "phone-sw.js": "69b541371fd5295bd5b10daec45eeaf4bfdfdcaf394edeeef2fbdd5064c21d89",
+    "phone-sw.js": "3bc61faff50a8c6ff6372cbf463ed0bab01f4c73806b2f9f62a84b04268074b1",
     "phone-accounting.html": "b1242a5cd79644de75c24434b3da9843bc58bb199e5fa3bc5f064dd1cef3afc4",
-    "desktop-sw14242.js": "96d468121573d5851d08f625ecb2aadaa6016d21e34f2ad775356d2e8ce91932",
-    "phone.html": "71dd1a502c381bfd991997a19479703014974c4f213ae965f72a2ed92c06cdda",
-    "desktop.html": "9eb3bb7cae8b7dc56fa73c7a3335b5d8bc87859becafa7057fb7574ddb10fc33",
-    "scripts/phone-runtime14242.js": "ae528e8fe947b2d462d74b0a9e0a6d2273aa58f75efd855c085df0f02a8043e9",
+    "desktop-sw14242.js": "0ced4a6dffd3599e863eab5e4db068407c48fc6158f547dbbb090eaf2783f66f",
+    "phone.html": "ec282e76cb5d7f069b688ecfbafe653188a50a208d098960eb12d4d37abdb3ee",
+    "desktop.html": "328eea888e402a7c785caaf4c0401243ed75eeb58a6617584ea2e9d721557a58",
+    "scripts/phone-runtime14242.js": "6d50871d185a834f4ea124a3f721e5b1324b1b6c276088b6d0f4e066fe6d56d2",
     "scripts/device-vault14334.js": "161496c833a5fed5f6928c196e8eeba53b84c61a077d8d97dc9d244f5f845fa6",
     "scripts/script.js": "415683d566a396a52c3d9489f252cf27c3ebb62d7cb31a87fd135b583b9bc0b6",
     "scripts/local-first14333.js": "2f6eb90e56fcad5f390c6e54fe9a5652aa82e029040125867cafff75f8c1d1cf",
@@ -18,7 +18,7 @@
     "scripts/payroll-polish-v97.js": "d1801d89617f2fd793a3c67869d838a1312d4589f58594a56b6a7a019f8d087f",
     "scripts/startup14257.js": "64774650c9aa80f22e1db60706487c20045fb56d7cc40296ac9e44909d635d71",
     "scripts/desktop14245-6.js": "82ea3d1ed01fef5f59ef00fc01e7f3376365da627dce697fb34870c5fc0a6645",
-    "scripts/offline14239.js": "bdd8735c2c79e7ce005456b6a4d99e3fd01664a109d10d319f161422386f9b38",
+    "scripts/offline14239.js": "99dfc9fe576cd942aec4704002bb5429090ab1b375696dd0d9366328c5a28220",
     "scripts/desktop14245-3.js": "1a3124dd52ca7288320513274328db3960113718a98ebe8608724d9942b6f55d",
     "scripts/desktop14245-4.js": "6de5c08cd739e40ddee517b99e238f83a4d00ffc8a305c52bfab6ed0841b6585",
     "scripts/drafts1427.js": "f87e5ae3aba767e23b1ed190473c9a0ab08fac4c8c1c1bded2cdbdadec7ff388",
@@ -265,7 +265,7 @@
     "styles/editor-tables-v107.css": "0b0ff1cff19ef81093dce79c995122bcc9169d25b47227fd775a2dbab33e7a3b",
     "styles/polish1444.css": "fc55764b2a9b4f597a1fd408717f6d101630ee937f06485251153e5e6f9f871f",
     "styles/transactions-mobile-v72.css": "11b7fafa86437a6edeb18e295f92909bd4eecd6b2366208c06bd9886fa708556",
-    "sw14239.js": "810f42ad1eb1db4f8315f55d8da1c91e7a078b37e9a3833934c58a3af6bb4cb8",
+    "sw14239.js": "36f2c08dc6197c73284dfb4e212ba5d9d8987f6659a8f84fe810478cca807b54",
     "styles/header-profile-v104.css": "e3f51d6513bea097f66fee9a4335ee0814e927fa734bdb4ba336b61e06c8ce39"
   },
   "retired_assets": {
@@ -624,5 +624,6 @@
   "desktopWake143490": "Foreground database recovery, on-demand device storage measurement and indexed desktop cache lookups.",
   "preparedTableLayouts143491": "Prepared ledger and trial tables, persistent content widths, and quarterly or annual trial comparisons.",
   "documentRegisterAndReports143492": "2026-11-19: Responsive signatory review, utilization category and item widths, retired payroll action, filtered document register and on-demand offline stock.",
-  "receiptDrivePreviewPhase1": "Administrator preview of company Drive receipts and proposed page matches."
+  "receiptDrivePreviewPhase1": "Administrator preview of company Drive receipts and proposed page matches.",
+  "linkedDriveReceipt494": "Changed Drive files prepare private page images and persist their entry links. Open the selected image on user action."
 }

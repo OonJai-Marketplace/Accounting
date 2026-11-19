@@ -28,7 +28,7 @@ function addReceiptPreview(section,request,current){
  const panel=document.createElement('section');
  panel.hidden=true;
  panel.setAttribute('aria-label','Drive receipt preview');
- panel.innerHTML='<h4 class="je-title">Drive receipt preview</h4><p>Proposed page matches only. Drive is checked every five minutes.</p><p>For example, use 260001.pdf anywhere, or 1-24.pdf in a folder named November 2026.</p><p data-preview-time></p><ul data-preview-list></ul><div class="je-actions-bar"><button type="button" class="je-btn" data-preview-back>Previous files</button><button type="button" class="je-btn" data-preview-next>Next files</button></div>';
+ panel.innerHTML='<h4 class="je-title">Drive receipt preview</h4><p>Drive checks for new files every five minutes. This preview shows which entry numbers the filenames contain.</p><p>For example, use 260001.pdf anywhere, or 1-24.pdf in a folder named November 2026.</p><p data-preview-time></p><ul data-preview-list></ul><div class="je-actions-bar"><button type="button" class="je-btn" data-preview-back>Previous files</button><button type="button" class="je-btn" data-preview-next>Next files</button></div>';
  section.append(panel);
  const button=section.querySelector('[data-receipt-preview]'),list=panel.querySelector('[data-preview-list]');
  let offset=0;

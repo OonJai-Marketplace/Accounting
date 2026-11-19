@@ -1,6 +1,7 @@
 {
-  "version": "143.493",
+  "version": "143.494",
   "changes": [
+    "Click a journal entry ID to open its linked receipt. Drive receipts keep one private preview per page. Overlapping uploads wait for review.",
     "On phones, Scan now shows “Feature unavailable. Coming soon.”",
     "Report signatories use a responsive name and job title layout. Fund utilization gives more room to item descriptions and removes the payroll adjustment action. Documents adds year, status and classification filters, compact creation actions and automatic offline number preparation.",
     "General Ledger and Trial Balance retain all prepared rows. Comparative Trial Balance shows a quarter or year, with category bands, indented accounts and content-sized columns.",

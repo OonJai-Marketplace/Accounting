@@ -32,3 +32,7 @@ verify_jwt = true
 # Verifies the scheduler's Vault secret or an administrator's Accounting session.
 [functions.receipt-drive-preview]
 verify_jwt = false
+
+# Internal changed-file queue, authenticated with the receipt job secret.
+[functions.receipt-drive-link]
+verify_jwt = false
