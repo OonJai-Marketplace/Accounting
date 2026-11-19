@@ -8,7 +8,7 @@ function create({url,key,session,request=fetch}){
  async function previews(manifest,read){const s=await session();for(const page of manifest.pages){const blob=await read(page.id);if(blob.size>2097152)throw Error('A page preview is too large. Reduce its size and retry.');page.preview={path:s.user.id+'/'+manifest.id+'/'+manifest.revision+'/'+page.id+'.jpg'};await put(page.preview.path,blob,'image/jpeg');}return manifest;}
  return {api,put,previews,register:manifest=>api('register',{manifest})};
 }
-async function preview(data){const C=root.ReceiptCore202,source=await C.sourceCanvas(data),scale=Math.min(1,1200/source.width,1600/source.height),canvas=C.canvas(Math.round(source.width*scale),Math.round(source.height*scale));canvas.getContext('2d').drawImage(source,0,0,canvas.width,canvas.height);return new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('Preview could not be prepared.')),'image/jpeg',.85));}
+async function preview(data){const C=root.ReceiptCore202,source=await C.image(data),scale=Math.min(1,1200/source.naturalWidth,1600/source.naturalHeight),canvas=C.canvas(Math.max(1,Math.round(source.naturalWidth*scale)),Math.max(1,Math.round(source.naturalHeight*scale)));canvas.getContext('2d').drawImage(source,0,0,canvas.width,canvas.height);return new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error('Preview could not be prepared.')),'image/jpeg',.85));}
 function dismissOnBackdrop(dialog){
  let beganOutside=false;
  const outside=e=>{if(e.target!==dialog)return false;const r=dialog.getBoundingClientRect();return e.clientX<r.left||e.clientX>=r.right||e.clientY<r.top||e.clientY>=r.bottom;};

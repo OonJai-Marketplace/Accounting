@@ -3,7 +3,7 @@ const file=fs.readFileSync('src/documents/scanner/scanner202.js','utf8');
 const code=(a,b)=>file.slice(file.indexOf(a),file.indexOf(b,file.indexOf(a)));
 const rows=Array.from({length:416},(_,i)=>({label:'OJM26'+String(i+1).padStart(4,'0'),months:[i<300?'2026-01':'2026-11']}));
 const ctx={idKey221:s=>String(s).trim().toUpperCase(),valid(){},frozen:false,owner:'fixture',scope:'local',OJM_SUPABASE_ANON_KEY:'fixture',settings:{},store:async()=>{},Date,ReceiptLinks208:{create:()=>({api:async(_,q)=>{calls++;const start=q.entriesAfter?250:0;return {rows:rows.slice(start,start+250).map(r=>({label:r.label,date:r.months[0]+'-01'})),entriesAfter:start?null:rows[249].label,linesAfter:null}}})}};
-let calls=0;vm.createContext(ctx);vm.runInContext(code('let journalIndex369=', 'function bindBrowserStartIDs('),ctx);
+let calls=0;vm.createContext(ctx);vm.runInContext(code('let journalIndex369=', 'async function selectNumericID('),ctx);
 (async()=>{
  const index=await ctx.journalIndex();assert.equal(index.rows.length,416);assert.equal(calls,2);await ctx.journalIndex();assert.equal(calls,2);
  for(const digits of ['1','0001','00001'])assert.equal(ctx.matchJournalIDs(index.rows,digits)[0].label,'OJM260001');

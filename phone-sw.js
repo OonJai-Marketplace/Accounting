@@ -1,5 +1,5 @@
 /* Only the independent phone workspace is downloaded in this browser. */
-const VERSION='143.492', CACHE='ojm-phone-shell-'+VERSION;
+const VERSION='143.493', CACHE='ojm-phone-shell-'+VERSION;
 const FILES=[
  "docs/protocols/index.html?v=143.413",
  "docs/protocols/Oon-Jai-Accounting-Protocols.pdf?v=143.387",
@@ -39,7 +39,7 @@ const FILES=[
  "scripts/receipt-detector-worker213.js?v=143.213",
  "styles/phone-login210.css?v=143.210",
  "scripts/receipt-camera209.js?v=143.213",
- "scripts/receipt-links208.js?v=143.369",
+ "scripts/receipt-links208.js?v=143.493",
  "scripts/scan-viewer208.js?v=143.479",
  "styles/scan-viewer208.css?v=143.208",
  "manifest.webmanifest",
@@ -53,8 +53,8 @@ const FILES=[
  "scan.html",
  "scripts/receipt-core202.js?v=143.479",
  "scripts/receipt-pdf202.js?v=143.366",
- "scripts/receipt-scanner202.js?v=143.479",
- "styles/receipt-scanner202.css?v=143.479",
+ "scripts/receipt-scanner202.js?v=143.493",
+ "styles/receipt-scanner202.css?v=143.493",
  "assets/vendor/document14285/jspdf.umd.min.js",
  "scripts/operational-reset143108.js?v=143.184",
  "assets/vendor/noble-gcm14334.js?v=143.34",
@@ -80,7 +80,7 @@ const FILES=[
  "styles/phone14242.css?v=143.456",
  "scripts/reconciliation14345.js?v=143.376",
  "styles/final-review14345.css?v=143.301",
- "scripts/phone-runtime14242.js?v=143.492",
+ "scripts/phone-runtime14242.js?v=143.493",
  "assets/vendor/supabase.js?v=142.47",
  "scripts/supabase-config.js?v=143.109",
  "deployment-config.js?v=143.109",

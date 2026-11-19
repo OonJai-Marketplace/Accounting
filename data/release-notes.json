@@ -1,6 +1,7 @@
 {
-  "version": "143.492",
+  "version": "143.493",
   "changes": [
+    "Phone scanning opens after the entry ID check. Jump ID skips numbers, Save batch PDF keeps all pages together, and the company destination is checked when saving.",
     "Report signatories use a responsive name and job title layout. Fund utilization gives more room to item descriptions and removes the payroll adjustment action. Documents adds year, status and classification filters, compact creation actions and automatic offline number preparation.",
     "General Ledger and Trial Balance retain all prepared rows. Comparative Trial Balance shows a quarter or year, with category bands, indented accounts and content-sized columns.",
     "Accounting rechecks an interrupted database connection when a laptop wakes. Device storage measurement is available on demand, and desktop updates reuse cached files with fewer storage lookups.",

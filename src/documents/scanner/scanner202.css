@@ -74,3 +74,6 @@ body:has(#destinationDialog204[open]) #scanDialog[open]{visibility:hidden}
 .scan-group{padding:10px;margin:7px 0}.scan-group-title h2{font-size:16px;margin:0}.scan-group .scan-pages{margin-top:8px;gap:6px}.scan-group .scan-page img{height:110px}
 .scan-batch-footer211{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.scan-batch-footer211 .scan-action{padding:6px;font-size:13px;min-height:36px}.scan-batch-footer211 .scan-icon211{width:auto;height:36px;min-width:36px}
 body:has(.scan-batch-footer211) #scanMain{padding-bottom:125px}
+
+.scan-reviewed-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;width:100%;max-width:28rem}
+.scan-reviewed-actions .scan-action{min-height:42px;white-space:normal}
