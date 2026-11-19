@@ -125,14 +125,17 @@ export async function handler(req:Request){
    if(!ids.length&&!staff.length)return reply({documents:[],entry,resolved:false});
    const filters=[ids.length?'journal_ids.ov.{'+ids.join(',')+'}':'',staff.length?'staff_line_ids.ov.{'+staff.join(',')+'}':''].filter(Boolean).join(',');
    const rows=result(await user.from('scanner_documents208').select('*').is('superseded_by218',null).or(filters).order('revision',{ascending:false}).limit(500));
-   return reply({entry,resolved:true,documents:latestGroups(rows).map((r:any)=>({id:r.id,title:r.title,label:r.entry_label,pages:r.pages.length,revision:r.revision}))});
+   return reply({entry,resolved:true,documents:latestGroups(rows).sort((a:any,b:any)=>(a.pages[0]?.part||1)-(b.pages[0]?.part||1)).map((r:any)=>({id:r.id,title:r.title,label:r.entry_label,pages:r.pages.length,revision:r.revision}))});
   }
   if(b.action==='view'){
    check(uuid(b.id),'Invalid document.');const row=result(await user.from('scanner_documents208').select('*').eq('id',b.id).maybeSingle());check(row,'Document unavailable or access denied.');
-   const paths=row.pages.map((p:any)=>p.path);if(row.pdf_provider==='supabase')paths.push(row.pdf_path);
+   const index=b.pageIndex;
+   if(index!==undefined)check(Number.isSafeInteger(index)&&index>=0&&index<row.pages.length,'This receipt page is unavailable.');
+   const pages=index===undefined?row.pages:[row.pages[index]];
+   const paths=pages.map((p:any)=>p.path);if(row.pdf_provider==='supabase')paths.push(row.pdf_path);
    const signed=result(await user.storage.from(BUCKET).createSignedUrls(paths,300)),urls=new Map(signed.filter((r:any)=>!r.error&&r.signedUrl).map((r:any)=>[r.path,r.signedUrl]));
-   check(row.pages.every((p:any)=>urls.has(p.path)),'Some page previews are unavailable.');
-   return reply({title:row.title,label:row.entry_label,pages:row.pages.map((p:any)=>({...p,url:urls.get(p.path)})),pdf:row.pdf_provider==='drive'?'https://drive.google.com/file/d/'+row.pdf_path+'/view':urls.get(row.pdf_path),expires:Date.now()+240000});
+   check(pages.every((p:any)=>urls.has(p.path)),'Some page previews are unavailable.');
+   return reply({title:row.title,label:row.entry_label,selectedPage:index,pages:pages.map((p:any)=>({...p,url:urls.get(p.path)})),pdf:row.pdf_provider==='drive'?'https://drive.google.com/file/d/'+row.pdf_path+'/view':urls.get(row.pdf_path),expires:Date.now()+240000});
   }
   throw Error('Unsupported scanner action.');
  }catch(e){return reply({error:String(e.message||'Document request failed.').slice(0,300)},400);}
