@@ -98,14 +98,29 @@ def build():
     manifest['files'] = files
     return (json.dumps(manifest, indent=2)+'\n').encode()
 
+def refresh_update_page(notes, check):
+    page = ROOT / 'update.html'
+    source = page.read_text()
+    preview = {'version': notes['version'], 'changes': notes['changes'][:30]}
+    payload = json.dumps(preview, ensure_ascii=False, separators=(',', ':')).replace('<', '\\u003c')
+    pattern = r'(<script type="application/json" id="updateRelease">).*?(</script>)'
+    updated, count = re.subn(pattern, lambda m: m[1] + payload + m[2], source, flags=re.S)
+    if count != 1:
+        raise ValueError('Missing or duplicate update page release information')
+    if updated != source:
+        if check:
+            raise ValueError('Update page release information is stale')
+        page.write_text(updated)
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--check', action='store_true')
     args = parser.parse_args()
+    notes = json.loads((ROOT/'data/release-notes.json').read_text())
+    refresh_update_page(notes, args.check)
     refresh_static_digests(args.check)
     data = build()
     version_path = ROOT / 'release-version.json'
-    notes = json.loads((ROOT/'data/release-notes.json').read_text())
     if notes.get('version') != json.loads(data)['release'] or not notes.get('changes') or not all(isinstance(item, str) for item in notes['changes']):
         raise SystemExit('Release notes must describe the current release')
     version_data = (json.dumps(notes)+'\n').encode()

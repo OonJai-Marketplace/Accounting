@@ -1,6 +1,6 @@
 /* Independent update entry point. Never reads or removes accounting storage. */
 (()=>{'use strict';
-let VERSION='143.495';
+let VERSION='143.496';
 const ua=navigator.userAgent||'';
 const phone=/iPhone|iPod/i.test(ua)||/Android/i.test(ua)&&/Mobile/i.test(ua);
 const workerFile=phone?'phone-sw.js':'desktop-sw14242.js';
@@ -34,21 +34,39 @@ async function verify(worker,token){
   const url=new URL(phone?'phone.html':'desktop.html',location.href);url.searchParams.set('v',reply.version);location.replace(url.href);
  }catch{}finally{clearTimeout(timeout);channel.port1.close();}
 }
+function announcedRelease(){
+ const params=new URL(location.href).searchParams;
+ const announced=params.get('version')||params.get('v');
+ if(announced!==VERSION)return null;
+ try{
+  const release=JSON.parse(document.getElementById('updateRelease').textContent);
+  return release.version===announced&&Array.isArray(release.changes)?release:null;
+ }catch{return null;}
+}
+async function fetchRelease(){
+ const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),12000);
+ try{
+  const response=await fetch('release-version.json?check='+Date.now(),{cache:'no-store',signal:controller.signal});
+  if(!response.ok)throw Error('Unable to check the published version');
+  const release=await response.json();
+  if(!/^\d+\.\d+$/.test(release.version))throw Error('Invalid published version');
+  return release;
+ }finally{clearTimeout(timeout);}
+}
 async function start(){
- const token=++attempt;finished=false;reportedError=false;lastProgress='';clearTimeout(timer);clearInterval(poll);unwatch();retry.hidden=true;progress.removeAttribute('value');status.textContent='Downloading update…';
+ const token=++attempt;finished=false;reportedError=false;lastProgress='';clearTimeout(timer);clearInterval(poll);unwatch();retry.hidden=true;progress.removeAttribute('value');status.textContent='Checking the latest version…';
  if(!('serviceWorker'in navigator)){fail('This browser cannot prepare the offline update. Open Accounting in a browser that supports offline apps.');return;}
  if(navigator.onLine===false){fail('Reconnect to the internet, then tap Retry update.');return;}
  watchForStall(token);
  try{
-  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),12000);
-  try{
-   const response=await fetch('release-version.json?check='+Date.now(),{cache:'no-store',signal:controller.signal});
-   if(!response.ok)throw Error('Unable to check the published version');
-   const release=await response.json();if(!/^\d+\.\d+$/.test(release.version))throw Error('Invalid published version');
-   if(release.version.localeCompare(VERSION,undefined,{numeric:true})>0)VERSION=release.version;
-   const notes=document.getElementById('updateNotes');notes.replaceChildren();
-   if(Array.isArray(release.changes)&&release.changes.length){const heading=document.createElement('h2');heading.textContent='What changed in '+release.version;const list=document.createElement('ul');for(const change of release.changes.filter(x=>typeof x==='string').slice(0,30)){const li=document.createElement('li');li.textContent=change;list.append(li)}notes.append(heading,list);notes.hidden=false;}
-  }finally{clearTimeout(timeout);}
+  // Settings and the phone reload check already put the detected version in the link.
+  // Direct visits, publication mismatches and explicit retries still check the server.
+  const release=(token===1&&announcedRelease())||await fetchRelease();
+  if(token!==attempt)return;
+  if(release.version.localeCompare(VERSION,undefined,{numeric:true})>0)VERSION=release.version;
+  const notes=document.getElementById('updateNotes');notes.replaceChildren();
+  if(Array.isArray(release.changes)&&release.changes.length){const heading=document.createElement('h2');heading.textContent='What changed in '+release.version;const list=document.createElement('ul');for(const change of release.changes.filter(x=>typeof x==='string').slice(0,30)){const li=document.createElement('li');li.textContent=change;list.append(li)}notes.append(heading,list);notes.hidden=false;}
+  status.textContent='Starting the download…';
   registration=await navigator.serviceWorker.register(workerFile+'?v='+VERSION,{scope:'./',updateViaCache:'none'});
   if(token!==attempt)return;
   const watched=new Map();

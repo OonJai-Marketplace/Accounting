@@ -1,6 +1,7 @@
 {
-  "version": "143.495",
+  "version": "143.496",
   "changes": [
+    "After an update is found, Download update starts loading the website files immediately on phones and desktops.",
     "The administrator receipt bell names files that need attention and explains how to fix them. On iPad, a receipt bell appears in the sidebar when there is a problem.",
     "Click a journal entry ID to open its linked receipt. Drive receipts keep one private preview per page. Overlapping uploads wait for review.",
     "On phones, Scan now shows “Feature unavailable. Coming soon.”",

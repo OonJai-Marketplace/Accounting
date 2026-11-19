@@ -1,5 +1,5 @@
 /* Only the independent phone workspace is downloaded in this browser. */
-const VERSION='143.495', CACHE='ojm-phone-shell-'+VERSION;
+const VERSION='143.496', CACHE='ojm-phone-shell-'+VERSION;
 const FILES=[
  "docs/protocols/index.html?v=143.413",
  "docs/protocols/Oon-Jai-Accounting-Protocols.pdf?v=143.387",
@@ -80,7 +80,7 @@ const FILES=[
  "styles/phone14242.css?v=143.456",
  "scripts/reconciliation14345.js?v=143.376",
  "styles/final-review14345.css?v=143.301",
- "scripts/phone-runtime14242.js?v=143.495",
+ "scripts/phone-runtime14242.js?v=143.496",
  "assets/vendor/supabase.js?v=142.47",
  "scripts/supabase-config.js?v=143.109",
  "deployment-config.js?v=143.109",
@@ -94,6 +94,14 @@ const OPTIONAL=["assets/vendor/document-detector213/ort-api.js","assets/vendor/d
 const scopeURL=new URL(self.registration.scope);
 let downloaded=0;
 const progress=()=>({type:'ojm-shell-progress',version:VERSION,completed:downloaded,total:FILES.length});
+let updatePage=null,lastProgressAt=0;
+function reportProgress(){
+ if(!updatePage)return;
+ const now=Date.now();
+ if(downloaded<FILES.length&&now-lastProgressAt<250)return;
+ lastProgressAt=now;
+ try{updatePage.postMessage(progress());}catch{updatePage=null;}
+}
 
 self.addEventListener('install',event=>event.waitUntil((async()=>{
  const cache=await caches.open(CACHE),previous=(await caches.keys()).filter(name=>name.startsWith('ojm-phone-shell-')&&name!==CACHE).reverse();
@@ -101,12 +109,15 @@ self.addEventListener('install',event=>event.waitUntil((async()=>{
   for(let i=0;i<FILES.length;i+=2){const results=await Promise.allSettled(FILES.slice(i,i+2).map(async file=>{
    const u=new URL(file,scopeURL),controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
    try{if(u.searchParams.has('v')){for(const name of previous){const saved=await(await caches.open(name)).match(u.href);if(saved?.ok){await cache.put(u.href,saved);return;}}}const response=await fetch(u.href,{cache:/\.html$/.test(file)?'reload':'force-cache',signal:controller.signal});if(!response.ok)throw Error('Phone file did not finish downloading');const body=await response.arrayBuffer();await cache.put(u.href,new Response(body,{status:response.status,headers:response.headers}));}finally{clearTimeout(timer)}
-  }));const failed=results.find(r=>r.status==='rejected');if(failed)throw failed.reason;downloaded+=results.length;}await self.skipWaiting();
+  }));const failed=results.find(r=>r.status==='rejected');if(failed)throw failed.reason;downloaded+=results.length;reportProgress();}await self.skipWaiting();
  }catch(e){await caches.delete(CACHE);throw e}
 })()));
 self.addEventListener('activate',event=>event.waitUntil((async()=>{await self.clients.claim();for(const client of await self.clients.matchAll())client.postMessage({type:'ojm-phone-ready',version:VERSION});})()));
 self.addEventListener('message',event=>{if(event.data?.type==='ojm-phone-status')event.source?.postMessage({type:'ojm-phone-ready',version:VERSION});
- if(event.data?.type==='ojm-shell-status')event.ports[0]?.postMessage({version:VERSION,ready:self.registration.active?.state==='activated',progress:progress()});});
+ if(event.data?.type==='ojm-shell-status'){
+  if(event.source?.url&&new URL(event.source.url).pathname===new URL('update.html',scopeURL).pathname)updatePage=event.source;
+  event.ports[0]?.postMessage({version:VERSION,ready:self.registration.active?.state==='activated',progress:progress()});
+ }});
 // A deliberate online reload can discover a new complete shell. Ordinary
 // navigation and offline reopening continue to use the installed release.
 async function phoneUpdateOnReload(request) {
