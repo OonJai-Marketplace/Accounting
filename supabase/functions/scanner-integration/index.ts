@@ -26,6 +26,12 @@ export async function handler(req:Request){
   const [workspace,journal,edit]=await Promise.all(['sub-users-workspace','journal','journal'].map((p_target,i)=>user.rpc('can_action113',{p_target,p_action:i===2?'edit':'view'}).then(result)));
   check(workspace||journal,'Document access is not enabled.');
   const raw=await req.text();check(raw.length<=350000,'Request too large.');const b=JSON.parse(raw||'{}');
+  // Older installed phone clients still load the capture screen from their APK.
+  // Keep receipt viewing available while the phone scanner is paused.
+  const ua=req.headers.get('user-agent')||'';
+  const phone=req.headers.get('sec-ch-ua-mobile')==='?1'||/iPhone|iPod/i.test(ua)||(/Android/i.test(ua)&&/Mobile/i.test(ua));
+  if(phone&&['ids','suggest-ids','journal-id-index','register'].includes(b.action))
+   return reply({error:'Feature unavailable. Coming soon.'},403);
   async function drive(action:string,args:any={}){
    const r=await fetch(URL+'/functions/v1/accounting-documents',{method:'POST',headers:{Authorization:authorization,apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({action,...args}),signal:AbortSignal.timeout(35000)});
    const data=await r.json();check(r.ok&&!data.error,data.error||'Drive request failed.');return data;

@@ -166,7 +166,7 @@ function appLocalDate(date=new Date()) {
 /* Independent, own-account phone workspace. No desktop runtime or business modules. */
 (() => {
   'use strict';
-  const VERSION = '143.492', $ = id => document.getElementById(id);
+  const VERSION = '143.493', $ = id => document.getElementById(id);
   const scope = String(window.OJM_SUPABASE_URL || ''), today = () => appLocalDate();
   const pages = ['home', 'accounts', 'post', 'entries', 'history', 'ledger'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -710,10 +710,18 @@ function appLocalDate(date=new Date()) {
         let mirrored; try { mirrored=JSON.parse(localStorage.getItem(mirrorKey(owner))); } catch {}
         S.draft=normalizeDraft(mirrored || data.draft || {});
         if(queue().some(q=>q.key===S.draft.requestKey))S.draft=blankDraft();
-        touch();if(new URL(window.location.href).searchParams.get('scan')==='1'&&permission('sub-users-workspace')){window.location.replace('scan.html?capture=1');return;}$('loginForm').hidden=true;$('workspace').hidden=false;paintConnection();render();drawUsers();
+        touch();$('loginForm').hidden=true;$('workspace').hidden=false;paintConnection();render();drawUsers();
         if(!data.savedAt)await refresh();
         if(current(owner,epoch)&&navigator.onLine&&(data.savedAt||queue().length))void resumePhone();
-        if(current(owner,epoch))window.phoneLogin210?.finish();
+        if(current(owner,epoch)){
+          window.phoneLogin210?.finish();
+          const url=new URL(window.location.href);
+          if(url.searchParams.get('scan')==='1'){
+            url.searchParams.delete('scan');
+            history.replaceState(history.state,'',url.href);
+            showScanUnavailable();
+          }
+        }
       } catch(e) { if(current(owner,epoch)){window.phoneLogin210?.finish();notice(e.message,true);$('workspace').innerHTML=empty('Device storage could not open. Retry opening your workspace.')+action('reopen','Retry', '',true)+action('signout','Sign out');$('loginForm').hidden=true;$('workspace').hidden=false;} }
     })().finally(()=>{if(enterJob===job)enterJob=null;});enterJob=job;return job;
   }
@@ -1250,14 +1258,10 @@ function appLocalDate(date=new Date()) {
     const search=$('historySearch14359');if(search)search.oninput=()=>{const q=search.value.trim().toLowerCase();$('workspace').querySelectorAll('details.entry').forEach(row=>row.hidden=!!q&&!row.textContent.toLowerCase().includes(q)&&!row.dataset.batchDescription.toLowerCase().includes(q))};
     const form=$('postForm');if(form){form.addEventListener('beforeinput',skipGroupingComma);form.addEventListener('compositionend',captureDraft);form.addEventListener('input',captureDraft);form.addEventListener('change',captureDraft);form.onsubmit=e=>{e.preventDefault();void saveEntry();};updateValidation();}
   }
-  async function openScanner209(settings=false){
-    if(!S.owner||S.owner!==S.actor||!permission('sub-users-workspace')||S.saving||S.submitting)return;
-    const owner=S.owner,epoch=S.epoch;
-    clearTimeout(draftTimer);
-    // Await durable storage before leaving an unfinished journal form.
-    if(S.draft){await persist(owner,{draft:structuredClone(S.draft),page:S.page});if(!current(owner,epoch))return;saveMirror();}
-    rememberLocation();touch();
-    location.assign(settings?'scan.html?settings=1':'scan.html?capture=1');
+  function showScanUnavailable(){
+    if(!S.owner || S.owner!==S.actor || !permission('sub-users-workspace'))return;
+    $('accountMenu').hidden=true;
+    notice('Feature unavailable. Coming soon.');
   }
   function navigate(page){if(!pages.includes(page)||!S.owner||!permission('sub-users-workspace'))return;if(S.page==='post')saveMirror();S.page=page;rememberLocation();$('accountMenu').hidden=true;touch();void persist(S.owner,{page}).catch(()=>{});render();}
   function fieldRows(draft, field) {
@@ -1606,7 +1610,7 @@ function appLocalDate(date=new Date()) {
     }
     if(name==='sort-entry-id'){S.entryAscending=!S.entryAscending;render();return;}
     if(name==='issue-receipt')return await openReceipt245();
-    if(name==='scan'||name==='scan-settings')return await openScanner209(name==='scan-settings');
+    if(name==='scan'||name==='scan-settings')return showScanUnavailable();
     if(name==='reopen-correction'){const j=returnedReports()[index];if(j&&permission('sub-users-workspace','edit')){reopened14348.add(correctionKey14348(j));render();}return;}if(name==='tool-back'){S.area='users';window.PhoneTools14242?.close();render();drawUsers();return;}if(name==='reopen')return await boot();if(name==='directory-refresh')return await loadDirectory();if(name==='signout')return await signout();if(name==='refresh'){await Promise.all([refresh(),window.WorkingStanding379?.refresh()]);return;}if(name==='sync')return await sync();if(name==='submit')return await submit();if(name==='print')return await printReport();if(name==='edit')return await edit(index);if(name==='void')return await voidEntry(index);if(name==='more'){S.limit+=30;render();return;}
     if(S.page!=='post'||S.saving||!S.draft)return;
     if(name==='switch-method'){

@@ -1,11 +1,7 @@
-  async function openScanner209(settings=false){
-    if(!S.owner||S.owner!==S.actor||!permission('sub-users-workspace')||S.saving||S.submitting)return;
-    const owner=S.owner,epoch=S.epoch;
-    clearTimeout(draftTimer);
-    // Await durable storage before leaving an unfinished journal form.
-    if(S.draft){await persist(owner,{draft:structuredClone(S.draft),page:S.page});if(!current(owner,epoch))return;saveMirror();}
-    rememberLocation();touch();
-    location.assign(settings?'scan.html?settings=1':'scan.html?capture=1');
+  function showScanUnavailable(){
+    if(!S.owner || S.owner!==S.actor || !permission('sub-users-workspace'))return;
+    $('accountMenu').hidden=true;
+    notice('Feature unavailable. Coming soon.');
   }
   function navigate(page){if(!pages.includes(page)||!S.owner||!permission('sub-users-workspace'))return;if(S.page==='post')saveMirror();S.page=page;rememberLocation();$('accountMenu').hidden=true;touch();void persist(S.owner,{page}).catch(()=>{});render();}
   function fieldRows(draft, field) {
