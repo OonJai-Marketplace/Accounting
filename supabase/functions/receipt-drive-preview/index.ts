@@ -82,19 +82,24 @@ async function scan(dest:Awaited<ReturnType<typeof destination>>) {
     const bearer = await googleToken(c), started = Date.now();
     const progress=checked(await admin.from('receipt_drive_preview_state').select('change_token,next_change_token,shared_drive_id,watched_folders,last_error').eq('scope',dest.scope).single());
     const save=(patch:Record<string,unknown>)=>admin.from('receipt_drive_preview_state').update(patch).eq('scope',dest.scope).eq('lease',lease).select('scope').single().then(checked);
-    if(!state.cursor){
-      if(progress.change_token && !progress.last_error){
-        const retries=checked(await admin.from('receipt_drive_preview_files').select('file_id').eq('scope',dest.scope).eq('retry',true).limit(1));
-        const token=!retries.length?await relevantChanges(dest,progress,bearer):null;
-        if(token){
-          await save({change_token:token,last_complete:new Date().toISOString(),last_error:null});
-          return {complete:true,inspected:0,unchanged:true};
-        }
+    if(!state.cursor && progress.change_token && !progress.last_error){
+      const retries=checked(await admin.from('receipt_drive_preview_files').select('file_id').eq('scope',dest.scope).eq('retry',true).limit(1));
+      const token=!retries.length?await relevantChanges(dest,progress,bearer):null;
+      if(token){
+        await save({change_token:token,last_complete:new Date().toISOString(),last_error:null});
+        return {complete:true,inspected:0,unchanged:true};
       }
-      // Capture BEFORE inventory so concurrent uploads are included in the next delta.
-      const rootMeta=await drive('/'+encodeURIComponent(dest.root),{fields:'driveId'},bearer);
-      const driveId=rootMeta.ok?(await rootMeta.json()).driveId:null;
-      const start=rootMeta.ok?await changesPage('/startPageToken',driveId?{driveId}:{},bearer):null;
+    }
+    // An inaccessible parent can return a successful, empty child listing.
+    const rootMeta=await drive('/'+encodeURIComponent(dest.root),{fields:'driveId,mimeType,trashed'},bearer);
+    if(!rootMeta.ok)throw new Error('Drive could not open the saved receipt folder. Check the folder and the connected account.');
+    const rootFolder=await rootMeta.json();
+    if(rootFolder.trashed || rootFolder.mimeType!==folderType)
+      throw new Error('The saved receipt folder is unavailable. Restore it from Trash or select the correct folder in Accounting Settings.');
+    if(!state.cursor){
+      // Capture before inventory so concurrent uploads are included in the next check.
+      const driveId=rootFolder.driveId;
+      const start=await changesPage('/startPageToken',driveId?{driveId}:{},bearer);
       progress.next_change_token=start?.startPageToken||null;
       await save({next_change_token:progress.next_change_token,shared_drive_id:driveId||null});
     }
