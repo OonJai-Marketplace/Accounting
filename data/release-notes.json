@@ -1,6 +1,7 @@
 {
-  "version": "143.506",
+  "version": "143.507",
   "changes": [
+    "Accounting reopens the last-used desktop or tablet screen from saved data. Returning with a valid session prepares the selected area first, and fresh sign-in still prepares the full workspace.",
     "The leave request printout uses the approved single-column design, uppercase labels and larger signing areas.",
     "Leave forms print in the classic one-page layout with filled request details and room for both signatures.",
     "The notification bell updates when a Hub leave request arrives. Print any request from HR Leave on one A4 page with signatures and company letterhead.",

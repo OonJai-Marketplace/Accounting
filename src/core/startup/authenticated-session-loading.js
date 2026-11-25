@@ -13,9 +13,11 @@ async function hydrateSupabaseSession(session) {
     if(window.startupData1443)await startupData1443(checkSession);
     else {const referenceReady=loadReferenceDataFromSupabase();await Promise.all([referenceReady.then(()=>loadJournalFromSupabase()),loadBusinessSettingsFromSupabase(),loadSubmissionsFromSupabase(),loadProfilesFromSupabase(),loadLegalDocumentsFromSupabase()]);}
     checkSession();
-    if(liveProfile.role==='admin'){try{await payrollTaxSettings.load();if(/^payroll-/.test(document.querySelector('.tab-content.active')?.id||''))renderWork82();}catch(error){showAppNotification('Payroll Settings',error.message,true);}checkSession();}
+    const startup=window.startup14257;
+    if(startup?.restoring&&startup.dataReady)await window.workspaceViews14364?.finish();
+    checkSession();
     // Session location is restored once by interface-v69.js.
-    freshLoginRequested=false;window.negativeFunds475?.start();window.driveReceiptAlerts?.start();void window.ScanViewer208?.startLogin()?.catch(()=>{});
+    freshLoginRequested=false;window.negativeFunds475?.start();window.driveReceiptAlerts?.start();if(!startup?.restoring)void window.ScanViewer208?.startLogin()?.catch(()=>{});
   } catch(error) { if(epoch!==sessionEpoch1430||client!==ojmDb||error.code==='STALE_PROFILE143100')return;liveProfile=null;livePermission=null;DemoAccess.currentUser=null;document.getElementById('loginGate')?.classList.remove('is-authenticated');const box=loginMessageTarget14293();if(box&&epoch===sessionEpoch1430)box.textContent=error.message; }
 }
 

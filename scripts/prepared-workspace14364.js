@@ -20,7 +20,7 @@ function signature(id){const keys=groups(id),out=[actor(),client(),window.worksp
  return out;
 }
 const equal=(a,b)=>a?.length===b.length&&a.every((v,i)=>v===b[i]);
-function remember(id){const node=id&&document.getElementById(id);if(!node||!allowed(id)||node.querySelector('.r79[aria-busy="true"]'))prepared.delete(id);else prepared.set(id,signature(id));}
+function remember(id){const node=id&&document.getElementById(id);if(!node||!allowed(id)||window.startup14257?.requirements(id).some(name=>!startup14257.isPrepared(name))||node.querySelector('.r79[aria-busy="true"]'))prepared.delete(id);else prepared.set(id,signature(id));}
 function valid(id){if(id==='sub-users-workspace'&&String(document.querySelector('#subUserWorkspacePanel [data-workspace-owner252]')?.dataset.workspaceOwner252||'')!==String(activeSubUserTab()?.userId||''))return false;return owner===actor()&&ownerClient===client()&&prepared.has(id)&&equal(prepared.get(id),signature(id));}
 function holdPayroll(except=''){for(const id of ['payroll-entries','payroll-deductions']){if(id===except)continue;const node=document.querySelector('#'+id+' .desktop82');if(node){node.remove();shelves.set(id,node)}}}
 function restore(id){if(owner!==actor()||ownerClient!==client()){shelves.clear();return}if(!['payroll-entries','payroll-deductions'].includes(id))return;holdPayroll(id);const node=shelves.get(id);if(node&&!document.querySelector('#'+id+' .desktop82')){document.getElementById(id)?.append(node);shelves.delete(id)}}
@@ -51,14 +51,14 @@ function renderer(id){
  if(id==='local-events'||id==='local-events-account')return ()=>window.localEvents14364?.render();
  return null;
 }
-async function build(initial=true){if(pendingBuild)return pendingBuild;const who=actor(),db=client();if(!who)return;if(owner!==who||ownerClient!==db){prepared.clear();shelves.clear();owner=who;ownerClient=db}
+async function build(initial=true,all=initial&&!window.startup14257?.restoring){if(pendingBuild)return pendingBuild;const who=actor(),db=client();if(!who)return;if(owner!==who||ownerClient!==db){prepared.clear();shelves.clear();owner=who;ownerClient=db}
  pendingBuild=Promise.resolve().then(async()=>{building=true;const reportKind=typeof Reports79==='undefined'?null:Reports79.kind;
  try{
   if(initial&&current()==='local-events'&&liveProfile?.role==='admin'&&allowed('local-events'))await window.localEvents14364?.load();
   if(actor()!==who||client()!==db)throw Error('Account changed while preparing screens.');
-  if(initial&&allowed('report-bs'))window.prepareReportDefaults14364?.();
+  if(all&&allowed('report-bs'))window.prepareReportDefaults14364?.();
   const initialView=current();
-  const ids=initial&&!window.startup14257?.interactive?[...document.querySelectorAll('.tab-content[id]')].map(node=>node.id):[initialView];
+  const ids=all&&!window.startup14257?.interactive?[...document.querySelectorAll('.tab-content[id]')].map(node=>node.id):[initialView];
   // Build the visible screen last so shared controls and report selections end on it.
   const targets=[...new Set([...ids.filter(id=>id!==initialView),initialView])].filter(allowed).filter(id=>!window.startup14257?.requirements||startup14257.requirements(id).every(name=>startup14257.isPrepared(name)));
   for(const id of targets){if(!initial&&window.idleSync14341&&!idleSync14341.allowed())break;if(actor()!==who||client()!==db)throw Error('Account changed while preparing screens.');if(!initial&&valid(id))continue;
@@ -84,7 +84,7 @@ async function finish(){
 }
 function ready(){
  const original=window.preparedViews14340;original.build=()=>build(true);
- const hydrate=window.hydrateSupabaseSession;window.hydrateSupabaseSession=async function(session,...args){const result=await hydrate.call(this,session,...args);if(actor()===session?.user?.id&&window.startup14257?.dataReady)await finish();return result};
+ const hydrate=window.hydrateSupabaseSession;window.hydrateSupabaseSession=async function(session,...args){const result=await hydrate.call(this,session,...args);if(actor()===session?.user?.id&&window.startup14257?.dataReady&&!window.startup14257.prepared)await finish();return result};
  const names=['renderJournalHistoryTable','renderReopened67','renderNewTransactionsTable','renderAllTransactionsTable','renderVoidedTransactionsTable','renderAccounts69','renderReports79','renderWork82','renderHr99','renderChartOfAccountsTable','renderSubAccountsTable','renderUserEntryReview','renderSubUserWorkspace','renderPeriodReview','renderEntrySubmissions'];
  for(const name of names){const fn=window[name];if(typeof fn!=='function')continue;window[name]=function(...args){const id=current();// Financial reports validate their own rendered host and journal revision.
  if(name==='renderReports79')return fn.apply(this,args);

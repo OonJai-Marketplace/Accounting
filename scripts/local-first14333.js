@@ -235,7 +235,7 @@ async function verifyCleanup(jobId){
 }
 async function snapshot(name,loader,{force=false}={}){const id=actor();await initialize();assertActor(id);if(!id)return loader();const cached=await edit(id,'snapshot:'+name);assertActor(id);if(cached&&name.startsWith('payroll:'))window.payrollWindow14334?.restore?.(cached.value);if(cached&&!force){await retireConfirmed(id,name,cached.started,cached.value);assertActor(id);return structuredClone(cached.value)}try{const started=new Date().toISOString(),cacheRevision=window.offline14239?.cacheRevision,value=await loader();const verifiedStarted=(!window.offline14239?.offline()&&cacheRevision===window.offline14239?.cacheRevision)?started:null;if(actor()!==id)throw Error('Account changed while loading.');await edit(id,'snapshot:'+name,()=>({value,started:verifiedStarted,at:new Date().toISOString()}));await retireConfirmed(id,name,verifiedStarted,value);assertActor(id);return value}catch(e){assertActor(id);if(cached&&(window.offline14239?.offline()||/fetch|network|timeout|connection|temporarily unavailable/i.test(e.message||'')))return structuredClone(cached.value);throw e}}
 // Compare compact IDs and versions, including deletions. Fetch bodies only for changed records.
-async function refreshWork(){
+async function refreshWork(canPresent=()=>true){
  const id=actor(),client=ojmDb,period=window.yearWindow14333?.state();
  if(!id||liveProfile.role!=='admin'||Work82.owner!==id||!period)return;
  const name='payroll:'+period.from+':'+period.to;
@@ -249,6 +249,7 @@ async function refreshWork(){
    check();if(r.error)throw r.error;if(!Array.isArray(r.data))throw Error('Incomplete record index.');
    index.push(...r.data);if(r.data.length<500)break;
   }
+  if(!canPresent())return;
   const missing=index.filter(row=>known.get(row.id)?.version!==row.version).map(row=>row.id);
   if(!missing.length&&known.size===index.length)continue;
   for(let i=0;i<missing.length;i+=40){
@@ -264,7 +265,7 @@ async function refreshWork(){
  if(runs&&window.payrollWindow14334.checkpoint()?.revision!==value.payrollRevision14351?.revision){
   Object.assign(value,{runs,payrollRevision14351:window.payrollWindow14334.checkpoint(),leaveCarry14334:structuredClone(Work82.leaveCarry14334),payrollIndex14334:structuredClone(Work82.payrollIndex14334)});modified=true;
  }
- if(!modified)return;
+ if(!modified||!canPresent())return;
  const committed=await edit(id,'snapshot:'+name,current=>{check();return current?.at===prior.at?{value,started,at:started}:current});
  check();if(committed?.at!==started)return;
  await retireConfirmed(id,name,started,value);check();

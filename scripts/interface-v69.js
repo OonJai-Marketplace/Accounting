@@ -3,7 +3,7 @@ const Location69={hydrating:false,ready:false,view:'dashboard',lastWrite:0,userN
 function locationKey69(id=liveProfile?.id){return `ojm_location_69_${id||'local'}`}
 function readLocation69(id){try{return JSON.parse(localStorage.getItem(locationKey69(id))||'null')}catch{return null}}
 
-function saveLocation69(scroll){if(!Location69.ready||!liveProfile)return;try{localStorage.setItem(locationKey69(),JSON.stringify({view:document.getElementById('accounts-modular-container')?.classList.contains('active')?(document.getElementById('accounts-modular-container').dataset.accountView14231||Location69.view):Location69.view,scroll:typeof scroll==='number'?scroll:appWorkspaceScroller()?.scrollTop||0,lastActivity:SessionTimeoutManager.lastActivity,openTabs:openSubUserTabs,activeSubUserId}));}catch{}}
+function saveLocation69(scroll){if(!Location69.ready||!liveProfile)return;try{localStorage.setItem(locationKey69(),JSON.stringify({view:document.getElementById('accounts-modular-container')?.classList.contains('active')?(document.getElementById('accounts-modular-container').dataset.accountView14231||Location69.view):Location69.view,scroll:typeof scroll==='number'?scroll:appWorkspaceScroller()?.scrollTop||0,lastActivity:SessionTimeoutManager.lastActivity,openTabs:openSubUserTabs,activeSubUserId,journalSearch:document.getElementById('jeSearchInput')?.value||''}));}catch{}}
 function recentLocation69(record){return !!record}
 const hydrateBefore69=hydrateSupabaseSession;
 let hydration69=null,hydratedUser69='',startup88=null;
@@ -17,6 +17,10 @@ function restoreStartup88(){
  const savedTarget=window.normalizeReportTarget14262?.(saved?.view)||saved?.view;
  const target=document.documentElement.dataset.device132==='phone'?(personal?'sub-users-workspace':'sub-users-home14229'):restore&&document.getElementById(savedTarget)&&canAccessAppTarget(savedTarget)?savedTarget:(personal?'sub-users-workspace':canAccessAppTarget(preferred)&&document.getElementById(preferred)?preferred:canAccessAppTarget('dashboard')?'dashboard':firstPermittedAppTarget());
  if(personal&&!restore){openSubUserTabs=[{key:'self',userId:liveProfile.id,permanent:!livePermission?.can_approve}];activeSubUserId='self';window.v49SetView?.(liveProfile.id,'home');}
+ if(restore&&savedTarget==='journal'&&target==='journal'){
+  const search=document.getElementById('jeSearchInput');
+  if(search&&typeof saved.journalSearch==='string')search.value=saved.journalSearch;
+ }
  if(target?.startsWith('sec-'))scrollToAccountModule(target);else switchTab(target||'dashboard');Location69.view=window.normalizeReportTarget14262?.(target)||target;
  if(personal&&!restore)window.personalJournal1437?.show(String(liveProfile.id),'home');
  Location69.ready=true;window.access113?.enforce();
@@ -35,9 +39,10 @@ hydrateSupabaseSession=async function(session){
   const selected=startup88?.saved?.openTabs?.find(tab=>tab.key===startup88.saved.activeSubUserId);
   if(startup88?.restore&&!Location69.userNavigated&&startup88.saved.view==='sub-users-workspace'&&selected?.userId&&canAccessAppTarget('sub-users-workspace')&&availableSubUsers().some(user=>String(user.id)===String(selected.userId)))window.openWorkspaceUser(selected.userId);
   hydratedUser69=liveProfile.id;Location69.ready=true;saveLocation69();
- requestAnimationFrame(()=>requestAnimationFrame(()=>showRecurringWarningsOnLogin()));
+ if(fresh)requestAnimationFrame(()=>requestAnimationFrame(()=>showRecurringWarningsOnLogin()));
  }finally{Location69.hydrating=false;startup88=null;hydration69=null;SessionTimeoutManager.arm()}})();return hydration69;
 };
+document.addEventListener('input',event=>{if(event.isTrusted&&event.target.id==='jeSearchInput')saveLocation69()});
 const logoutBefore69=logoutDemoUser;
 logoutDemoUser=async function(){const id=liveProfile?.id;hydratedUser69='';Location69.ready=false;Location69.hydrating=false;startup88=null;clearTimeout(SessionTimeoutManager.logoutTimer);clearTimeout(SessionTimeoutManager.warningTimer);if(id)localStorage.removeItem(locationKey69(id));return logoutBefore69()};
 

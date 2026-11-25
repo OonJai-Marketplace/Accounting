@@ -3155,7 +3155,7 @@ function applyLiveRoleAccess() {
 }
 
 let referenceLoadSerial14370=0,referenceSignature143190='',referenceOwner143190='',referenceClient143190=null;
-async function loadReferenceDataFromSupabase({databaseOnly=false,onlyIfChanged=false}={}) {
+async function loadReferenceDataFromSupabase({databaseOnly=false,onlyIfChanged=false,canPresent}={}) {
   const actor=liveProfile?.id,db=ojmDb,serial=++referenceLoadSerial14370;
   const read=table=>{const query=db.from(table).select(table==='sub_accounts'?'*,sub_account_reporting_links(lak_account_id)':'*').eq('is_active',true).order('code');return databaseOnly?query.setHeader('x-ojm-database-only','1'):query};
   const [{data:currencies,error:currencyError},{data:accounts,error:accountError},{data:subs,error:subError}] = await Promise.all([
@@ -3165,14 +3165,14 @@ async function loadReferenceDataFromSupabase({databaseOnly=false,onlyIfChanged=f
   if(currencyError||accountError||subError) throw new Error((currencyError||accountError||subError).message);
   const signature=JSON.stringify([currencies,accounts,subs]);
   const changed=referenceOwner143190!==actor||referenceClient143190!==db||referenceSignature143190!==signature;
-  if(onlyIfChanged&&!changed)return;
+  if(onlyIfChanged&&!changed||canPresent&&!canPresent())return false;
   referenceOwner143190=actor;referenceClient143190=db;referenceSignature143190=signature;
   CurrencyStore.currencies=(currencies||[]).map(c=>({code:c.code,name:c.name,symbol:c.symbol,isBase:c.is_base}));
   AccountingStore.accounts=(accounts||[]).map(a=>({id:a.id,code:a.code,name:a.name,currency:a.currency_code,displayCurrency:a.currency_label||a.currency_code,baseType:a.account_type,type:a.is_technical?'SYSTEM':a.account_type,purpose:a.account_purpose||'regular',desc:a.description||'',parentCode:a.parent_code||'',isPosting:a.is_posting!==false,isTechnical:a.is_technical===true,trackForeignFunds:a.is_posting!==false&&!!a.currency_code&&!['LAK','NA'].includes(a.currency_code)}));
   const byId=new Map(AccountingStore.accounts.map(a=>[a.id,a]));
   AccountingStore.subAccounts=(subs||[]).map(s=>{const parent=byId.get(s.parent_account_id);return {id:s.id,reportLakId:(Array.isArray(s.sub_account_reporting_links)?s.sub_account_reporting_links[0]:s.sub_account_reporting_links)?.lak_account_id||null,parentId:s.parent_account_id,parentCode:parent?.code||'',currency:s.currency_code||parent?.currency||'',code:s.code,name:s.name,desc:s.description||'',postingAccountId14285:s.posting_account_id14285||null,trackForeignFunds:!!(s.currency_code||parent?.currency)&&!['LAK','NA'].includes(s.currency_code||parent?.currency)}});
   for(const sub of AccountingStore.subAccounts){const posting=byId.get(sub.postingAccountId14285);if(posting)posting.subAccountId14285=sub.id;}
-  CurrencyStore.render(); refreshSettingsCurrencyOptions(); renderChartOfAccountsTable(); renderSubAccountsTable(); setupJournalColumns();
+  CurrencyStore.render(); refreshSettingsCurrencyOptions(); renderChartOfAccountsTable(); renderSubAccountsTable(); setupJournalColumns();return true;
 }
 
 CurrencyStore.add = async function(code,name,symbol){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;
@@ -3336,12 +3336,13 @@ for(const event of ['online','focus','page113','session-online14333'])window.add
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)void flush();});
 })();
 
-async function loadBusinessSettingsFromSupabase() {
+async function loadBusinessSettingsFromSupabase({onlyIfChanged=false,canPresent}={}) {
   const owner=liveProfile?.id,db=ojmDb;if(!owner||!db)return;
   const before=collectBusinessSettings(),prior=BusinessSettings.current;
   const retainExisting=BusinessSettings.loadedOwner143182===owner&&BusinessSettings.loadedClient143182===db;
   const {data,error}=await db.from('business_settings').select('*').eq('id',true).single(); if(error)throw error;if(liveProfile?.id!==owner||ojmDb!==db)return;
   const value={legalName:data.legal_name||'',companyName:data.display_name||'',enterpriseNo:data.enterprise_no||'',taxId:data.tax_id||'',businessLicense:data.business_license||'',industry:data.industry||'',phone:data.phone||'',email:data.email||'',website:data.website||'',address1:data.address_line||'',city:data.city||'',postalCode:data.postal_code||'',country:data.country||'Laos',timezone:data.timezone||'Asia/Vientiane'};
+  if(canPresent&&!canPresent()||onlyIfChanged&&retainExisting&&Object.keys(value).every(key=>value[key]===prior[key]))return;
   const draft=collectBusinessSettings();
   BusinessSettings.current=value;BusinessSettings.loadedOwner143182=owner;BusinessSettings.loadedClient143182=db; AccountingStore.companyName=value.companyName;
   Object.entries(BUSINESS_FIELD_MAP).forEach(([key,id])=>{const field=document.getElementById(id);const edited=draft[key]!==before[key]||retainExisting&&draft[key]!==String(prior[key]??'');if(field&&!edited)field.value=value[key]||''});
@@ -3479,9 +3480,11 @@ async function hydrateSupabaseSession(session) {
     if(window.startupData1443)await startupData1443(checkSession);
     else {const referenceReady=loadReferenceDataFromSupabase();await Promise.all([referenceReady.then(()=>loadJournalFromSupabase()),loadBusinessSettingsFromSupabase(),loadSubmissionsFromSupabase(),loadProfilesFromSupabase(),loadLegalDocumentsFromSupabase()]);}
     checkSession();
-    if(liveProfile.role==='admin'){try{await payrollTaxSettings.load();if(/^payroll-/.test(document.querySelector('.tab-content.active')?.id||''))renderWork82();}catch(error){showAppNotification('Payroll Settings',error.message,true);}checkSession();}
+    const startup=window.startup14257;
+    if(startup?.restoring&&startup.dataReady)await window.workspaceViews14364?.finish();
+    checkSession();
     // Session location is restored once by interface-v69.js.
-    freshLoginRequested=false;window.negativeFunds475?.start();window.driveReceiptAlerts?.start();void window.ScanViewer208?.startLogin()?.catch(()=>{});
+    freshLoginRequested=false;window.negativeFunds475?.start();window.driveReceiptAlerts?.start();if(!startup?.restoring)void window.ScanViewer208?.startLogin()?.catch(()=>{});
   } catch(error) { if(epoch!==sessionEpoch1430||client!==ojmDb||error.code==='STALE_PROFILE143100')return;liveProfile=null;livePermission=null;DemoAccess.currentUser=null;document.getElementById('loginGate')?.classList.remove('is-authenticated');const box=loginMessageTarget14293();if(box&&epoch===sessionEpoch1430)box.textContent=error.message; }
 }
 
@@ -3726,7 +3729,7 @@ saveUserAccess=async function(event){
   const originalUpsert=ojmDb.from;let captured=null;ojmDb.from=function(table){const api=originalUpsert.call(ojmDb,table);if(table==='user_permissions'){const original=api.upsert.bind(api);api.upsert=(payload,...rest)=>original({...payload,...extra},...rest)}return api};try{await saveUserAccessBeforeStaffConfig(event)}finally{ojmDb.from=originalUpsert}
 };
 const hydrateBeforeStaffJournal=hydrateSupabaseSession;
-hydrateSupabaseSession=async function(session){await hydrateBeforeStaffJournal(session);if(liveProfile&&document.getElementById('loginGate')?.classList.contains('is-authenticated')){const month=appLocalDate().slice(0,7);const picker=document.getElementById('staffJournalPeriod');if(picker)picker.value=month;await Promise.all([...(liveProfile.role==='admin'?[]:[openStaffJournalPeriod(month)]),...(window.startup14257?.isPrepared('review')?[]:[loadStaffJournalsForReview()])]);freshLoginRequested=false}};
+hydrateSupabaseSession=async function(session){await hydrateBeforeStaffJournal(session);if(liveProfile&&document.getElementById('loginGate')?.classList.contains('is-authenticated')){const month=appLocalDate().slice(0,7);const picker=document.getElementById('staffJournalPeriod');if(picker)picker.value=month;await Promise.all([...(liveProfile.role==='admin'?[]:[openStaffJournalPeriod(month)]),...(window.startup14257?[]:[loadStaffJournalsForReview()])]);freshLoginRequested=false}};
 const switchTabBeforeStaffJournal=switchTab;
 switchTab=function(tabId){switchTabBeforeStaffJournal(tabId);if(tabId==='entry-submissions')openStaffJournalPeriod(staffJournalMonth());if(tabId==='user-entry-review'&&!window.startup14257)loadStaffJournalsForReview()};
 

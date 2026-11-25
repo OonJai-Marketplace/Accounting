@@ -1,5 +1,5 @@
 let referenceLoadSerial14370=0,referenceSignature143190='',referenceOwner143190='',referenceClient143190=null;
-async function loadReferenceDataFromSupabase({databaseOnly=false,onlyIfChanged=false}={}) {
+async function loadReferenceDataFromSupabase({databaseOnly=false,onlyIfChanged=false,canPresent}={}) {
   const actor=liveProfile?.id,db=ojmDb,serial=++referenceLoadSerial14370;
   const read=table=>{const query=db.from(table).select(table==='sub_accounts'?'*,sub_account_reporting_links(lak_account_id)':'*').eq('is_active',true).order('code');return databaseOnly?query.setHeader('x-ojm-database-only','1'):query};
   const [{data:currencies,error:currencyError},{data:accounts,error:accountError},{data:subs,error:subError}] = await Promise.all([
@@ -9,14 +9,14 @@ async function loadReferenceDataFromSupabase({databaseOnly=false,onlyIfChanged=f
   if(currencyError||accountError||subError) throw new Error((currencyError||accountError||subError).message);
   const signature=JSON.stringify([currencies,accounts,subs]);
   const changed=referenceOwner143190!==actor||referenceClient143190!==db||referenceSignature143190!==signature;
-  if(onlyIfChanged&&!changed)return;
+  if(onlyIfChanged&&!changed||canPresent&&!canPresent())return false;
   referenceOwner143190=actor;referenceClient143190=db;referenceSignature143190=signature;
   CurrencyStore.currencies=(currencies||[]).map(c=>({code:c.code,name:c.name,symbol:c.symbol,isBase:c.is_base}));
   AccountingStore.accounts=(accounts||[]).map(a=>({id:a.id,code:a.code,name:a.name,currency:a.currency_code,displayCurrency:a.currency_label||a.currency_code,baseType:a.account_type,type:a.is_technical?'SYSTEM':a.account_type,purpose:a.account_purpose||'regular',desc:a.description||'',parentCode:a.parent_code||'',isPosting:a.is_posting!==false,isTechnical:a.is_technical===true,trackForeignFunds:a.is_posting!==false&&!!a.currency_code&&!['LAK','NA'].includes(a.currency_code)}));
   const byId=new Map(AccountingStore.accounts.map(a=>[a.id,a]));
   AccountingStore.subAccounts=(subs||[]).map(s=>{const parent=byId.get(s.parent_account_id);return {id:s.id,reportLakId:(Array.isArray(s.sub_account_reporting_links)?s.sub_account_reporting_links[0]:s.sub_account_reporting_links)?.lak_account_id||null,parentId:s.parent_account_id,parentCode:parent?.code||'',currency:s.currency_code||parent?.currency||'',code:s.code,name:s.name,desc:s.description||'',postingAccountId14285:s.posting_account_id14285||null,trackForeignFunds:!!(s.currency_code||parent?.currency)&&!['LAK','NA'].includes(s.currency_code||parent?.currency)}});
   for(const sub of AccountingStore.subAccounts){const posting=byId.get(sub.postingAccountId14285);if(posting)posting.subAccountId14285=sub.id;}
-  CurrencyStore.render(); refreshSettingsCurrencyOptions(); renderChartOfAccountsTable(); renderSubAccountsTable(); setupJournalColumns();
+  CurrencyStore.render(); refreshSettingsCurrencyOptions(); renderChartOfAccountsTable(); renderSubAccountsTable(); setupJournalColumns();return true;
 }
 
 CurrencyStore.add = async function(code,name,symbol){const actor=liveProfile?.id,db=ojmDb,isCurrent=()=>liveProfile?.id===actor&&ojmDb===db;
