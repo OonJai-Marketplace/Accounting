@@ -1,6 +1,7 @@
 {
-  "version": "143.502",
+  "version": "143.503",
   "changes": [
+    "Hub leave requests use the dates entered by staff. Accounting approval applies the leave to HR and payroll.",
     "Desktop updates keep preparing other files when one is slow and reconnect once if the first download shows no progress.",
     "Accounting shows a progress bar while the workspace files open after an update, before the usual sign-in animation and preparation steps.",
     "Full PDF opens in a centered receipt window. The PDF fills the space below its toolbar, with the accounting screen visible around it. If Drive cannot open the receipt folder, Accounting keeps the last successful file list.",

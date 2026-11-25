@@ -2,10 +2,20 @@ function leaveDayFractions459(data){
  const days=[];for(let day=data.from;day<=data.to;day=M.addDays(day,1))days.push(M.dayInfo(day,data.employeeId,hrCalendar14306.config(),hrCalendar14306.state.rows,ApplicationSettings.payroll).fraction);return days;
 }
 function leaveApprovalData(record){
- hrCalendar14306.guard(false);const d=record.data,e=employee(d.employeeId);
+ const d=record.data,e=employee(d.employeeId);
+ if(d.hub){if(!admin())throw Error('Active administrator access required.');}
+ else hrCalendar14306.guard(false);
  if(d.status!=='pending')throw Error('Only pending leave can be approved.');
  if(!e||e.data.active===false||e.data.archived)throw Error('Restore the employee before approving new leave.');
- const days=M.leaveDays(d.from,d.to,d.employeeId,hrCalendar14306.config(),hrCalendar14306.state.rows,ApplicationSettings.payroll),dayFractions=leaveDayFractions459(d);
+ let days,dayFractions;
+ if(d.hub){
+  if(!M.valid(d.from)||!M.valid(d.to)||d.to<d.from||d.from.slice(0,7)!==d.to.slice(0,7))throw Error('Review the leave dates for this payroll month.');
+  dayFractions=Array(Number(d.to.slice(-2))-Number(d.from.slice(-2))+1).fill(1);
+  days=dayFractions.length;
+ }else{
+  days=M.leaveDays(d.from,d.to,d.employeeId,hrCalendar14306.config(),hrCalendar14306.state.rows,ApplicationSettings.payroll);
+  dayFractions=leaveDayFractions459(d);
+ }
  if(days<=0)throw Error('This request no longer contains working time. Cancel it or record new dates.');
  if(d.paid==='yes'&&Object.hasOwn(vacationLedger.types||{vacation:true},d.type)){
    const lines=vacationLedger.leaveLines({...d,days,dayFractions}).map(x=>({...x,type:d.type}));
@@ -13,7 +23,7 @@ function leaveApprovalData(record){
    if(d.type==='minorSick')vacationLedger.check(e,lines,'','sick');
  }
  const {calendarBasis14306,...details}=d;
- return {...details,days,dayFractions,requestedDays14307:d.requestedDays14307??Number(d.days)};
+ return {...details,...(d.hub?{requestedDateBasis:true}:{}),days,dayFractions,requestedDays14307:d.requestedDays14307??Number(d.days)};
 }
 function prepareLeaveRequest(data,recalculate=false){
  hrCalendar14306.guard(false);const e=employee(data.employeeId);
@@ -153,7 +163,7 @@ function renderLeave(){
  root.querySelector('.work82').classList.add('hr-leave-work466');hrCalendar14306.paintInbox();bindActions(root,{balance:manageLeaveBalance,add:newLeave459,print:()=>printLeave82(),blank:()=>printLeaveApplication97('')});root.querySelectorAll('[data-leave-id]').forEach(b=>b.onclick=()=>openLeave(b.dataset.leaveId));bindLeaveHistory466(root);
  leaveView466={node:root.querySelector('.hr-leave-work466'),signature};
 }
-function openLeave(id){const row=Work82.leaves.find(r=>r.id===id);if(!row||!admin())return;const d=row.data;let review='';if(d.status==='pending'&&hrCalendar14306.state.ready){try{const updated=leaveApprovalData(row);if(Number(d.days)!==updated.days)review='<p class="hr-review-note14307">The calendar now counts <strong>'+updated.days+' working day(s)</strong>. Approval will use this updated total; the original '+esc(d.days)+' day(s) remains recorded.</p>'}catch(error){review='<p class="hr-review-note14307">'+esc(error.message)+'</p>'}}const box=dialog('Leave Request','<p><strong>'+esc(employee(d.employeeId)?.data.name||'Employee')+'</strong></p><dl class="hr-detail14306"><dt>Dates</dt><dd>'+esc(formatAppDate(d.from)+' – '+formatAppDate(d.to))+'</dd><dt>Type / status</dt><dd>'+esc(d.type+' · '+(d.rejected?'rejected':d.status))+'</dd><dt>Working days</dt><dd>'+esc(d.days)+'</dd><dt>Treatment</dt><dd>'+esc(d.paid==='yes'?'Paid':'Unpaid')+'</dd><dt>Reason</dt><dd>'+esc(d.notes)+'</dd><dt>Supervisor consulted / coverage</dt><dd>'+esc(d.coverage459||'Not recorded')+'</dd><dt>Enough leave time</dt><dd>'+esc(d.enoughTime459||'Not recorded')+'</dd><dt>Time off accrued / used</dt><dd>'+esc(d.timeOff459||'Not recorded')+'</dd><dt>Supervisor comments</dt><dd>'+esc(d.supervisorComments459||'—')+'</dd></dl>'+review+'<div class="hr-row-actions14306">'+buttons([['Print Form','print'],...(d.status==='pending'?[['Review notes','notes'],['Approve','approve']]:[]),...(d.status!=='cancelled'?[[d.hub&&d.status==='pending'?'Reject':'Cancel Leave','cancel']]:[]),['Open Leave Tab','tab']])+'</div>');bindActions(box,{notes:()=>{box.close();editLeaveNotes459(id)},print:()=>{box.close();printLeaveApplication97(id)},approve:()=>{box.close();leaveStatus82(id,'approved')},cancel:()=>{box.close();leaveStatus82(id,'cancelled')},tab:()=>{box.close();switchTab('hr-leave')}})}
+function openLeave(id){const row=Work82.leaves.find(r=>r.id===id);if(!row||!admin())return;const d=row.data;let review='';if(d.status==='pending'&&(d.hub||hrCalendar14306.state.ready)){try{const updated=leaveApprovalData(row);if(Number(d.days)!==updated.days)review='<p class="hr-review-note14307">'+(d.hub?'The requested dates cover':'The calendar now counts')+' <strong>'+updated.days+' working day(s)</strong>. Approval will use this updated total; the original '+esc(d.days)+' day(s) remains recorded.</p>'}catch(error){review='<p class="hr-review-note14307">'+esc(error.message)+'</p>'}}const box=dialog('Leave Request','<p><strong>'+esc(employee(d.employeeId)?.data.name||'Employee')+'</strong></p><dl class="hr-detail14306"><dt>Dates</dt><dd>'+esc(formatAppDate(d.from)+' – '+formatAppDate(d.to))+'</dd><dt>Type / status</dt><dd>'+esc(d.type+' · '+(d.rejected?'rejected':d.status))+'</dd><dt>'+ (d.hub?'Requested days':'Working days') +'</dt><dd>'+esc(d.days)+'</dd><dt>Treatment</dt><dd>'+esc(d.paid==='yes'?'Paid':'Unpaid')+'</dd><dt>Reason</dt><dd>'+esc(d.notes)+'</dd><dt>Supervisor consulted / coverage</dt><dd>'+esc(d.coverage459||'Not recorded')+'</dd><dt>Enough leave time</dt><dd>'+esc(d.enoughTime459||'Not recorded')+'</dd><dt>Time off accrued / used</dt><dd>'+esc(d.timeOff459||'Not recorded')+'</dd><dt>Supervisor comments</dt><dd>'+esc(d.supervisorComments459||'—')+'</dd></dl>'+review+'<div class="hr-row-actions14306">'+buttons([['Print Form','print'],...(d.status==='pending'?[['Review notes','notes'],['Approve','approve']]:[]),...(d.status!=='cancelled'?[[d.hub&&d.status==='pending'?'Reject':'Cancel Leave','cancel']]:[]),['Open Leave Tab','tab']])+'</div>');bindActions(box,{notes:()=>{box.close();editLeaveNotes459(id)},print:()=>{box.close();printLeaveApplication97(id)},approve:()=>{box.close();leaveStatus82(id,'approved')},cancel:()=>{box.close();leaveStatus82(id,'cancelled')},tab:()=>{box.close();switchTab('hr-leave')}})}
 
 function editLeaveNotes459(id){
  const row=Work82.leaves.find(r=>r.id===id);if(!row||row.data.status!=='pending'||!admin())return;

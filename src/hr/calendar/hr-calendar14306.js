@@ -71,7 +71,7 @@ function paintInbox(){
    const panel=document.createElement('article'),title=document.createElement('h4');panel.className='hr-history-employee459';
    const employee=(Work82.employees||[]).find(e=>e.id===r.employee_id);
    title.textContent=r.submitted_name+' · '+r.kind+' · '+dateLabel(r.starts);panel.append(title);
-   const info=document.createElement('p');info.textContent='Employee on file: '+(employee?.data.name||'Load employee records')+' · '+dateLabel(r.starts)+' – '+dateLabel(r.ends)+' · '+r.workdays+' working days';panel.append(info);
+   const info=document.createElement('p');info.textContent='Employee on file: '+(employee?.data.name||'Load employee records')+' · '+dateLabel(r.starts)+' – '+dateLabel(r.ends)+' · '+(1+(Date.parse(r.ends)-Date.parse(r.starts))/86400000)+' requested day(s)'+(r.starts.slice(0,7)!==r.ends.slice(0,7)?' · Review and approve each month in Leave Records.':'');panel.append(info);
    if(employee&&r.kind==='vacation'){
      const bal=window.vacationLedger.balance(employee,r.starts);
      if(bal){const detail=document.createElement('p');detail.textContent='Available on first day: '+bal.available+' · Used this entitlement year: '+bal.used;panel.append(detail);}

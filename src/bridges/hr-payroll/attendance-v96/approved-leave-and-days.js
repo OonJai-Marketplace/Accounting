@@ -39,11 +39,12 @@ function dayResults(run,row,config,rules){
 
 // Calendar holidays have no required attendance row. Count each eligible date once.
 function calendarPaidDays246(run,row){
+ const requestedLeave=approved(run,row.employeeId).filter(l=>l.requestedDateBasis);
  let days=0;const end=new Date(Number(run.month.slice(0,4)),Number(run.month.slice(5,7)),0).getDate();
  const today=window.HRCalendarModel14306?.today?.()||'9999-12-31';
  for(let i=1;i<=end;i++){
   const date=run.month+'-'+String(i).padStart(2,'0');if(date>today||beforeEmployment234(row.employee,date))continue;
-  const schedule=window.hrCalendar14306?.day(date,row.employeeId,run);if(!schedule?.holiday||schedule.work)continue;
+  const schedule=window.hrCalendar14306?.day(date,row.employeeId,run);if(!schedule?.holiday||schedule.work||overlapLeave(requestedLeave,date))continue;
   const a=(row.input.attendance||[]).find(a=>a.date===date);
   // An explicit holiday is already counted by dayResults; other explicit exceptions retain precedence.
   if(a&&(mark(a)!=='0'||a.override95))continue;
