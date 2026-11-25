@@ -1,6 +1,7 @@
 {
-  "version": "143.505",
+  "version": "143.506",
   "changes": [
+    "The leave request printout uses the approved single-column design, uppercase labels and larger signing areas.",
     "Leave forms print in the classic one-page layout with filled request details and room for both signatures.",
     "The notification bell updates when a Hub leave request arrives. Print any request from HR Leave on one A4 page with signatures and company letterhead.",
     "Hub leave requests use the dates entered by staff. Accounting approval applies the leave to HR and payroll.",
