@@ -1,6 +1,7 @@
 {
-  "version": "143.503",
+  "version": "143.504",
   "changes": [
+    "The notification bell updates when a Hub leave request arrives. Print any request from HR Leave on one A4 page with signatures and company letterhead.",
     "Hub leave requests use the dates entered by staff. Accounting approval applies the leave to HR and payroll.",
     "Desktop updates keep preparing other files when one is slow and reconnect once if the first download shows no progress.",
     "Accounting shows a progress bar while the workspace files open after an update, before the usual sign-in animation and preparation steps.",

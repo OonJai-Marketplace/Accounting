@@ -31,6 +31,31 @@ function reminders(){if(!admin()||!Work82.loaded||Work82.owner!==liveProfile.id|
 let inbox={actor:null,rows:[],version:0,error:''};
 function hubNotices(){return admin()&&inbox.actor===liveProfile.id?inbox.rows.map(r=>({type:'HR leave request',noticeId:'hub-leave-'+r.id,title:'Leave request · '+r.submitted_name,detail:dateLabel(r.starts)+' · '+r.kind,target:'hr-leave'})):[];}
 let inboxJob459=null,inboxReady459=false,inboxClient459=null;
+let inboxWatch=null;
+function stopInboxWatch(){
+ const previous=inboxWatch;inboxWatch=null;
+ if(previous)void previous.db.removeChannel(previous.channel);
+}
+function watchInbox(){
+ const db=typeof ojmDb==='undefined'?null:ojmDb,actor=admin()?liveProfile.id:null;
+ if(inboxWatch&&(inboxWatch.db!==db||inboxWatch.actor!==actor||document.hidden||navigator.onLine===false))stopInboxWatch();
+ if(!actor||!db?.channel||document.hidden||navigator.onLine===false||inboxWatch)return;
+ const channel=db.channel('hr-leave-inbox:'+actor),watch={channel,actor,db,dirty:false,running:false};
+ inboxWatch=watch;
+ const current=()=>inboxWatch===watch&&admin()&&liveProfile.id===actor&&ojmDb===db;
+ async function refresh(){
+  if(!current())return;
+  watch.dirty=true;
+  if(watch.running)return;
+  watch.running=true;
+  try{
+   if(inboxJob459)await inboxJob459;
+   while(current()&&watch.dirty){watch.dirty=false;await loadInbox(true);}
+  }finally{watch.running=false;}
+ }
+ channel.on('postgres_changes',{event:'UPDATE',schema:'public',table:'hub_leave_inbox_signal'},refresh)
+  .subscribe(status=>{if(status==='SUBSCRIBED')void refresh();});
+}
 async function loadInbox(force=false){
  const actor=admin()?liveProfile.id:null,db=ojmDb;
  if(inbox.actor!==actor||inboxClient459!==db){inbox={actor,rows:[],version:inbox.version+1,error:''};inboxReady459=false;inboxJob459=null;inboxClient459=db;}
@@ -39,12 +64,13 @@ async function loadInbox(force=false){
  if(!force&&inboxReady459)return;
  const version=++inbox.version;
  const job=(async()=>{try{
- const result=await db.from('hub_leave_intake').select('id,employee_id,submitted_name,kind,starts,ends,reason,workdays,received,form_details').eq('disposition','new').order('received',{ascending:false});
+ const read=()=>db.from('hub_leave_intake').select('id,employee_id,submitted_name,kind,starts,ends,reason,workdays,received,form_details').eq('disposition','new').order('received',{ascending:false});
+ const result=await (force&&window.offline14239?.freshReads?offline14239.freshReads(read):read());
  if(!admin()||actor!==liveProfile.id||db!==ojmDb||version!==inbox.version)return;
  inbox.error=result.error?'Hub requests could not be refreshed.':'';
- if(!result.error){inbox.rows=result.data||[];inboxReady459=true;}
+ if(!result.error){inbox.rows=result.data||[];inboxReady459=true;inbox.version++;}
  }catch(error){if(actor===liveProfile?.id&&version===inbox.version)inbox.error='Hub requests could not be refreshed.';}
- finally{if(actor===liveProfile?.id&&version===inbox.version){paintInbox();window.refreshNotices1443?.();}}})();
+ finally{if(actor===liveProfile?.id&&version===inbox.version){window.refreshNotices1443?.();paintInbox();}}})();
  inboxJob459=job;try{await job;}finally{if(inboxJob459===job)inboxJob459=null;}
 }
 function paintInbox(){
@@ -77,6 +103,9 @@ function paintInbox(){
      if(bal){const detail=document.createElement('p');detail.textContent='Available on first day: '+bal.available+' · Used this entitlement year: '+bal.used;panel.append(detail);}
    }
    const reason=document.createElement('p');reason.textContent=r.reason;panel.append(reason);if(r.form_details){const answers=document.createElement('p');answers.textContent='Supervisor / coverage: '+(r.form_details.coverage459||'Not recorded')+' · Enough leave time: '+(r.form_details.enoughTime459||'Not recorded')+(r.form_details.timeOff459?' · '+r.form_details.timeOff459:'');panel.append(answers);}
+   const print=document.createElement('button');print.type='button';print.textContent='Print request';
+   print.setAttribute('aria-label','Print request for '+r.submitted_name+' · '+dateLabel(r.starts));
+   print.onclick=()=>{if(admin()&&inbox.actor===liveProfile.id&&inboxClient459===ojmDb&&inbox.rows.includes(r))window.printHubLeaveRequest(r);};panel.append(print);
    const paid=document.createElement('select');paid.setAttribute('aria-label','Payment treatment');for(const [v,t] of [['','Select payment treatment'],['yes','Paid'],['no','Unpaid']])paid.add(new Option(t,v));panel.append(paid);if(r.kind==='unpaid'){paid.value='no';paid.disabled=true;}
    for(const [action,label] of [['import','Review for approval'],['reject','Reject']]){
      const button=document.createElement('button');button.type='button';button.textContent=label;panel.append(button);
@@ -164,6 +193,10 @@ function render(){const root=calendarRoot();if(!root||(!railCalendar?.open&&!roo
  const previous=root.querySelector(':scope>.hr-calendar14306');if(previous)previous.replaceWith(content.content);else root.append(content.content);
  bind(root);if(state.center){requestAnimationFrame(centerUpcoming);state.center=false;}}
 function bind(root){root.querySelector("[data-cal-news]")?.addEventListener("click",()=>window.localEvents14310?localEvents14310.open():window.hrCalendarNews14309?.open());root.querySelector('[data-cal-retry]')?.addEventListener('click',()=>load(true));root.querySelector('[data-cal-add]')?.addEventListener('click',()=>editEvent());root.querySelector('[data-cal-holiday]')?.addEventListener('click',()=>addHoliday());root.querySelector('[data-cal-work]')?.addEventListener('click',workSchedule);root.querySelector('[data-cal-center]')?.addEventListener('click',centerUpcoming);root.querySelector('[data-cal-today]')?.addEventListener('click',()=>{state.month=M.today().slice(0,7);state.center=true;render()});root.querySelector('[data-calendar-month]')?.addEventListener('change',e=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value)){state.center=e.target.value.slice(0,4)!==state.month.slice(0,4);state.month=e.target.value;render()}});root.querySelectorAll('[data-cal-shift]').forEach(b=>b.onclick=()=>{const next=M.addMonths(state.month+'-01',Number(b.dataset.calShift)).slice(0,7);state.center=next.slice(0,4)!==state.month.slice(0,4);state.month=next;render()});root.querySelectorAll('[data-cal-open]').forEach(b=>b.onclick=()=>eventDetails(b.dataset.calOpen));root.querySelectorAll('[data-cal-day]').forEach(b=>b.onclick=()=>{const date=b.dataset.calDay,items=allEvents(Number(date.slice(0,4))).filter(e=>e.start<=date&&e.end>=date),box=dialog(dateLabel(date),'<div class="hr-day-events14306">'+(items.length?items.map(e=>'<p><strong>'+esc(e.title)+'</strong> · '+esc(e.type==='leave'?e.status:caption(e))+' <button type="button" data-cal-open="'+esc(e.id)+'">Details</button></p>').join(''):'<p>No company events.</p>')+'<button type="button" class="je-btn je-btn-secondary" data-add-holiday-day>Add Holiday</button> <button type="button" class="je-btn je-btn-secondary" data-add-day>Add Event</button></div>');box.querySelectorAll('[data-cal-open]').forEach(x=>x.onclick=()=>{box.close();eventDetails(x.dataset.calOpen)});box.querySelector('[data-add-holiday-day]').onclick=()=>{box.close();void addHoliday(date)};box.querySelector('[data-add-day]').onclick=()=>{box.close();editEvent('',date)}})}
+for(const name of ['account-access477','workspace-opened421','online','pageshow'])window.addEventListener(name,watchInbox);
+document.addEventListener('visibilitychange',watchInbox);
+for(const name of ['pagehide','offline'])window.addEventListener(name,stopInboxWatch);
+window.addEventListener('page113',()=>{if(!admin())stopInboxWatch();});
 window.hrCalendar14306={paintInbox,loadInbox,openRail,closeRail:()=>railCalendar?.close(),state,load,config,saveConfig,saveEvent,allEvents,reminders,notices,snapshot,day,open,editEvent,addHoliday,workSchedule,render,changed,dialog,guard};
-window.addEventListener('DOMContentLoaded',()=>{const oldLoad=window.loadWork82;window.loadWork82=async function(...args){const r=await oldLoad.apply(this,args);if(admin())await Promise.all([load(!!args[0]),loadInbox(!!args[0])]);return r};const oldSwitch=window.switchTab;window.switchTab=function(id,...args){const r=oldSwitch.call(this,id,...args);if(!window.workspaceViews14364?.reuseView(id)){if(id==='hr-calendar'){state.center=true;if(state.ready)render();else void load().then(render)}}return r};for(const name of ['account-access477','workspace-opened421','focus'])window.addEventListener(name,dayChanged477);document.addEventListener('visibilitychange',()=>{if(!document.hidden)dayChanged477();});dayChanged477();});
+window.addEventListener('DOMContentLoaded',()=>{const oldLoad=window.loadWork82;window.loadWork82=async function(...args){watchInbox();const r=await oldLoad.apply(this,args);if(admin())await Promise.all([load(!!args[0]),loadInbox(!!args[0])]);return r};const oldSwitch=window.switchTab;window.switchTab=function(id,...args){const r=oldSwitch.call(this,id,...args);if(id==='hr-leave')queueMicrotask(paintInbox);if(!window.workspaceViews14364?.reuseView(id)){if(id==='hr-calendar'){state.center=true;if(state.ready)render();else void load().then(render)}}return r};for(const name of ['account-access477','workspace-opened421','focus'])window.addEventListener(name,dayChanged477);document.addEventListener('visibilitychange',()=>{if(!document.hidden)dayChanged477();});dayChanged477();});
 })();
