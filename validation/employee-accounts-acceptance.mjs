@@ -7,7 +7,7 @@ import {employeeSession} from '../src/hr/employees/employee-session.js';
 export async function verify({sql,endpoint,accounting,pos,accountingAdmin,posAdmin}) {
   assert.equal(new URL(endpoint).hostname,'127.0.0.1');
   const unique=randomUUID(),mail=k=>k+'-'+unique+'@example.test',password=()=>randomBytes(24).toString('hex');
-  const email=mail('shared'),ap=password(),pp=password(),old=password(),fresh=password(),adminEmail=mail('admin'),adminPw=password();
+  const email=mail('shared'),ap=password(),pp=password(),old='abcdefgh',fresh='12345678',adminEmail=mail('admin'),adminPw=password();
   const pass=m=>console.log('PASS '+m);
   async function create(auth,email,password){const result=await auth.auth.admin.createUser({email,password,email_confirm:true});assert.ifError(result.error);return result.data.user.id;}
   async function sign(client,email,password){return client().auth.signInWithPassword({email,password});}
@@ -27,6 +27,7 @@ export async function verify({sql,endpoint,accounting,pos,accountingAdmin,posAdm
   await req({action:'list'},null,403);await req({action:'save',id:emp},staffToken,403);
   assert.ok((await accounting().rpc('employee_hr_admin',{p_actor:actor,p_sid:randomUUID(),p_action:'list'})).error);
   pass('Anonymous and sub-user management and public data RPC access denied');
+  await save({password:old.slice(1)},emp,400);
   await save({password:old});const a=await login(old);
   assert.equal((await me(a.token)).id,emp);assert.ok((await row()).revision);assert.equal((await row()).email,email);
   pass('Account links to the existing employee, manual password signs in directly');

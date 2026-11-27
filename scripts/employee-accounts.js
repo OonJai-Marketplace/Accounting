@@ -64,7 +64,7 @@ export function openAccounts(panel){
     function field(name,input){const label=el('label',name);label.append(input);form.append(label);return input;}
     field('Employee',el('input',null,{value:r.name||r.code,readonly:''}));
     const mail=field('Email address',el('input',null,{type:'email',maxlength:254,required:'',autocomplete:'off'}));mail.value=r.email||'';
-    const pw=field(r.revision?'New password (leave blank to keep current)':'Password',el('input',null,{type:'password',minlength:12,maxlength:256,autocomplete:'new-password'}));
+    const pw=field(r.revision?'New password (leave blank to keep current)':'Password',el('input',null,{type:'password',minlength:8,maxlength:256,placeholder:'At least 8 characters',autocomplete:'new-password'}));
     const confirm=field('Confirm password',el('input',null,{type:'password',maxlength:256,autocomplete:'new-password'}));if(!r.revision)pw.required=confirm.required=true;
     const show=el('input',null,{type:'checkbox'}),label=el('label','Show passwords',{class:'inline'});label.prepend(show);form.append(label);
     show.onchange=()=>{pw.type=confirm.type=show.checked?'text':'password';};

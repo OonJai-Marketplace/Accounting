@@ -80,7 +80,7 @@ Deno.serve(async req=>{
         return send(400,{error:'Check the email and access status.'});
       Object.assign(data,{email:b.email.toLowerCase(),access:b.access,revision:b.revision});
       if(b.password!==undefined||!b.revision){
-        if(typeof b.password!=='string'||[...b.password].length<12||b.password.length>256)return send(400,{error:'Use a password of 12 to 256 characters.'});
+        if(typeof b.password!=='string'||[...b.password].length<8||b.password.length>256)return send(400,{error:'Use a password of 8 to 256 characters.'});
         data.hash=await hashPassword(b.password);
       }
     }
