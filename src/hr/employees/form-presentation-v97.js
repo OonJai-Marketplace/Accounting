@@ -51,11 +51,22 @@
     salaryApplies.querySelector('input').checked = Work82.employee?.data?.salaryApplies !== false;
     const account = addEmployeeAccountField(form);
 
+    const employment = document.createElement('label');
+    employment.textContent = 'Employment status';
+    const state = document.createElement('select'); state.name = 'employmentStatus';
+    for (const [value,label] of [['active','Active'],['probationary','Probationary'],['on_leave','On approved leave'],['suspended','Suspended'],['resigned','Resigned']]) state.add(new Option(label,value));
+    state.value = Work82.employee?.data?.employmentStatus || 'active';
+    employment.append(state);
+    const separation = document.createElement('label'); separation.textContent = 'Effective separation date';
+    const date = document.createElement('input'); date.type='date'; date.name='separationDate';
+    date.value=Work82.employee?.data?.separationDate || ''; separation.append(date);
+    const setDate = () => {separation.hidden=state.value!=='resigned';date.disabled=separation.hidden;date.required=!separation.hidden;};
+    state.onchange=setDate;setDate();
     const fields = [
       ['code', 'name', 'profileEmail', 'photoFile', 'phone', 'address', 'emergencyContact', 'position', 'currency', 'salary', 'renewal'],
       ['payrollAccountId'],
       ['vacation','vacationGraceEnabled','vacationGraceMonths', 'sick', 'minorSick', 'personal', 'bereavement'],
-      ['active', 'salaryApplies', 'pit', 'sso', 'pitShare', 'isSample']
+      ['active', 'employmentStatus', 'separationDate', 'salaryApplies', 'pit', 'sso', 'pitShare', 'isSample']
     ];
     const labels = new Map();
     original.forEach(label => {
@@ -63,6 +74,7 @@
       if (control?.name) labels.set(control.name, label);
     });
     labels.set('payrollAccountId', account);
+    labels.set('employmentStatus',employment); labels.set('separationDate',separation);
     labels.set('salaryApplies', salaryApplies);
     const photoPreview = form.querySelector('.employee-photo-preview104');
     const titleLabel = byName('code');

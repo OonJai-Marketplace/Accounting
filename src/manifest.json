@@ -4514,6 +4514,16 @@
         "source": "src/integrations/google/receipt-settings.js",
         "suffix": ""
       }
+    ],
+    "scripts/employee-accounts.js": [
+      {
+        "source": "src/hr/employees/employee-accounts.js"
+      }
+    ],
+    "scripts/employee-session.js": [
+      {
+        "source": "src/hr/employees/employee-session.js"
+      }
     ]
   },
   "variants": [

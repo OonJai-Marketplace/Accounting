@@ -1,6 +1,7 @@
 {
-  "version": "143.507",
+  "version": "143.508",
   "changes": [
+    "Administrators can manage independent employee HR credentials and review access history under Human Resources → Employee Accounts.",
     "Accounting reopens the last-used desktop or tablet screen from saved data. Returning with a valid session prepares the selected area first, and fresh sign-in still prepares the full workspace.",
     "The leave request printout uses the approved single-column design, uppercase labels and larger signing areas.",
     "Leave forms print in the classic one-page layout with filled request details and room for both signatures.",

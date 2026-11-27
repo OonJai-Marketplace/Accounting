@@ -36,3 +36,8 @@ verify_jwt = false
 # Internal changed-file queue, authenticated with the receipt job secret.
 [functions.receipt-drive-link]
 verify_jwt = false
+
+# The handler validates Accounting admins and independently validates opaque HR sessions.
+[functions.employee-hr]
+verify_jwt = false
+import_map = "./functions/employee-hr/deno.json"

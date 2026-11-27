@@ -4553,7 +4553,7 @@ function syncPermissionParent(parentId){const children=[...document.querySelecto
 function selectedPermissionLabels(){return[...document.querySelectorAll('#userPermissionGrid .permission-sub-check:checked')].map(input=>input.closest('label')?.textContent.trim()).filter(Boolean)}
 updateUserAccessSummaries=function(){const modules=selectedPermissionLabels(),actions=selectedAccessLabels('#userSecurityAccessPanel input'),funds=selectedAccountNames('#userFundAccountGrid'),entries=selectedAccountNames('#userAccountAccessGrid'),moduleSummary=document.getElementById('userModuleAccessSummary'),securitySummary=document.getElementById('userSecurityAccessSummary'),accountSummary=document.getElementById('userAccountAssignmentSummary');if(moduleSummary)moduleSummary.textContent=`${modules.length} module${modules.length===1?'':'s'} selected`;if(securitySummary)securitySummary.textContent=`${actions.length} action${actions.length===1?'':'s'} selected`;if(accountSummary)accountSummary.textContent=`${funds.length} main • ${entries.length} entry`;updateAccountAssignmentBullets();const counterpart=document.getElementById('moneyInCounterpartField');if(counterpart)counterpart.hidden=!document.getElementById('permissionAllowIn')?.checked};
 function modulePermissionList(){return liveProfile?.role==='admin'?APP_PERMISSION_TREE.map(parent=>parent.id):(livePermission?.modules||[])}
-function canAccessAppTarget(target){if(!liveProfile||liveProfile.role==='admin')return true;const parent=permissionTreeNodeForTarget(target);if(!parent)return false;const modules=modulePermissionList(),legacyParent=modules.includes(parent.id)&&(parent.id!=='sub-users'||target==='sub-users-workspace');return modules.includes(`all:${parent.id}`)||legacyParent||modules.includes(permissionToken(parent.id,target))||(target==='user-entry-review'&&modules.includes('user-review'))}
+function canAccessAppTarget(target){if(target==='employee-accounts')return liveProfile?.role==='admin'&&liveProfile?.status==='active';if(!liveProfile||liveProfile.role==='admin')return true;const parent=permissionTreeNodeForTarget(target);if(!parent)return false;const modules=modulePermissionList(),legacyParent=modules.includes(parent.id)&&(parent.id!=='sub-users'||target==='sub-users-workspace');return modules.includes(`all:${parent.id}`)||legacyParent||modules.includes(permissionToken(parent.id,target))||(target==='user-entry-review'&&modules.includes('user-review'))}
 function firstPermittedAppTarget(){for(const parent of APP_PERMISSION_TREE)for(const[target]of parent.children)if(canAccessAppTarget(target))return target;return''}
 function navButtonTarget(button){const code=button.getAttribute('onclick')||'';if(code.includes('openDocumentEditor105'))return 'document-editor105';const match=code.match(/(?:switchTab|scrollToAccountModule)\('([^']+)'\)/);return match?.[1]||''}
 function applyGranularPermissionAccess(){
@@ -8621,11 +8621,22 @@ mountSettings();
     salaryApplies.querySelector('input').checked = Work82.employee?.data?.salaryApplies !== false;
     const account = addEmployeeAccountField(form);
 
+    const employment = document.createElement('label');
+    employment.textContent = 'Employment status';
+    const state = document.createElement('select'); state.name = 'employmentStatus';
+    for (const [value,label] of [['active','Active'],['probationary','Probationary'],['on_leave','On approved leave'],['suspended','Suspended'],['resigned','Resigned']]) state.add(new Option(label,value));
+    state.value = Work82.employee?.data?.employmentStatus || 'active';
+    employment.append(state);
+    const separation = document.createElement('label'); separation.textContent = 'Effective separation date';
+    const date = document.createElement('input'); date.type='date'; date.name='separationDate';
+    date.value=Work82.employee?.data?.separationDate || ''; separation.append(date);
+    const setDate = () => {separation.hidden=state.value!=='resigned';date.disabled=separation.hidden;date.required=!separation.hidden;};
+    state.onchange=setDate;setDate();
     const fields = [
       ['code', 'name', 'profileEmail', 'photoFile', 'phone', 'address', 'emergencyContact', 'position', 'currency', 'salary', 'renewal'],
       ['payrollAccountId'],
       ['vacation','vacationGraceEnabled','vacationGraceMonths', 'sick', 'minorSick', 'personal', 'bereavement'],
-      ['active', 'salaryApplies', 'pit', 'sso', 'pitShare', 'isSample']
+      ['active', 'employmentStatus', 'separationDate', 'salaryApplies', 'pit', 'sso', 'pitShare', 'isSample']
     ];
     const labels = new Map();
     original.forEach(label => {
@@ -8633,6 +8644,7 @@ mountSettings();
       if (control?.name) labels.set(control.name, label);
     });
     labels.set('payrollAccountId', account);
+    labels.set('employmentStatus',employment); labels.set('separationDate',separation);
     labels.set('salaryApplies', salaryApplies);
     const photoPreview = form.querySelector('.employee-photo-preview104');
     const titleLabel = byName('code');
