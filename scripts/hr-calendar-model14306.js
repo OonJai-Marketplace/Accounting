@@ -12,10 +12,18 @@
  function events(year,rows=[],overrides={},approved=[]){const base=new Map([...holidays(year),...(approved||[])].map(e=>[e.id,e]));return [...[...base.values()].map(e=>({...e,...overrides[e.id],id:e.id})),...rows.map(r=>({...r.data,id:r.id}))].filter(e=>e.status!=='cancelled')}
  function scheduleDefaults(payroll={}){return {schedules:[{from:'1900-01-01',days:Array.from({length:7},(_,day)=>({day,work:!(payroll.nonWorkDays99||[]).includes(day),start:'08:00',end:'17:00',fraction:1}))}],holidayOverrides:{}}}
  function validateEvent(e){if(!String(e.title||'').trim())throw Error('Enter an event title.');if(!valid(e.start)||!valid(e.end)||e.end<e.start)throw Error('Choose a valid start and end date.');if(+date(e.end)-date(e.start)>366*dayMs)throw Error('Keep each event within one year.');if(!['holiday','occasion','project','workday'].includes(e.type))throw Error('Choose an event type.');if(!['none','off','half','work'].includes(e.effect))throw Error('Choose the attendance effect.');if(!['scheduled','completed','cancelled'].includes(e.status))throw Error('Choose an event status.');if(!Number.isInteger(Number(e.reminderMonths))||e.reminderMonths<0||e.reminderMonths>12||!Number.isInteger(Number(e.reminderDays))||e.reminderDays<0||e.reminderDays>365)throw Error('Choose a valid reminder lead time.');if(['half','work'].includes(e.effect)&&(!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(e.workStart||'')||!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(e.workEnd||'')||e.workEnd<=e.workStart))throw Error('Enter work hours with the end after the start.');return e}
- function applies(e,employeeId){return !e.employeeIds?.length||e.employeeIds.includes(employeeId)}
+ function selectedEmployees(e){return e.employeeScope==='selected'||!!e.employeeIds?.length}
+ function applies(e,employeeId){return !selectedEmployees(e)||!!e.employeeIds?.includes(employeeId)}
  function dayInfo(s,employeeId,settings,rows=[],payroll={}){if(!valid(s))throw Error('Invalid calendar date.');settings=settings||scheduleDefaults(payroll);const weekday=date(s).getUTCDay(),schedule=(settings.schedules||[]).filter(x=>x.from<=s).sort((a,b)=>b.from.localeCompare(a.from))[0],weekly=schedule?.days.find(x=>x.day===weekday)||{work:!(payroll.nonWorkDays99||[]).includes(weekday),fraction:1,start:'08:00',end:'17:00'};
   let out={paidFraction:weekly.work?Number(weekly.fraction??1):0,work:!!weekly.work,fraction:weekly.work?Number(weekly.fraction??1):0,start:weekly.start,end:weekly.end,label:weekly.work?'Working day':'Non-work day',holiday:false};
-  const matches=events(s.slice(0,4),rows,settings.holidayOverrides,settings.approvedCalendarNews14309).filter(e=>e.start<=s&&e.end>=s&&e.effect!=='none'&&applies(e,employeeId)).sort((a,b)=>Number(!a.publicHoliday)-Number(!b.publicHoliday)||String(a.updatedAt||'').localeCompare(String(b.updatedAt||''))||a.id.localeCompare(b.id));
+  const onDate=events(s.slice(0,4),rows,settings.holidayOverrides,settings.approvedCalendarNews14309).filter(e=>e.start<=s&&e.end>=s&&e.effect!=='none');
+  // An explicitly assigned company holiday takes precedence over a blanket published observance on that date.
+  // Older snapshots have no employeeScope and retain their original overlap behavior.
+  const assignedHoliday=onDate.some(e=>e.type==='holiday'&&e.effect==='off'&&e.employeeScope==='selected');
+  const matches=onDate.filter(e=>{
+   const blanketObservance=e.publicHoliday&&e.type==='holiday'&&e.effect==='off'&&!selectedEmployees(e);
+   return !(assignedHoliday&&blanketObservance)&&applies(e,employeeId);
+  }).sort((a,b)=>Number(!a.publicHoliday)-Number(!b.publicHoliday)||String(a.updatedAt||'').localeCompare(String(b.updatedAt||''))||a.id.localeCompare(b.id));
   for(const e of matches)out={paidFraction:e.effect==='off'?(e.type==='holiday'?out.paidFraction:0):e.effect==='half'?.5:1,work:e.effect!=='off',fraction:e.effect==='off'?0:e.effect==='half'?.5:1,start:e.workStart||weekly.start,end:e.workEnd||weekly.end,label:e.title,holiday:e.type==='holiday',eventId:e.id};return out;
  }
  function leaveDays(from,to,employeeId,settings,rows,payroll){if(!valid(from)||!valid(to)||from>to)throw Error('Choose a valid leave date range.');if(+date(to)-date(from)>366*dayMs)throw Error('Keep each leave request within one year.');let total=0;for(let d=from;d<=to;d=addDays(d,1))total+=dayInfo(d,employeeId,settings,rows,payroll).fraction;return total}
@@ -23,6 +31,6 @@
  const unfinished=(e,now=today())=>!['completed','cancelled','ended','terminated','renewed'].includes(e.status)&&e.end>=now;
  function upcoming(list,now=today()){return list.filter(e=>unfinished(e,now)&&reminderDate(e)<=now).sort((a,b)=>a.start.localeCompare(b.start)||a.title.localeCompare(b.title))}
  function nearest(list,now=today()){return list.filter(e=>unfinished(e,now)).sort((a,b)=>a.start.localeCompare(b.start)||a.title.localeCompare(b.title))[0]||null}
- root.HRCalendarModel14306={today,valid,addDays,addMonths,holidays,events,scheduleDefaults,validateEvent,dayInfo,leaveDays,reminderDate,upcoming,nearest,unfinished,clone,source};
+ root.HRCalendarModel14306={today,valid,addDays,addMonths,holidays,events,scheduleDefaults,validateEvent,selectedEmployees,dayInfo,leaveDays,reminderDate,upcoming,nearest,unfinished,clone,source};
  if(typeof module!=='undefined')module.exports=root.HRCalendarModel14306;
 })(typeof window==='undefined'?globalThis:window);
