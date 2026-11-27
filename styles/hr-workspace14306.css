@@ -21,6 +21,10 @@ body :is(#payroll-employees,#hr-contracts,#hr-leave,#hr-assessments,#hr-attendan
 .hr-dialog14306 .check82{display:flex;flex-direction:row;align-items:center;gap:6px}
 .hr-fields14306{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px}
 .hr-wide14306{grid-column:1/-1}
+.calendar-employees{min-width:0;border:1px solid #c8d9cd;border-radius:5px;padding:8px 12px}
+.calendar-employees legend{font-weight:600}
+.calendar-employees [data-employee-list]{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));margin:6px 0}
+.calendar-employees label.check82{padding:4px 0;cursor:pointer}
 .hr-week14306{display:grid;grid-template-columns:90px 36px 1fr 1fr 90px;gap:8px;align-items:center;margin:14px 0;font-size:12px}
 .hr-week14306 input[type=checkbox]{justify-self:center}
 .hr-detail14306{display:grid;grid-template-columns:110px 1fr;gap:8px;font-size:13px}
