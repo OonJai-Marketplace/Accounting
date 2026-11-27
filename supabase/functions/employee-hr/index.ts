@@ -1,9 +1,11 @@
 import { hashPassword, verifyPassword } from 'npm:@better-auth/utils@0.5.1/password';
 import { administrator,createClient } from '../_shared/security14320.ts';
 
+import { portalBalances } from './portal-ledger.js';
+
 const db=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
   {auth:{persistSession:false,autoRefreshToken:false}});
-const origins=new Set(['https://oonjai-marketplace.github.io','https://hub.oonjai.invalid','https://accounting.oonjai.invalid',
+const origins=new Set(['https://oonjai-marketplace.github.io','https://hub.oonjai.invalid','https://hr.oonjai.invalid','https://accounting.oonjai.invalid',
   ...(Deno.env.get('APP_ORIGINS')||Deno.env.get('APP_ORIGIN')||'').split(',').map(v=>v.trim())]);
 const hex=(v:Uint8Array)=>Array.from(v,b=>b.toString(16).padStart(2,'0')).join('');
 async function digest(v:string){return hex(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(v))));}
@@ -15,7 +17,7 @@ async function body(req:Request){
   if(!req.headers.get('content-type')?.toLowerCase().startsWith('application/json')||!req.body)throw Error();
   const reader=req.body.getReader(),decoder=new TextDecoder();let n=0,s='';
   for(;;){const {done,value}=await reader.read();if(done)break;n+=value.length;
-    if(n>4096){await reader.cancel();throw Error();}s+=decoder.decode(value,{stream:true});}
+    if(n>16384){await reader.cancel();throw Error();}s+=decoder.decode(value,{stream:true});}
   const b=JSON.parse(s+decoder.decode());if(!b||typeof b!=='object'||Array.isArray(b))throw Error();return b;
 }
 Deno.serve(async req=>{
@@ -47,6 +49,24 @@ Deno.serve(async req=>{
       const token='hr1_'+hex(crypto.getRandomValues(new Uint8Array(32)));
       const issued=await db.rpc('employee_hr_session',{p_action:'issue',p_digest:await digest(token),p_employee:lookup.data.id,p_revision:lookup.data.revision});
       if(issued.error)throw issued.error;return issued.data?send(200,{token,employee:issued.data}):send(401,{error:denied});
+    }
+    if(['dashboard','leave','leaveHistory','attendance','submit'].includes(b.action)){
+      if(!hr)return send(401,{error:'Your HR session has ended. Sign in again.'});
+      const fields=b.data??{};
+      if(!fields || typeof fields!=='object' || Array.isArray(fields) ||
+        (b.action==='attendance' && !/^\d{4}-(0[1-9]|1[0-2])-01$/.test(fields.month)) ||
+        (b.action!=='submit' && Object.keys(fields).some(k=>b.action!=='attendance'||k!=='month')))
+        return send(400,{error:'Invalid portal request.'});
+      const result=await db.rpc('employee_hr_portal',{p_digest:await digest(bearer),p_action:b.action,p_data:fields});
+      if(result.error){
+        if(result.error.message==='Too many requests in one hour')return send(429,{error:'Too many leave requests. Retry in one hour.'});
+        if(['P0001','23505','22007','22008','22P02'].includes(result.error.code))return send(400,{error:'Check the request details and try again.'});
+        throw result.error;
+      }
+      if(result.data===null)return send(401,{error:'Your HR session expired or access changed. Sign in again.'});
+      if(b.action==='leave'||b.action==='leaveHistory')return send(200,{balances:portalBalances(result.data),
+        probationary:result.data.employee.data.employmentStatus==='probationary',today:result.data.today,history:result.data.history});
+      return send(200,result.data);
     }
     if(!['list','save','history'].includes(b.action))return send(400,{error:'Unknown operation.'});
     if(!bearer||hr)return send(403,{error:'Active Accounting administrator required.'});
