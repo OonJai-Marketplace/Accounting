@@ -2,7 +2,9 @@
   "version": "5",
   "specifiers": {
     "npm:@better-auth/utils@0.5.1": "0.5.1",
-    "npm:@supabase/supabase-js@2.49.8": "2.49.8"
+    "npm:@stacksjs/ts-webp@0.1.7": "0.1.7",
+    "npm:@supabase/supabase-js@2.49.8": "2.49.8",
+    "npm:jpeg-js@0.4.4": "0.4.4"
   },
   "npm": {
     "@better-auth/utils@0.5.1": {
@@ -15,6 +17,9 @@
     "@noble/hashes@2.4.0": {
       "integrity": "sha512-X5XaVWZIBCT7HHZGm5I7ZQXDwLG+bGXuSrMQAW+7Zvl87h1kmc1ZB1VSRJcpUfoUrGQp4Fkoxm5kZ+Ms+aW+eA==",
       "tarball": "https://registry.npmjs.org/@noble/hashes/-/hashes-2.4.0.tgz"
+    },
+    "@stacksjs/ts-webp@0.1.7": {
+      "integrity": "sha512-MKIO37g9Y1kIOCeAkrctT2yM5wFwKCL6IY+K7QeLifIq504S1n2bK20OR/AsUecQwmSuK4eXECXhcb7as8m5LA=="
     },
     "@supabase/auth-js@2.69.1": {
       "integrity": "sha512-FILtt5WjCNzmReeRLq5wRs3iShwmnWgBvxHfqapC/VoljJl+W8hDAyFmf1NVw3zH+ZjZ05AKxiKxVeb0HNWRMQ==",
@@ -90,6 +95,9 @@
         "@types/node"
       ],
       "tarball": "https://registry.npmjs.org/@types/ws/-/ws-8.18.2.tgz"
+    },
+    "jpeg-js@0.4.4": {
+      "integrity": "sha512-WZzeDOEtTOBK4Mdsar0IqEU5sMr3vSV2RqkAIzUEV2BHnUfKGyswWFPFwK5EeDo93K3FohSHbLAjj0s1Wzd+dg=="
     },
     "tr46@0.0.3": {
       "integrity": "sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==",
