@@ -7,7 +7,7 @@ const { randomUUID, randomBytes } = require('node:crypto');
 const { Pool } = require('pg');
 
 const bucket = 'hr-attendance-selfies';
-const migrations = ['20261127011452_employee_hr_accounts.sql', '20261127133000_employee_hr_portal.sql', '20261127180000_employee_hr_clock.sql'];
+const migrations = ['20261127011452_employee_hr_accounts.sql', '20261127133000_employee_hr_portal.sql', '20261127175306_employee_hr_clock.sql'];
 async function installFixture(db, realStorage=false) {
   for (const role of ['anon','authenticated','service_role']) {
     if (!(await db.query('select 1 from pg_roles where rolname=$1',[role])).rowCount) {
