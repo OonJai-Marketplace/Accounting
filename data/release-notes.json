@@ -1,6 +1,7 @@
 {
-  "version": "143.509",
+  "version": "143.510",
   "changes": [
+    "HR Attendance shows employee portal Clock In, Clock Out and recorded elapsed time for the selected month.",
     "Calendar and holiday notifications let you choose paid holiday recipients by employee. HR Attendance uses the saved selection.",
     "Administrators can manage independent employee HR credentials and review access history under Human Resources → Employee Accounts.",
     "Accounting reopens the last-used desktop or tablet screen from saved data. Returning with a valid session prepares the selected area first, and fresh sign-in still prepares the full workspace.",

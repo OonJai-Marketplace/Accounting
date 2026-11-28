@@ -11,12 +11,45 @@ function form(kind,record={}){const fields=kind==='contracts'?[
 window.hrHistory99=function(kind,id){const e=employee(),record=e?.data[kind+'99']?.find(r=>r.id===id);if(!record)return;document.getElementById('hrHistory99')?.remove();const root=document.createElement('div');root.id='hrHistory99';root.className='pay-overlay95';root.innerHTML='<section class="pay-dialog95" role="dialog" aria-modal="true" aria-label="Record history"><header><h3>Record History</h3><button type="button" aria-label="Close">×</button></header>'+[record,...(record.revisions||[]).slice().reverse()].map((r,i)=>'<section class="block82"><h4>'+esc(i===0?'Current record':r.updatedAt||'Earlier revision')+'</h4>'+Object.entries(r).filter(([k])=>!['id','revisions'].includes(k)).map(([k,v])=>'<p><strong>'+esc(k)+':</strong> '+esc(v)+'</p>').join('')+'</section>').join('')+'</section>';document.body.append(root);root.querySelector('header button').onclick=()=>root.remove()};
 window.deleteHr108=async function(kind,id){const actor=liveProfile?.id,db=ojmDb,current=()=>liveProfile?.id===actor&&ojmDb===db;const e=employee(),list=e?.data[kind+'99']||[],record=list.find(r=>r.id===id);if(!record)return;if(!await ui108.confirm('Delete HR record','Remove '+record.title+'? Its prior data will remain in the employee audit history.')||!current())return;return runAction82(async()=>{if(!current())return;await saveWork82('employees',{...e.data,[kind+'99']:list.filter(r=>r.id!==id),deletedHr108:[...(e.data.deletedHr108||[]),{kind,record,deletedAt:new Date().toISOString(),deletedBy:liveProfile.id}]},e);if(current())renderHr99()})};
 window.cancelHr99=function(){editor=null;renderHr99()};window.editHr99=function(kind,id=''){const e=employee();if(!e)return;editor={kind,id};renderHr99()};
+function addClockRegisters(root,month){
+ if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(month))return;
+ const actor=liveProfile?.id,db=ojmDb;
+ const section=document.createElement('section');
+ section.className='block82';
+ section.innerHTML='<header><h4>Employee clock records</h4><div class="actions82"><button type="button">View clock records</button></div></header><div role="status" aria-live="polite"></div>';
+ root.append(section);
+ const button=section.querySelector('button'),results=section.querySelector('[role="status"]');
+ const current=()=>section.isConnected&&section.closest('.tab-content')?.classList.contains('active')&&
+   admin82()&&liveProfile?.id===actor&&ojmDb===db&&Work82.run?.month===month;
+ const time=new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Vientiane',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+ function formatTime(stamp){return stamp?time.format(new Date(stamp)):'—'}
+ function elapsed(seconds){
+   if(seconds==null)return '—';
+   const minutes=Math.floor(seconds/60);
+   return Math.floor(minutes/60)+'h '+String(minutes%60).padStart(2,'0')+'m '+String(seconds%60).padStart(2,'0')+'s';
+ }
+ button.onclick=async()=>{
+   if(button.disabled||!current())return;
+   button.disabled=true;results.textContent='Loading clock records…';
+   try{
+     if(!db)throw Error('Reconnect to load clock records.');
+     const {data,error}=await db.rpc('hr_clock_registers',{p_month:month+'-01'});
+     if(!current())return;
+     if(error)throw Error(error.code==='42501'?'An active HR administrator must sign in to view these records.':'Clock records could not be loaded. Check your connection and retry.');
+     results.innerHTML=data?.length?table82(['Employee','Date','Clock In (Laos)','Clock Out (Laos)','Elapsed time','Status'],
+       data.map(r=>[esc(r.name||r.employeeId),esc(formatAppDate(r.date)),esc(formatTime(r.clockIn)),esc(formatTime(r.clockOut)),esc(elapsed(r.durationSeconds)),esc(r.status)])):'';
+     if(!data?.length)results.textContent='No clock records for this month.';
+     button.textContent='Refresh clock records';
+   }catch(error){if(current()){results.textContent=error.message;button.textContent='Retry clock records'}}
+   finally{if(current())button.disabled=false}
+ };
+}
 window.renderHr99=function(){
  const id=document.querySelector('.tab-content.active')?.id;if(!['hr-attendance','hr-leave','hr-assessments','hr-contracts','hr-calendar'].includes(id))return;if(!admin82()){document.getElementById(id).replaceChildren();return;}
  if(id==='hr-calendar'){window.hrCalendar14306?.render();return}
  if(window.hrWorkspace14306&&id==='hr-contracts'){hrWorkspace14306.renderContracts();return}
  if(window.hrWorkspace14306&&id==='hr-leave'){hrWorkspace14306.renderLeave();return}
- if(id==='hr-attendance'){if(!Work82.run)payroll95.selectMonth(today82().slice(0,7));syncPayrollRoster99();mount82(id,'Attendance','Shared with Payroll → Deductions. Save attendance after recording exceptions.',Work82.run?renderAttendance99(Work82.run,Work82.run.status==='finalized'):'<p>Open a payroll month first.</p>',action82('Reload Saved Attendance','runAction82(()=>reloadAttendance238())')+(Work82.run?.status==='finalized'?'':action82('Save Attendance','runAction82(()=>hrWorkspace14306.saveAttendance())',true)));const root=document.querySelector('#hr-attendance .work82');if(root){const toolbar=root.querySelector(':scope > .attendance-toolbar99'),calendar=root.querySelector(':scope > .attendance-scroll99'),summary=root.querySelector(':scope > .attendance-summary99');if(toolbar&&calendar){const section=document.createElement('section');section.className='block82 attendance-calendar102';section.innerHTML='<header><h4>Attendance Calendar</h4></header>';toolbar.before(section);section.append(toolbar,calendar)}if(summary){summary.classList.add('block82');summary.querySelector('h4')?.remove();summary.insertAdjacentHTML('afterbegin','<header><h4>Attendance Summary</h4></header>')}}return}
+ if(id==='hr-attendance'){if(!Work82.run)payroll95.selectMonth(today82().slice(0,7));syncPayrollRoster99();mount82(id,'Attendance','Shared with Payroll → Deductions. Save attendance after recording exceptions.',Work82.run?renderAttendance99(Work82.run,Work82.run.status==='finalized'):'<p>Open a payroll month first.</p>',action82('Reload Saved Attendance','runAction82(()=>reloadAttendance238())')+(Work82.run?.status==='finalized'?'':action82('Save Attendance','runAction82(()=>hrWorkspace14306.saveAttendance())',true)));const root=document.querySelector('#hr-attendance .work82');if(root){addClockRegisters(root,Work82.run?.month);const toolbar=root.querySelector(':scope > .attendance-toolbar99'),calendar=root.querySelector(':scope > .attendance-scroll99'),summary=root.querySelector(':scope > .attendance-summary99');if(toolbar&&calendar){const section=document.createElement('section');section.className='block82 attendance-calendar102';section.innerHTML='<header><h4>Attendance Calendar</h4></header>';toolbar.before(section);section.append(toolbar,calendar)}if(summary){summary.classList.add('block82');summary.querySelector('h4')?.remove();summary.insertAdjacentHTML('afterbegin','<header><h4>Attendance Summary</h4></header>')}}return}
  if(id==='hr-leave'){mount82(id,'Leave','Shared employee balances and approved leave.',leaveForm82()+table82(['Employee','Dates','Type','Status','Actions'],Work82.leaves.map(r=>[esc(Work82.employees.find(e=>e.id===r.data.employeeId)?.data.name||'Employee'),esc(formatAppDate(r.data.from)+' – '+formatAppDate(r.data.to)),esc(r.data.type),esc(r.data.status),action82('Print Form',`printLeaveApplication97('${r.id}')`)+action82('Delete',`deleteWork108('leaves','${r.id}')`)+(['pending','approved'].includes(r.data.status)?action82('Approve',`leaveStatus82('${r.id}','approved')`)+action82('Cancel',`leaveStatus82('${r.id}','cancelled')`):'')])),action82('Employee Balances',"switchTab('payroll-employees')")+action82('Print Blank Leave Form',"printLeaveApplication97('')"));return}
  const kind=id==='hr-contracts'?'contracts':'assessments',e=employee();if(e)selection=e.id;
  const list=e?.data[kind+'99']||[],record=editor?.kind===kind?list.find(r=>r.id===editor.id)||{}:null;
