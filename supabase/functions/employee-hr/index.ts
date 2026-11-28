@@ -1,6 +1,7 @@
 import { hashPassword, verifyPassword } from 'npm:@better-auth/utils@0.5.1/password';
 import { administrator,createClient } from '../_shared/security14320.ts';
 
+import { ClockError, clockRpc, signedClockPhoto, submitClock, validId } from './clock.ts';
 import { portalBalances } from './portal-ledger.js';
 
 const db=createClient(Deno.env.get('SUPABASE_URL')!,Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
@@ -24,15 +25,26 @@ Deno.serve(async req=>{
   const origin=req.headers.get('origin');
   const headers={'Content-Type':'application/json','Cache-Control':'no-store','Vary':'Origin',
     'Access-Control-Allow-Origin':origin&&origins.has(origin)?origin:'null','Access-Control-Allow-Methods':'POST, OPTIONS',
-    'Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info'};
+    'Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info, x-attendance'};
   const send=(status:number,data:unknown)=>new Response(JSON.stringify(data),{status,headers});
   if(origin&&!origins.has(origin))return send(403,{error:'Origin not permitted.'});
   if(req.method==='OPTIONS')return new Response(null,{status:204,headers});
   if(req.method!=='POST')return send(405,{error:'Use POST.'});
-  let b;try{b=await body(req);}catch{return send(400,{error:'Invalid request.'});}
   const bearer=req.headers.get('authorization')?.replace(/^Bearer\s+/i,'')||'';
   const hr=/^hr1_[0-9a-f]{64}$/.test(bearer);
   try{
+    if(new URL(req.url).searchParams.get('action')==='clockSubmit'){
+      if(!hr)return send(401,{error:'Sign in to HR before registering attendance.'});
+      return send(200,await submitClock(db,req,await digest(bearer)));
+    }
+    let b;try{b=await body(req);}catch{return send(400,{error:'Invalid request.'});}
+    if(['clockBegin','clockReceipt','clockCancel'].includes(b.action)){
+      if(!hr)return send(401,{error:'Sign in to HR before registering attendance.'});
+      const d=b.data;
+      if(!d || !validId(d.submission) || Object.keys(d).some(k=>!(k==='submission'||(k==='type'&&b.action==='clockBegin'))) ||
+        (b.action==='clockBegin'&&!['clock-in','clock-out'].includes(d.type)))return send(400,{error:'Invalid attendance request.'});
+      return send(200,await clockRpc(db,await digest(bearer),b.action,d));
+    }
     if(b.action==='login'||b.action==='logout'||b.action==='me'){
       if(b.action!=='login'||hr){
         if(!hr)return send(401,{error:'Sign in to HR.'});
@@ -66,13 +78,24 @@ Deno.serve(async req=>{
       if(result.data===null)return send(401,{error:'Your HR session expired or access changed. Sign in again.'});
       if(b.action==='leave'||b.action==='leaveHistory')return send(200,{balances:portalBalances(result.data),
         probationary:result.data.employee.data.employmentStatus==='probationary',today:result.data.today,history:result.data.history});
+      if(b.action==='dashboard'){
+        const clock=await clockRpc(db,await digest(bearer),'today',{});
+        return send(200,{...result.data,clock,serverNow:new Date().toISOString()});
+      }
+      if(b.action==='attendance'){
+        const clocks=await clockRpc(db,await digest(bearer),'month',fields);
+        const byDate=new Map<string,Record<string,unknown>>();
+        for(const row of [...result.data,...clocks])byDate.set(row.date,{...byDate.get(row.date),...row});
+        return send(200,Array.from(byDate.values()).sort((a,b)=>String(b.date).localeCompare(String(a.date))));
+      }
       return send(200,result.data);
     }
-    if(!['list','save','history'].includes(b.action))return send(400,{error:'Unknown operation.'});
+    if(!['list','save','history','clockPhoto'].includes(b.action))return send(400,{error:'Unknown operation.'});
     if(!bearer||hr)return send(403,{error:'Active Accounting administrator required.'});
     let actor;try{actor=await administrator(req);}catch{return send(403,{error:'Active Accounting administrator required.'});}
     const claims=JSON.parse(atob(bearer.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));
     if(!uuid(claims.session_id))return send(403,{error:'Sign in again.'});
+    if(b.action==='clockPhoto')return send(200,await signedClockPhoto(db,actor.user.id,claims.session_id,b.eventId));
     const data:Record<string,unknown>={};
     if(b.action!=='list'){if(!uuid(b.id))return send(400,{error:'Choose an employee.'});data.id=b.id;}
     if(b.action==='save'){
@@ -90,5 +113,5 @@ Deno.serve(async req=>{
     if(result.error.code==='42501')return send(403,{error:'Active Accounting administrator required.'});
     if(result.error.message==='Account changed. Refresh before retrying.')return send(409,{error:result.error.message});
     throw result.error;
-  }catch{return send(503,{error:'HR accounts are temporarily unavailable. Refresh before retrying a save.'});}
+  }catch(err){if(err instanceof ClockError)return send(err.status,{error:err.message});return send(503,{error:'HR accounts are temporarily unavailable. Refresh before retrying a save.'});}
 });
